@@ -116,6 +116,10 @@ namespace.
 (defn make-api-link [ns]
   (wiki-word-for (ns-short-name ns)))
 
+(defn remove-leading-whitespace [str]
+  (when str
+    (.replaceAll (.matcher #"(?m)^\s*" str) "")))
+
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file-for "contrib-overview")))]
     (cl-format overview "#summary An overview of the components of clojure.contrib~%")
@@ -126,21 +130,21 @@ namespace.
       (when-let [author (:author ^namespace)]
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
-      (when-let [doc (or (:wiki-doc ^namespace) (:doc ^namespace))]
+      (when-let [doc (or (:wiki-doc ^namespace) (remove-leading-whitespace (:doc ^namespace)))]
         (cl-format overview "~a~%"  doc))
       (cl-format overview "~%"))))
 
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
-  (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
+  ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
   (cl-format api-out "----~%")
   (if-let [arglists (:arglists ^v)]
     (doseq [args arglists] 
       (cl-format api-out "===(_~a_~{ ~a~})===~%" (:name ^v) args))
-    (cl-format api-out "===(_~a_)===~%" (:name ^v)))
+    (cl-format api-out "===_~a_===~%" (:name ^v)))
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
-  (when-let [doc (or (:wiki-doc ^v) (:doc ^v))]
+  (when-let [doc (or (:wiki-doc ^v) (remove-leading-whitespace (:doc ^v)))]
     (cl-format api-out "~a~%" (.replaceAll (.matcher #"(?<!\\n)\\n(?!\\n)" doc) ""))))
 
 (defn gen-api-page [ns]
@@ -153,10 +157,7 @@ namespace.
         (cl-format api-out "==Overview==~%~a~2%" doc))
       (cl-format api-out "==Public Variables and Functions==~%")
       (let [vs (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
-                     ;;TODO: the folowing "when" should be
-                     ;; :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v)]
-                     ;; but we want to show undocumented stuff for the moment
-                     :when (and (or ^v (:doc ^v)) (not (:private ^v)))] v)]
+                     :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v)]
         (when vs
           (doseq [v vs] (wiki-doc api-out v)))))))
   
