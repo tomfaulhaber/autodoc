@@ -118,7 +118,7 @@ namespace.
 
 (defn remove-leading-whitespace [str]
   (when str
-    (.replaceAll (.matcher #"(?m)^\s*" str) "")))
+    (.replaceAll (.matcher #"(?m)^[ \t]*" str) "")))
 
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file-for "contrib-overview")))]
@@ -145,7 +145,7 @@ namespace.
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
   (when-let [doc (or (:wiki-doc ^v) (remove-leading-whitespace (:doc ^v)))]
-    (cl-format api-out "~a~%" (.replaceAll (.matcher #"(?<!\\n)\\n(?!\\n)" doc) ""))))
+    (cl-format api-out "~a~%" doc)))
 
 (defn gen-api-page [ns]
   (let [ns-name (ns-short-name ns)]
