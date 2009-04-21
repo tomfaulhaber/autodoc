@@ -19,7 +19,8 @@
 (def *jar-file* (str *file-prefix* "/clojure-contrib.jar"))
 
 (def *wiki-work-area* "../wiki-work-area/wiki-src/")
-(def *wiki-word-prefix* "ZZAutoGen")
+(def *wiki-word-prefix* "")
+(def *wiki-word-suffix* "ApiDoc")
 (def *wiki-file-suffix* ".wiki")
 
 (add-classpath (str "file:" *file-prefix* "/src/"))
@@ -35,16 +36,51 @@ namespace.
 </wiki:comment>
 ")
 
+(def overview-intro "The user contributions library, clojure.contrib, is a collection
+of namespaces each of which implements features that we believe may be useful to 
+a large part of the clojure community. 
+
+This library was created by Rich Hickey but has been populated and is maintained by a 
+group of volunteers who are excited about the success of the Clojure language and 
+want to do our part to help it along. The current list of contributors is available 
+on the [http://code.google.com/p/clojure-contrib/ clojure.contrib home page].
+
+More contributions (and contributors) are welcome. If you wish to contribute, you will need
+to sign a contributor agreement (which allows Clojure and clojure.contrib to proceed
+without entanglements, see [http://clojure.org/contributing contributing] for more info). 
+The best way to start is to share a project you've written with the google group and gauge
+the interest in adding it to contrib. (Publishing it in an open source form on google code,
+github or some other easy-to-access place in the net will also help.)
+
+Some parts of clojure.contrib may migrate into clojure.core if they prove to be so 
+generally useful that they justify being everywhere. (For example, condp started out
+as an extension in contrib, but was moved to core by popular acclamation.)
+
+The exact role of clojure.contrib is the subject of pretty much continuous discussion
+in the clojure google group and in #clojure on freenode. Feel free to join that 
+discussion and help shape the ways Clojure is extended.
+
+Like Clojure itself, clojure.contrib is made available under the [http://opensource.org/licenses/eclipse-1.0.php Eclipse Public License (EPL)]. 
+clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
+")
+
 (load "clojure.contrib.pprint.utilities")
 (load "clojure.contrib.pprint")
 (refer 'clojure.contrib.pprint)
 
 (defn wiki-word-for [reference]
   (str *wiki-word-prefix* 
-       (apply str (.split (cl-format nil "~:(~a~)" reference) "[.-]"))))
+       (apply str
+              (apply str
+                     (map #(apply str (concat [(Character/toUpperCase (first %))] (next %)))
+                          (.split reference "[.-]"))))
+       *wiki-word-suffix*))
 
 (defn wiki-file-for [reference]
   (str *wiki-work-area* (wiki-word-for reference) *wiki-file-suffix*))
+
+(defn wiki-file [basename]
+  (str *wiki-work-area* basename *wiki-file-suffix*))
 
 (defn wiki-wildcard [] (wiki-file-for "*"))
 
@@ -121,12 +157,16 @@ namespace.
     (.replaceAll (.matcher #"(?m)^[ \t]*" str) "")))
 
 (defn gen-overview [namespaces]
-  (with-open [overview (BufferedWriter. (FileWriter. (wiki-file-for "contrib-overview")))]
-    (cl-format overview "#summary An overview of the components of clojure.contrib~%")
+  (with-open [overview (BufferedWriter. (FileWriter. (wiki-file "OverviewOfContrib")))]
+    (cl-format overview "#summary An overview of the clojure.contrib library~%")
     (cl-format overview "~a" header-content)
-    (cl-format overview "=Clojure.contrib Overview=~%")
+    (cl-format overview "=The User Contributions Library, clojure.contrb=~%")
+    (cl-format overview overview-intro)
+    (cl-format overview "=Summary of the Namespaces in clojure.contrib=~%")
     (doseq [namespace namespaces]
-      (cl-format overview "*~a* [~a api]" (.getName namespace) (make-api-link namespace))
+      (cl-format overview "*~a* [~a api]"
+                 (ns-short-name namespace)
+                 (make-api-link namespace))
       (when-let [author (:author ^namespace)]
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
@@ -150,10 +190,13 @@ namespace.
 (defn gen-api-page [ns]
   (let [ns-name (ns-short-name ns)]
     (with-open [api-out (BufferedWriter. (FileWriter. (wiki-file-for (ns-short-name ns))))]
-      (cl-format api-out "#summary An api-out of the API of clojure.contrib.~a~%" ns-name)
+      (cl-format api-out "#summary ~a API Reference~%" ns-name)
       (cl-format api-out "~a" header-content)
-      (cl-format api-out "=API for clojure.contrib.~a=~%" ns-name)
-      (when-let [doc (or (:wiki-doc ^ns) (:doc ^ns))]
+      (cl-format api-out "=API for ~a=~%" ns-name)
+      (cl-format api-out 
+                 "Usage: ~%{{{~%(ns <your-namespace>~%  (:use clojure.contrib.~a))~%}}}~%"
+                 ns-name)
+      (when-let [doc (or (:wiki-doc ^ns) (remove-leading-whitespace (:doc ^ns)))]
         (cl-format api-out "==Overview==~%~a~2%" doc))
       (cl-format api-out "==Public Variables and Functions==~%")
       (let [vs (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
