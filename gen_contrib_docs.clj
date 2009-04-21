@@ -50,13 +50,17 @@ to sign a contributor agreement (which allows Clojure and clojure.contrib to pro
 without entanglements, see [http://clojure.org/contributing contributing] for more info). 
 The best way to start is to share a project you've written with the google group and gauge
 the interest in adding it to contrib. (Publishing it in an open source form on google code,
-github or some other easy-to-access place in the net will also help.)
+github or some other easy-to-access place in the net will also help.) After general 
+discussion, Rich Hickey makes the final determination about what gets added to 
+clojure.contrib.
 
 Some parts of clojure.contrib may migrate into clojure.core if they prove to be so 
 generally useful that they justify being everywhere. (For example, condp started out
 as an extension in contrib, but was moved to core by popular acclamation.)
 
-The exact role of clojure.contrib is the subject of pretty much continuous discussion
+The exact role of clojure.contrib and the future of the Clojure environment (standard 
+libraries, dependency models, packaging systems, etc.)
+is the subject of pretty much continuous discussion
 in the clojure google group and in #clojure on freenode. Feel free to join that 
 discussion and help shape the ways Clojure is extended.
 
@@ -156,11 +160,25 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
   (when str
     (.replaceAll (.matcher #"(?m)^[ \t]*" str) "")))
 
+(defn var-headers [v]
+  (if-let [arglists (:arglists ^v)]
+    (map  
+     #(cl-format nil "(_~a_~{ ~a~})" (:name ^v) %)
+     arglists)
+    [(cl-format nil "_~a_" (:name ^v))]))
+
+(defn var-anchor [v]
+  (.replaceAll (first (var-headers v)) "_? +" "_"))
+
+(defn vars-for-ns [ns]
+  (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
+        :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
+
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file "OverviewOfContrib")))]
     (cl-format overview "#summary An overview of the clojure.contrib library~%")
     (cl-format overview "~a" header-content)
-    (cl-format overview "=The User Contributions Library, clojure.contrb=~%")
+    (cl-format overview "=The User Contributions Library, clojure.contrib=~%")
     (cl-format overview overview-intro)
     (cl-format overview "=Summary of the Namespaces in clojure.contrib=~%")
     (doseq [namespace namespaces]
@@ -178,10 +196,8 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
 (defn wiki-doc [api-out v]
   ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
   (cl-format api-out "----~%")
-  (if-let [arglists (:arglists ^v)]
-    (doseq [args arglists] 
-      (cl-format api-out "===(_~a_~{ ~a~})===~%" (:name ^v) args))
-    (cl-format api-out "===_~a_===~%" (:name ^v)))
+  (doseq [header (var-headers v)]
+    (cl-format api-out "===~a===~%" header))
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
   (when-let [doc (or (:wiki-doc ^v) (remove-leading-whitespace (:doc ^v)))]
@@ -199,9 +215,11 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
       (when-let [doc (or (:wiki-doc ^ns) (remove-leading-whitespace (:doc ^ns)))]
         (cl-format api-out "==Overview==~%~a~2%" doc))
       (cl-format api-out "==Public Variables and Functions==~%")
-      (let [vs (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
-                     :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v)]
+      (let [vs (vars-for-ns ns)]
         (when vs
+          (cl-format api-out "Shortcuts:~%")
+          (doseq [v vs] (cl-format api-out "[#~a ~a] " (var-anchor v) (:name ^v)))
+          (cl-format api-out "~%")
           (doseq [v vs] (wiki-doc api-out v)))))))
   
 (defn gen-docs []
