@@ -150,6 +150,16 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
     (subs s 16)
     s))
 
+(defn base-contrib-namespaces []
+  (filter #(re-matches #"clojure\.contrib\." (name (.getName %)))
+          (contrib-namespaces)))
+
+(defn sub-namespaces [ns]
+  "Find the list of namespaces that are sub-namespaces of this one. That is they 
+have the same prefix followed by a . and then more components"
+  (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
+    (filter #(re-matches pat (name (.getName %))) (all-ns))))
+
 (defn ns-short-name [ns]
   (trim-ns-name (name (.getName ns))))
 
@@ -218,7 +228,14 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
       (when-let [doc (or (:wiki-doc ^namespace) (clean-doc-string (:doc ^namespace)))]
         (cl-format overview "~a~%"  doc))
       (gen-shortcuts overview "Public Variables and Functions:~%" namespace true)
-      (cl-format overview "~%"))))
+      (cl-format overview "~%")
+      (cl-format true "Sub-namespaces of ~a: ~{~a~^, ~}~%" 
+                 (name (.getName namespace))
+                 (map #(name (.getName %)) (sub-namespaces namespace)))
+      (doseq [sub-ns (sub-namespaces namespace)]
+        (gen-shortcuts overview 
+                       (cl-format nil "Variables and Functions in ~a:~%" (ns-short-name sub-ns))
+                       sub-ns true)))))
 
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
