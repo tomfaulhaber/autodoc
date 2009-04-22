@@ -160,6 +160,13 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
   (when str
     (.replaceAll (.matcher #"(?m)^[ \t]*" str) "")))
 
+(defn escape-asterisks [str] 
+  (when str
+    (.replaceAll (.matcher #"\*" str) "`*`")))
+
+(defn clean-doc-string [str]
+  (escape-asterisks (remove-leading-whitespace str)))
+
 (defn var-headers [v]
   (if-let [arglists (:arglists ^v)]
     (map  
@@ -168,11 +175,31 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
     [(cl-format nil "_~a_" (:name ^v))]))
 
 (defn var-anchor [v]
-  (.replaceAll (first (var-headers v)) "_? +" "_"))
+  (.replaceAll
+   (.replaceAll 
+    (.replaceAll (first (var-headers v)) "_? +" "_")
+    "^_+" "")
+   "_+$" ""))
+
+(defn broken-anchor [anchor]
+  (re-find #"\[|]" anchor))
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
+
+(defn gen-shortcuts [writer title namespace include-namespace?]
+  (let [vs (vars-for-ns namespace)]
+    (when (seq vs)
+      (if title (cl-format writer title))
+      (doseq [v vs]
+        (let [anchor (var-anchor v)] 
+          (if (broken-anchor anchor) 
+            (cl-format writer "~a " (:name ^v))
+            (cl-format writer "[~@[~a~]#~a ~a] "
+                       (when include-namespace? (make-api-link namespace))
+                       (var-anchor v) (:name ^v)))))
+      (cl-format writer "~%"))))
 
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file "OverviewOfContrib")))]
@@ -182,14 +209,15 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
     (cl-format overview overview-intro)
     (cl-format overview "=Summary of the Namespaces in clojure.contrib=~%")
     (doseq [namespace namespaces]
-      (cl-format overview "*~a* [~a api]"
+      (cl-format overview "===~a===~%API Overview [~a here]"
                  (ns-short-name namespace)
                  (make-api-link namespace))
       (when-let [author (:author ^namespace)]
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
-      (when-let [doc (or (:wiki-doc ^namespace) (remove-leading-whitespace (:doc ^namespace)))]
+      (when-let [doc (or (:wiki-doc ^namespace) (clean-doc-string (:doc ^namespace)))]
         (cl-format overview "~a~%"  doc))
+      (gen-shortcuts overview "Public Variables and Functions:~%" namespace true)
       (cl-format overview "~%"))))
 
 ;;; Adapted from rhickey's script for the clojure API
@@ -197,10 +225,10 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
   ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
   (cl-format api-out "----~%")
   (doseq [header (var-headers v)]
-    (cl-format api-out "===~a===~%" header))
+    (cl-format api-out "===~a===~%" (escape-asterisks header)))
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
-  (when-let [doc (or (:wiki-doc ^v) (remove-leading-whitespace (:doc ^v)))]
+  (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
     (cl-format api-out "~a~%" doc)))
 
 (defn gen-api-page [ns]
@@ -215,11 +243,10 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
       (when-let [doc (or (:wiki-doc ^ns) (remove-leading-whitespace (:doc ^ns)))]
         (cl-format api-out "==Overview==~%~a~2%" doc))
       (cl-format api-out "==Public Variables and Functions==~%")
+      (gen-shortcuts api-out "Shortcuts:~%" ns false)
+      (cl-format api-out "~%")
       (let [vs (vars-for-ns ns)]
-        (when vs
-          (cl-format api-out "Shortcuts:~%")
-          (doseq [v vs] (cl-format api-out "[#~a ~a] " (var-anchor v) (:name ^v)))
-          (cl-format api-out "~%")
+        (when (seq vs)
           (doseq [v vs] (wiki-doc api-out v)))))))
   
 (defn gen-docs []
