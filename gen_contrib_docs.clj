@@ -26,6 +26,10 @@
 (add-classpath (str "file:" *file-prefix* "/src/"))
 (add-classpath (str "file:" *file-prefix* "/classes/"))
 
+(def overview-name "OverviewOfContrib")
+(def index-name "ApiDocIndex")
+(def sidebar-name "ApiDocSidebar")
+
 (def header-content "
 <wiki:comment>
 This document was auto-generated from the clojure.contrib source by contrib-autodoc.
@@ -167,7 +171,9 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
   "Find the list of namespaces that are sub-namespaces of this one. That is they 
 have the same prefix followed by a . and then more components"
   (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
-    (filter #(re-matches pat (name (.getName %))) (all-ns))))
+    (sort-by
+     #(name (.getName %))
+     (filter #(re-matches pat (name (.getName %))) (all-ns)))))
 
 (defn ns-short-name [ns]
   (trim-ns-name (name (.getName ns))))
@@ -175,16 +181,31 @@ have the same prefix followed by a . and then more components"
 (defn make-api-link [ns]
   (wiki-word-for (ns-short-name (base-namespace ns))))
 
-(defn remove-leading-whitespace [str]
-  (when str
-    (.replaceAll (.matcher #"(?m)^[ \t]*" str) "")))
+(defn remove-leading-whitespace [s]
+  "Find out what the minimum leading whitespace is for a doc block and remove it.
+We do this because lots of people indent their doc blocks to the indentation of the 
+string, which looks nasty when you display it."
+  (when s
+    (let [lines (.split s "\\n") 
+          prefix-lens (map #(count (re-find #"^ *" %)) 
+                           (filter #(not (= 0 (count %))) 
+                                   (next lines)))
+          min-prefix (when (seq prefix-lens) (apply min prefix-lens))
+          regex (when min-prefix (apply str "^" (repeat min-prefix " ")))]
+      (if regex
+        (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
+        s))))
 
 (defn escape-asterisks [str] 
   (when str
-    (.replaceAll (.matcher #"\*" str) "`*`")))
+    (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
+
+(defn wrap-pre [s]
+  (when s
+    (str "<pre>" s "</pre>")))
 
 (defn clean-doc-string [str]
-  (escape-asterisks (remove-leading-whitespace str)))
+  (wrap-pre (escape-asterisks (remove-leading-whitespace str))))
 
 (defn var-headers [v]
   (if-let [arglists (:arglists ^v)]
@@ -229,8 +250,9 @@ have the same prefix followed by a . and then more components"
     (cl-format writer "~a~a~%" title doc)))
 
 (defn gen-overview [namespaces]
-  (with-open [overview (BufferedWriter. (FileWriter. (wiki-file "OverviewOfContrib")))]
+  (with-open [overview (BufferedWriter. (FileWriter. (wiki-file overview-name)))]
     (cl-format overview "#summary An overview of the clojure.contrib library~%")
+    (cl-format overview "#sidebar ~a~%" sidebar-name)
     (cl-format overview "~a" header-content)
     (cl-format overview "=The User Contributions Library, clojure.contrib=~%")
     (cl-format overview overview-intro)
@@ -248,6 +270,17 @@ have the same prefix followed by a . and then more components"
         (gen-shortcuts overview 
                        (cl-format nil "Variables and Functions in ~a:~%" (ns-short-name sub-ns))
                        sub-ns true)))))
+
+(defn gen-sidebar [namespaces]
+  (with-open [sidebar (BufferedWriter. (FileWriter. (wiki-file sidebar-name)))]
+    (cl-format sidebar "#summary The navigational sidebar for the generated API documentation~%")
+    (cl-format sidebar "~a" header-content)
+    (cl-format sidebar "[~a Overview]<br/>~%" overview-name)
+    (cl-format sidebar "[~a Index]~2%" index-name)
+    (doseq [namespace namespaces]
+      (cl-format sidebar "[~a ~a]<br/>~%"
+                 (make-api-link namespace)
+                 (ns-short-name namespace)))))
 
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
@@ -269,6 +302,7 @@ have the same prefix followed by a . and then more components"
   (let [ns-name (ns-short-name ns)]
     (with-open [api-out (BufferedWriter. (FileWriter. (wiki-file-for (ns-short-name ns))))]
       (cl-format api-out "#summary ~a API Reference~%" ns-name)
+      (cl-format api-out "#sidebar ~a~%" sidebar-name)
       (cl-format api-out "~a" header-content)
       (cl-format api-out "=API for ~a=" ns-name)
       (when-let [author (:author ^ns)]
@@ -295,6 +329,7 @@ have the same prefix followed by a . and then more components"
   (load-files (read-jar))
   (let [namespaces (base-contrib-namespaces)]
     (gen-overview namespaces)
+    (gen-sidebar namespaces)
     (doseq [ns namespaces]
       (gen-api-page ns))))
 
@@ -402,7 +437,7 @@ have the same prefix followed by a . and then more components"
 (defn remove-auto-doc-files []
   (cl-format true "Removing ~a...~%" (wiki-wildcard))
   (let [{result :exit, output :out error :err}
-        (sh "rm" "-f" (wiki-wildcard) :return-map true)]
+        (sh "sh" :in (str "rm -f " (wiki-wildcard) "\n") :return-map true)]
     (print output)
     (newline)
     (when-not (= result 0)
