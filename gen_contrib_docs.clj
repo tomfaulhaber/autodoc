@@ -150,9 +150,18 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
     (subs s 16)
     s))
 
+(defn base-namespace [ns]
+  "A nasty function that finds the shortest prefix namespace of this one"
+  (first 
+   (drop-while 
+    (comp not identity) 
+    (map #(find-ns (symbol %))
+         (let [parts (seq (.split (name (.getName ns)) "\\."))]
+           (map #(apply str (interpose "." (take (inc %) parts)))
+                (range 2 (count parts))))))))
+
 (defn base-contrib-namespaces []
-  (filter #(re-matches #"clojure\.contrib\." (name (.getName %)))
-          (contrib-namespaces)))
+  (filter #(= % (base-namespace %)) (contrib-namespaces)))
 
 (defn sub-namespaces [ns]
   "Find the list of namespaces that are sub-namespaces of this one. That is they 
@@ -164,7 +173,7 @@ have the same prefix followed by a . and then more components"
   (trim-ns-name (name (.getName ns))))
 
 (defn make-api-link [ns]
-  (wiki-word-for (ns-short-name ns)))
+  (wiki-word-for (ns-short-name (base-namespace ns))))
 
 (defn remove-leading-whitespace [str]
   (when str
@@ -198,8 +207,12 @@ have the same prefix followed by a . and then more components"
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
 
+(defn has-doc? [ns]
+  (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)))
+
 (defn gen-shortcuts [writer title namespace include-namespace?]
-  (let [vs (vars-for-ns namespace)]
+  (let [vs (vars-for-ns namespace)
+        api-link (when include-namespace? (make-api-link namespace))]
     (when (seq vs)
       (if title (cl-format writer title))
       (doseq [v vs]
@@ -207,9 +220,13 @@ have the same prefix followed by a . and then more components"
           (if (broken-anchor anchor) 
             (cl-format writer "~a " (:name ^v))
             (cl-format writer "[~@[~a~]#~a ~a] "
-                       (when include-namespace? (make-api-link namespace))
+                       api-link
                        (var-anchor v) (:name ^v)))))
-      (cl-format writer "~%"))))
+      (cl-format writer "~2%"))))
+
+(defn gen-ns-doc [writer title ns]
+  (when-let [doc (or (:wiki-doc ^ns) (clean-doc-string (:doc ^ns)))]
+    (cl-format writer "~a~a~%" title doc)))
 
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file "OverviewOfContrib")))]
@@ -225,13 +242,8 @@ have the same prefix followed by a . and then more components"
       (when-let [author (:author ^namespace)]
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
-      (when-let [doc (or (:wiki-doc ^namespace) (clean-doc-string (:doc ^namespace)))]
-        (cl-format overview "~a~%"  doc))
+      (gen-ns-doc overview "" namespace)
       (gen-shortcuts overview "Public Variables and Functions:~%" namespace true)
-      (cl-format overview "~%")
-      (cl-format true "Sub-namespaces of ~a: ~{~a~^, ~}~%" 
-                 (name (.getName namespace))
-                 (map #(name (.getName %)) (sub-namespaces namespace)))
       (doseq [sub-ns (sub-namespaces namespace)]
         (gen-shortcuts overview 
                        (cl-format nil "Variables and Functions in ~a:~%" (ns-short-name sub-ns))
@@ -248,27 +260,40 @@ have the same prefix followed by a . and then more components"
   (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
     (cl-format api-out "~a~%" doc)))
 
+(defn gen-var-doc [writer ns]
+  (let [vs (vars-for-ns ns)]
+    (when (seq vs)
+      (doseq [v vs] (wiki-doc writer v)))))
+
 (defn gen-api-page [ns]
   (let [ns-name (ns-short-name ns)]
     (with-open [api-out (BufferedWriter. (FileWriter. (wiki-file-for (ns-short-name ns))))]
       (cl-format api-out "#summary ~a API Reference~%" ns-name)
       (cl-format api-out "~a" header-content)
-      (cl-format api-out "=API for ~a=~%" ns-name)
+      (cl-format api-out "=API for ~a=" ns-name)
+      (when-let [author (:author ^ns)]
+        (cl-format api-out "~%<br>by ~a~%" author))
       (cl-format api-out 
-                 "Usage: ~%{{{~%(ns <your-namespace>~%  (:use clojure.contrib.~a))~%}}}~%"
+                 "~%Usage: ~%{{{~%(ns <your-namespace>~%  (:use clojure.contrib.~a))~%}}}~%"
                  ns-name)
-      (when-let [doc (or (:wiki-doc ^ns) (remove-leading-whitespace (:doc ^ns)))]
-        (cl-format api-out "==Overview==~%~a~2%" doc))
+      (gen-ns-doc api-out "==Overview==\n" ns)
+      (cl-format api-out "~2%")
       (cl-format api-out "==Public Variables and Functions==~%")
       (gen-shortcuts api-out "Shortcuts:~%" ns false)
-      (cl-format api-out "~%")
-      (let [vs (vars-for-ns ns)]
-        (when (seq vs)
-          (doseq [v vs] (wiki-doc api-out v)))))))
+      (doseq [sub-ns (sub-namespaces ns)]
+        (gen-shortcuts api-out
+                       (cl-format nil "Variables and Functions in ~a:~%" (ns-short-name sub-ns))
+                       sub-ns true))
+      (gen-var-doc api-out ns)
+      (doseq [sub-ns (sub-namespaces ns)]
+        (when (has-doc? sub-ns)
+          (cl-format api-out "==Namespace ~a==~%" (name (.getName sub-ns)))
+          (gen-ns-doc api-out "" sub-ns)
+          (gen-var-doc api-out sub-ns))))))
   
 (defn gen-docs []
   (load-files (read-jar))
-  (let [namespaces (contrib-namespaces)]
+  (let [namespaces (base-contrib-namespaces)]
     (gen-overview namespaces)
     (doseq [ns namespaces]
       (gen-api-page ns))))
