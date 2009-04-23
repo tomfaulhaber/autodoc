@@ -72,6 +72,12 @@ Like Clojure itself, clojure.contrib is made available under the [http://opensou
 clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
 ")
 
+(def index-intro "=Index of Functions and Variables=
+This page has an alphabetical index of all the documented functions and variables
+in clojure.contrib. 
+
+")
+
 (load "clojure.contrib.pprint.utilities")
 (load "clojure.contrib.pprint")
 (refer 'clojure.contrib.pprint)
@@ -241,18 +247,20 @@ beginning of paragraphs to get them to line up."
 (defn has-doc? [ns]
   (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)))
 
+(defn gen-link [writer namespace v]
+  (let [anchor (var-anchor v)] 
+    (if (broken-anchor anchor) 
+      (cl-format writer "~a " (:name ^v))
+      (cl-format writer "[~@[~a~]#~a ~a] "
+                 (when namespace (make-api-link namespace))
+                 (var-anchor v) (:name ^v)))))
+
 (defn gen-shortcuts [writer title namespace include-namespace?]
-  (let [vs (vars-for-ns namespace)
-        api-link (when include-namespace? (make-api-link namespace))]
+  (let [vs (vars-for-ns namespace)]
     (when (seq vs)
       (if title (cl-format writer title))
       (doseq [v vs]
-        (let [anchor (var-anchor v)] 
-          (if (broken-anchor anchor) 
-            (cl-format writer "~a " (:name ^v))
-            (cl-format writer "[~@[~a~]#~a ~a] "
-                       api-link
-                       (var-anchor v) (:name ^v)))))
+        (gen-link writer (when include-namespace? namespace) v))
       (cl-format writer "~2%"))))
 
 (defn gen-ns-doc [writer title ns]
@@ -334,12 +342,37 @@ beginning of paragraphs to get them to line up."
           (cl-format api-out "==Namespace ~a==~%" (name (.getName sub-ns)))
           (gen-ns-doc api-out "" sub-ns)
           (gen-var-doc api-out sub-ns))))))
-  
+
+(defn gen-index []
+  (let [namespaces (contrib-namespaces)
+        all-vars (mapcat vars-for-ns namespaces)
+        chars (conj (into [] (map #(str (char (+ 65 %))) (range 26))) "Other")
+        var-map (apply merge-with conj 
+                       (into {} (for [c chars] [c [] ]))
+                       (for [v (mapcat vars-for-ns (contrib-namespaces))]
+                         {(or (re-find #"[A-Z]" (.toUpperCase(name (:name ^v))))
+                              "Other")
+                          v}))]
+    (with-open [index (BufferedWriter. (FileWriter. (wiki-file index-name)))]
+      (cl-format index "#summary Index of documented functions and variables~%" ns-name)
+      (cl-format index "#sidebar ~a~%" sidebar-name)
+      (cl-format index "~a" header-content)
+      (cl-format index "~a" index-intro)
+      (cl-format index "Shortcuts:~2%~{~13@{~,6T[~A]~}~2%~}" chars)
+      (doseq [c chars]
+        (cl-format index "==~a==~%" c)
+        (doseq [v (var-map c)]
+          (gen-link index (:ns ^v) v)
+          (cl-format index "<br/>~%"))
+        )
+      )))  
+
 (defn gen-docs []
   (load-files (read-jar))
   (let [namespaces (base-contrib-namespaces)]
     (gen-overview namespaces)
     (gen-sidebar namespaces)
+    (gen-index)
     (doseq [ns namespaces]
       (gen-api-page ns))))
 
