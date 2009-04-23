@@ -154,8 +154,9 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
     (subs s 16)
     s))
 
-(defn base-namespace [ns]
+(defn base-namespace
   "A nasty function that finds the shortest prefix namespace of this one"
+  [ns]
   (first 
    (drop-while 
     (comp not identity) 
@@ -167,9 +168,10 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
 (defn base-contrib-namespaces []
   (filter #(= % (base-namespace %)) (contrib-namespaces)))
 
-(defn sub-namespaces [ns]
+(defn sub-namespaces 
   "Find the list of namespaces that are sub-namespaces of this one. That is they 
 have the same prefix followed by a . and then more components"
+  [ns]
   (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
     (sort-by
      #(name (.getName %))
@@ -181,10 +183,11 @@ have the same prefix followed by a . and then more components"
 (defn make-api-link [ns]
   (wiki-word-for (ns-short-name (base-namespace ns))))
 
-(defn remove-leading-whitespace [s]
+(defn remove-leading-whitespace 
   "Find out what the minimum leading whitespace is for a doc block and remove it.
 We do this because lots of people indent their doc blocks to the indentation of the 
 string, which looks nasty when you display it."
+  [s]
   (when s
     (let [lines (.split s "\\n") 
           prefix-lens (map #(count (re-find #"^ *" %)) 
@@ -196,6 +199,13 @@ string, which looks nasty when you display it."
         (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
         s))))
 
+(defn insert-para-space
+ "For some reason, the way googlecode deals with <pre> we need an extra space at the
+beginning of paragraphs to get them to line up."
+ [s]
+ (when (and s (pos? (count s)))
+   (str " " (.replaceAll s "\\n\\n" "\n\n "))))
+
 (defn escape-asterisks [str] 
   (when str
     (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
@@ -205,7 +215,7 @@ string, which looks nasty when you display it."
     (str "<pre>" s "</pre>")))
 
 (defn clean-doc-string [str]
-  (wrap-pre (escape-asterisks (remove-leading-whitespace str))))
+  (wrap-pre (insert-para-space (escape-asterisks (remove-leading-whitespace str)))))
 
 (defn var-headers [v]
   (if-let [arglists (:arglists ^v)]
