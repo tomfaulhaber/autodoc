@@ -80,6 +80,7 @@ in clojure.contrib.
 
 (load "clojure.contrib.pprint.utilities")
 (load "clojure.contrib.pprint")
+(refer 'clojure.contrib.pprint.utilities)
 (refer 'clojure.contrib.pprint)
 
 (defn wiki-word-for [reference]
@@ -223,6 +224,13 @@ beginning of paragraphs to get them to line up."
 (defn clean-doc-string [str]
   (wrap-pre (insert-para-space (escape-asterisks (remove-leading-whitespace str)))))
 
+(defn doc-prefix [v n]
+  "Get a prefix of the doc string suitable for use in an index"
+  (let [doc (:doc ^v)
+        len (min (count doc) n)
+        suffix (if (< len (count doc)) "..." ".")]
+    (str (.replaceAll (.substring doc 0 len) "\n *" " ") suffix)))
+
 (defn var-headers [v]
   (if-let [arglists (:arglists ^v)]
     (map  
@@ -239,6 +247,14 @@ beginning of paragraphs to get them to line up."
 
 (defn broken-anchor [anchor]
   (re-find #"\[|]" anchor))
+
+(defn var-type 
+  "Determing the type (var, function, macro) of a var from the metadata and
+return it as a string."
+  [v]
+  (cond (:macro ^v) "macro"
+        (:arglists ^v) "function"
+        :else "var"))
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
@@ -358,14 +374,18 @@ beginning of paragraphs to get them to line up."
       (cl-format index "#sidebar ~a~%" sidebar-name)
       (cl-format index "~a" header-content)
       (cl-format index "~a" index-intro)
-      (cl-format index "Shortcuts:~2%~{~13@{~,6T[~A]~}~2%~}" chars)
+      (cl-format index "Shortcuts:~2%~{~13@{     [#~A ~:*~A]~}~2%~}" chars)
       (doseq [c chars]
-        (cl-format index "==~a==~%" c)
+        (cl-format index "==~a==~%<pre>~% " c)
         (doseq [v (var-map c)]
-          (gen-link index (:ns ^v) v)
-          (cl-format index "<br/>~%"))
-        )
-      )))  
+          (let [link (gen-link nil (:ns ^v) v)
+                overhead (- (count link) (inc (count (name (:name ^v)))))]
+            (cl-format index "~a~vt~a~vt~a~vt~a~%"
+                       link (+ 32 overhead)
+                       (var-type v) (+ 42 overhead)
+                       (ns-short-name (:ns ^v)) (+ 57 overhead)
+                       (doc-prefix v 30))))
+        (cl-format index "</pre>~%")))))  
 
 (defn gen-docs []
   (load-files (read-jar))
