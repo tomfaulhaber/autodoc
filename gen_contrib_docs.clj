@@ -23,6 +23,8 @@
 (def *wiki-word-suffix* "ApiDoc")
 (def *wiki-file-suffix* ".wiki")
 
+(def *google-source-base* "http://code.google.com/p/clojure-contrib/source/browse/trunk/src/")
+
 (add-classpath (str "file:" *file-prefix* "/src/"))
 (add-classpath (str "file:" *file-prefix* "/classes/"))
 
@@ -218,6 +220,10 @@ beginning of paragraphs to get them to line up."
 
 (defn escape-asterisks [str] 
   (when str
+    (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
+
+(defn escape-wiki-chars [str] 
+  (when str
     (.replaceAll (.matcher #"(\*|\]|\[|_)" str) "`$1`")))
 
 (defn wrap-pre [s]
@@ -225,11 +231,11 @@ beginning of paragraphs to get them to line up."
     (str "<pre>" s "</pre>")))
 
 (defn clean-doc-string [str]
-  (wrap-pre (insert-para-space (escape-asterisks (remove-leading-whitespace str)))))
+  (wrap-pre (insert-para-space (escape-wiki-chars (remove-leading-whitespace str)))))
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (let [doc (escape-asterisks (:doc ^v))
+  (let [doc (escape-wiki-chars (:doc ^v))
         len (min (count doc) n)
         suffix (if (< len (count doc)) "..." ".")]
     (str (.replaceAll (.substring doc 0 len) "\n *" " ") suffix)))
@@ -259,6 +265,18 @@ return it as a string."
         (:arglists ^v) "function"
         :else "var"))
 
+(defn var-file 
+  "Get the file name (relative to src/ in clojure.contrib where a file lives" 
+  [v]
+  (let [ns (.replaceAll (name (.getName (:ns ^v))) "-" "_")
+        ns-file (.replaceAll ns "\\." "/")
+        ns-tail (re-find #"[^.]*$" ns)
+        filename (:file ^v)
+        basename (second (re-matches #"(.*)\.[^.]*" filename))]
+    (if (= basename ns-tail)
+      (str ns-file ".clj")
+      (str ns-file "/" filename))))
+
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
@@ -269,7 +287,7 @@ return it as a string."
 (defn gen-link [writer namespace v]
   (let [anchor (var-anchor v)] 
     (if (broken-anchor anchor) 
-      (cl-format writer "~a " (escape-asterisks (name (:name ^v))))
+      (cl-format writer "~a " (escape-wiki-chars (name (:name ^v))))
       (cl-format writer "[~@[~a~]#~a ~a] "
                  (when namespace (make-api-link namespace))
                  (var-anchor v) (:name ^v)))))
@@ -328,7 +346,8 @@ return it as a string."
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
   (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
-    (cl-format api-out "~a~%" doc)))
+    (cl-format api-out "~a~%~%" doc))
+  (cl-format api-out "[~a~a#~a Source]~%" *google-source-base* (var-file v) (:line ^v)))
 
 (defn gen-var-doc [writer ns]
   (let [vs (vars-for-ns ns)]
