@@ -76,6 +76,9 @@ clojure.contrib is copyright 2008-2009 Rich Hickey and the various contributers.
 This page has an alphabetical index of all the documented functions and variables
 in clojure.contrib. 
 
+In a narrow browser window, you may want to collapse the sidebar (use the \"<<\" link) 
+to get more screen space for the index.
+
 ")
 
 (load "clojure.contrib.pprint.utilities")
@@ -215,7 +218,7 @@ beginning of paragraphs to get them to line up."
 
 (defn escape-asterisks [str] 
   (when str
-    (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
+    (.replaceAll (.matcher #"(\*|\]|\[|_)" str) "`$1`")))
 
 (defn wrap-pre [s]
   (when s
@@ -226,7 +229,7 @@ beginning of paragraphs to get them to line up."
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (let [doc (:doc ^v)
+  (let [doc (escape-asterisks (:doc ^v))
         len (min (count doc) n)
         suffix (if (< len (count doc)) "..." ".")]
     (str (.replaceAll (.substring doc 0 len) "\n *" " ") suffix)))
@@ -266,7 +269,7 @@ return it as a string."
 (defn gen-link [writer namespace v]
   (let [anchor (var-anchor v)] 
     (if (broken-anchor anchor) 
-      (cl-format writer "~a " (:name ^v))
+      (cl-format writer "~a " (escape-asterisks (name (:name ^v))))
       (cl-format writer "[~@[~a~]#~a ~a] "
                  (when namespace (make-api-link namespace))
                  (var-anchor v) (:name ^v)))))
@@ -376,14 +379,14 @@ return it as a string."
       (cl-format index "~a" index-intro)
       (cl-format index "Shortcuts:~2%~{~13@{     [#~A ~:*~A]~}~2%~}" chars)
       (doseq [c chars]
-        (cl-format index "==~a==~%<pre>~% " c)
+        (cl-format index "==~a==~%<pre>~%" c)
         (doseq [v (var-map c)]
           (let [link (gen-link nil (:ns ^v) v)
                 overhead (- (count link) (inc (count (name (:name ^v)))))]
             (cl-format index "~a~vt~a~vt~a~vt~a~%"
-                       link (+ 32 overhead)
-                       (var-type v) (+ 42 overhead)
-                       (ns-short-name (:ns ^v)) (+ 57 overhead)
+                       link (+ 29 overhead)
+                       (var-type v) (+ 40 overhead)
+                       (ns-short-name (:ns ^v)) (+ 59 overhead)
                        (doc-prefix v 30))))
         (cl-format index "</pre>~%")))))  
 
