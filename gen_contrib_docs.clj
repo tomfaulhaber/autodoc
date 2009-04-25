@@ -250,12 +250,9 @@ beginning of paragraphs to get them to line up."
 (defn var-anchor [v]
   (.replaceAll
    (.replaceAll 
-    (.replaceAll (first (var-headers v)) "_? +" "_")
+    (.replaceAll (name (:name ^v)) "_? +" "_")
     "^_+" "")
    "_+$" ""))
-
-(defn broken-anchor [anchor]
-  (re-find #"\[|]" anchor))
 
 (defn var-type 
   "Determing the type (var, function, macro) of a var from the metadata and
@@ -286,11 +283,9 @@ return it as a string."
 
 (defn gen-link [writer namespace v]
   (let [anchor (var-anchor v)] 
-    (if (broken-anchor anchor) 
-      (cl-format writer "~a " (escape-wiki-chars (name (:name ^v))))
-      (cl-format writer "[~@[~a~]#~a ~a] "
-                 (when namespace (make-api-link namespace))
-                 (var-anchor v) (:name ^v)))))
+    (cl-format writer "[~@[~a~]#~a ~a] "
+               (when namespace (make-api-link namespace))
+               (var-anchor v) (:name ^v))))
 
 (defn gen-shortcuts [writer title namespace include-namespace?]
   (let [vs (vars-for-ns namespace)]
@@ -340,9 +335,10 @@ return it as a string."
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
   ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
-  (cl-format api-out "----~%")
-  (doseq [header (var-headers v)]
-    (cl-format api-out "===~a===~%" (escape-asterisks header)))
+  (cl-format api-out "----~%===~a===~%" (str (:name ^v)))
+  (cl-format api-out
+             "<pre>~%~<Usage: ~:i*~@{~a~^~:@_~}*~:>~%</pre>~%"
+             (map escape-asterisks (var-headers v)))
   (when (:macro ^v)
     (cl-format api-out "====Macro====~%"))
   (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
