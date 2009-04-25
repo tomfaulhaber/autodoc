@@ -347,7 +347,9 @@ return it as a string."
     (cl-format api-out "====Macro====~%"))
   (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
     (cl-format api-out "~a~%~%" doc))
-  (cl-format api-out "[~a~a#~a Source]~%" *google-source-base* (var-file v) (:line ^v)))
+  (cl-format api-out "[~a~a#~a Source] " *google-source-base* (var-file v) (:line ^v))
+  (cl-format api-out "[http://www.google.com/codesearch?hl=en&lr=&q=~a+package%3Ahttp%3A%2F%2Fclojure-contrib\\.googlecode\\.com&sbtn=Search Search for references in contrib]~%"
+             (name (:name ^v))))
 
 (defn gen-var-doc [writer ns]
   (let [vs (vars-for-ns ns)]
@@ -411,7 +413,7 @@ return it as a string."
 
 (defn gen-docs []
   (load-files (read-jar))
-  (let [namespaces (base-contrib-namespaces)]
+  (let [namespaces (filter has-doc? (base-contrib-namespaces))]
     (gen-overview namespaces)
     (gen-sidebar namespaces)
     (gen-index)
