@@ -18,7 +18,6 @@
 ;;; TODO: add a ! before wiki words in doc
 ;;; TODO: build doc for multimethods correctly
 ;;; TODO: add a README for GitHub
-;;; TODO: put the type under all vars (func, macro, etc.)
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
@@ -267,6 +266,7 @@ return it as a string."
   [v]
   (cond (:macro ^v) "macro"
         (:arglists ^v) "function"
+        (= (:tag ^v) clojure.lang.MultiFn) "multimethod"
         :else "var"))
 
 (defn var-file 
@@ -287,7 +287,7 @@ return it as a string."
 
 (defn has-doc? [ns]
   (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)
-      (reduce (fn ([] true) ([x y] (or x y))) 
+      (reduce (fn ([] false) ([x y] (or x y))) 
               (map has-doc? (sub-namespaces ns)))))
 
 (defn gen-link [writer namespace v]
@@ -343,18 +343,18 @@ return it as a string."
 
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
-  ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
-  (cl-format api-out "----~%===~a===~%" (escape-asterisks (str (:name ^v))))
-  (cl-format api-out
-             "<pre>~%~<Usage: ~:i*~@{~a~^~:@_~}*~:>~%</pre>~%"
-             (map escape-asterisks (var-headers v)))
-  (when (:macro ^v)
-    (cl-format api-out "====Macro====~%"))
-  (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
-    (cl-format api-out "~a~%~%" doc))
-  (cl-format api-out "[~a~a#~a Source] " *google-source-base* (var-file v) (:line ^v))
-  (cl-format api-out "[http://www.google.com/codesearch?hl=en&lr=&q=~a+package%3Ahttp%3A%2F%2Fclojure-contrib\\.googlecode\\.com&sbtn=Search Search for references in contrib]~%"
-             (name (:name ^v))))
+  (let [vtype (var-type v)]
+    (cl-format api-out "----~%===~a===~%" (escape-asterisks (str (:name ^v))))
+    (cl-format api-out "====~a====~%" vtype)
+    (if (#{"function" "macro"} vtype)
+      (cl-format api-out
+                 "<pre>~%~<Usage: ~:i*~@{~a~^~:@_~}*~:>~%</pre>~%"
+                 (map escape-asterisks (var-headers v))))
+    (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
+      (cl-format api-out "~a~%~%" doc))
+    (cl-format api-out "[~a~a#~a Source] " *google-source-base* (var-file v) (:line ^v))
+    (cl-format api-out "[http://www.google.com/codesearch?hl=en&lr=&q=~a+package%3Ahttp%3A%2F%2Fclojure-contrib\\.googlecode\\.com&sbtn=Search Search for references in contrib]~%"
+               (name (:name ^v)))))
 
 (defn gen-var-doc [writer ns]
   (let [vs (vars-for-ns ns)]
@@ -413,8 +413,8 @@ return it as a string."
                 doc-len (+ 50 (min 0 (- 18 (count short-name))))]
             (cl-format index "~a~vt~a~vt~a~vt~a~%"
                        link (+ 29 overhead)
-                       (var-type v) (+ 40 overhead)
-                       short-name (+ 59 overhead)
+                       (var-type v) (+ 43 overhead)
+                       short-name (+ 62 overhead)
                        (doc-prefix v doc-len))))
         (cl-format index "</pre>~%")))))  
 
