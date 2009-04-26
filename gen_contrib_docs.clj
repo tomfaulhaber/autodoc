@@ -16,13 +16,10 @@
 ;;; TODO: support empty namespaces with non-empty sub-namespaces
 ;;; TODO: split the work into (1) update/build contrib and (2) gen, submit docs
 ;;; TODO: build an ant file that executes the parts
-;;; TODO: find out why macro/template throws the index into italic mode
-;;; TODO: make sure the 40 char doc string doesn't have an open `
-;;; TODO: shorten the doc string when the ns name is too long
 ;;; TODO: add a ! before wiki words in doc
 ;;; TODO: build doc for multimethods correctly
 ;;; TODO: add a README for GitHub
-;;; TODO: escape-asterisks in headers so duck-streams/slurp* works right
+;;; TODO: put the type under all vars (func, macro, etc.)
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
@@ -246,10 +243,10 @@ beginning of paragraphs to get them to line up."
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (let [doc (escape-wiki-chars (:doc ^v))
+  (let [doc (:doc ^v)
         len (min (count doc) n)
         suffix (if (< len (count doc)) "..." ".")]
-    (str (.replaceAll (.substring doc 0 len) "\n *" " ") suffix)))
+    (str (escape-wiki-chars (.replaceAll (.substring doc 0 len) "\n *" " ")) suffix)))
 
 (defn var-headers [v]
   (if-let [arglists (:arglists ^v)]
@@ -346,7 +343,7 @@ return it as a string."
 ;;; Adapted from rhickey's script for the clojure API
 (defn wiki-doc [api-out v]
   ; (cl-format api-out "[[#~a]]~%" (.replace (str (:name ^v)) "!" ""))
-  (cl-format api-out "----~%===~a===~%" (str (:name ^v)))
+  (cl-format api-out "----~%===~a===~%" (escape-asterisks (str (:name ^v))))
   (cl-format api-out
              "<pre>~%~<Usage: ~:i*~@{~a~^~:@_~}*~:>~%</pre>~%"
              (map escape-asterisks (var-headers v)))
@@ -410,12 +407,14 @@ return it as a string."
         (cl-format index "==~a==~%<pre>~%" c)
         (doseq [v (var-map c)]
           (let [link (gen-link nil (:ns ^v) v)
-                overhead (- (count link) (inc (count (name (:name ^v)))))]
+                overhead (- (count link) (inc (count (name (:name ^v)))))
+                short-name (ns-short-name (:ns ^v))
+                doc-len (+ 50 (min 0 (- 18 (count short-name))))]
             (cl-format index "~a~vt~a~vt~a~vt~a~%"
                        link (+ 29 overhead)
                        (var-type v) (+ 40 overhead)
-                       (ns-short-name (:ns ^v)) (+ 59 overhead)
-                       (doc-prefix v 30))))
+                       short-name (+ 59 overhead)
+                       (doc-prefix v doc-len))))
         (cl-format index "</pre>~%")))))  
 
 (defn gen-docs []
