@@ -21,8 +21,8 @@
 ;;; TODO: shorten the doc string when the ns name is too long
 ;;; TODO: add a ! before wiki words in doc
 ;;; TODO: build doc for multimethods correctly
-;;; TODO: add a README for GitHub
-;;; TODO: escape-asterisks in headers so duck-streams/slurp* works right
+;;; TODO add a README for GitHub
+;;; TODO escape-asterisks in headers so duck-streams/slurp* works right
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
