@@ -13,7 +13,6 @@
 ;;; 8) Commit new and changed wiki files, if error, error exit
 ;;; 9) Save contrib svn number
 
-;;; TODO: support empty namespaces with non-empty sub-namespaces
 ;;; TODO: split the work into (1) update/build contrib and (2) gen, submit docs
 ;;; TODO: build an ant file that executes the parts
 ;;; TODO: add a ! before wiki words in doc
@@ -287,7 +286,9 @@ return it as a string."
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
 
 (defn has-doc? [ns]
-  (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)))
+  (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)
+      (reduce (fn ([] true) ([x y] (or x y))) 
+              (map has-doc? (sub-namespaces ns)))))
 
 (defn gen-link [writer namespace v]
   (let [anchor (var-anchor v)] 
