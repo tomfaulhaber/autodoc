@@ -13,6 +13,17 @@
 ;;; 8) Commit new and changed wiki files, if error, error exit
 ;;; 9) Save contrib svn number
 
+;;; TODO: support empty namespaces with non-empty sub-namespaces
+;;; TODO: split the work into (1) update/build contrib and (2) gen, submit docs
+;;; TODO: build an ant file that executes the parts
+;;; TODO: find out why macro/template throws the index into italic mode
+;;; TODO: make sure the 40 char doc string doesn't have an open `
+;;; TODO: shorten the doc string when the ns name is too long
+;;; TODO: add a ! before wiki words in doc
+;;; TODO: build doc for multimethods correctly
+;;; TODO: add a README for GitHub
+;;; TODO: escape-asterisks in headers so duck-streams/slurp* works right
+
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
 (def *file-prefix* "../wiki-work-area/clojure-contrib")
