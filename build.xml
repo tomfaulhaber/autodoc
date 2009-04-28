@@ -6,13 +6,14 @@
   </description>
 
 	<property name="clojure-jar" location="../clojure/clojure.jar"/>
+  <property name="force" value="false"/>
 
 	<target name="build-contrib" 
 					description="Update and, if necessary, build the contrib files">
 		<java classname="clojure.main" classpath="${clojure-jar}:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
-      <arg value="(use 'gen-contrib-docs) (main :build-contrib)"/>
+      <arg value="(use 'gen-contrib-docs) (main :build-contrib  ${force})"/>
 		</java>
 	</target>
 
@@ -21,7 +22,7 @@
 		<java classname="clojure.main" classpath="${clojure-jar}:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
-      <arg value="(use 'gen-contrib-docs) (main :build-wiki)"/>
+      <arg value="(use 'gen-contrib-docs) (main :build-wiki ${force})"/>
 		</java>
 	</target>
 

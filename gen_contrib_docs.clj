@@ -624,18 +624,20 @@ return it as a string."
          ;; 9) Save contrib svn number
          (put-last-seen-version svn-version)))))
 
-(defn main [build-type]
-  (try
-   (condp = (keyword build-type)
-     :build-contrib (update-and-build-contrib)
-     :build-wiki (build-and-commit-wiki-data)
-     (do
-       (cl-format *err* "Unknown argument to gen_contrib_docs: \"~a\".~%~
+(defn main 
+  ([build-type] (main build-type false))
+  ([build-type force]
+     (try
+      (condp = (keyword build-type)
+        :build-contrib (update-and-build-contrib force)
+        :build-wiki (build-and-commit-wiki-data force)
+        (do
+          (cl-format *err* "Unknown argument to gen_contrib_docs: \"~a\".~%~
                          Allowed values are \"build-contrib\" and \"build-wiki\".~%" build-type)
-       (System/exit 1)))
-   (cl-format *err* "Build succeeded.~%")
-   (System/exit 0)
-   (catch Exception e
-     (cl-format *err* "Exception during build: ~a.~%" (str e))
-     (System/exit 1)
-     )))
+          (System/exit 1)))
+      (cl-format *err* "Build succeeded.~%")
+      (System/exit 0)
+      (catch Exception e
+        (cl-format *err* "Exception during build: ~a.~%~{~a~%~}"
+                   (str e) (map str (.getStackTrace e)))
+        (System/exit 1)))))
