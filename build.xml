@@ -1,0 +1,31 @@
+<project name="contrib-autodoc" default="all">
+
+  <description>
+    Generate documentation for the current version of clojure-contrib and post it to 
+    the google code wiki for the project.
+  </description>
+
+	<property name="clojure-jar" location="../clojure/clojure.jar"/>
+
+	<target name="build-contrib" 
+					description="Update and, if necessary, build the contrib files">
+		<java classname="clojure.main" classpath="${clojure-jar}:." 
+					fork="true" failonerror="true">
+      <arg value="-e"/>
+      <arg value="(use 'gen-contrib-docs) (main :build-contrib)"/>
+		</java>
+	</target>
+
+	<target name="build-wiki" 
+					description="Generate and commit wiki files">
+		<java classname="clojure.main" classpath="${clojure-jar}:." 
+					fork="true" failonerror="true">
+      <arg value="-e"/>
+      <arg value="(use 'gen-contrib-docs) (main :build-wiki)"/>
+		</java>
+	</target>
+
+<target name="all" depends="build-contrib, build-wiki"
+        description="Update the wiki based on the latest source, if appropriate"/>
+
+</project>

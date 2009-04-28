@@ -13,11 +13,11 @@
 ;;; 8) Commit new and changed wiki files, if error, error exit
 ;;; 9) Save contrib svn number
 
-;;; TODO: split the work into (1) update/build contrib and (2) gen, submit docs
-;;; TODO: build an ant file that executes the parts
 ;;; TODO: add a ! before wiki words in doc
 ;;; TODO: build doc for multimethods correctly
 ;;; TODO: add a README for GitHub
+;;; TODO: :skip-wiki tag for namespaces to get them skipped
+;;; TODO: a :see-also tag for references to other docs
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
@@ -489,7 +489,7 @@ return it as a string."
 (defn update-wiki [] (svn-update *wiki-work-area*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Code for managing the last seen version file
+;;; Code for managing the last seen and last built version files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load "clojure.contrib.duck_streams")
@@ -504,6 +504,16 @@ return it as a string."
 
 (defn put-last-seen-version [version-string]
   (spit last-seen-version-file version-string))
+
+(def last-built-version-file (str *wiki-work-area* "../last-built-revision"))
+
+(defn get-last-built-version []
+  (try
+   (slurp* last-built-version-file)
+   (catch Exception e)))
+
+(defn put-last-built-version [version-string]
+  (spit last-built-version-file version-string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Run ant
@@ -567,3 +577,65 @@ return it as a string."
                      (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
          ;; 9) Save contrib svn number
          (put-last-seen-version svn-version)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Put all the pieces together
+;;; We do the steps in two parts so that we don't trip over the
+;;; rebuilt contrib, since we use stuff from contrib to build the doc.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn update-and-build-contrib 
+  ([] (update-and-build-contrib false))
+  ([force]
+     ;; 1) Update contrib svn
+     (update-contrib)
+     ;; 2) If it hasn't changed, exit
+     (let [svn-version (get-contrib-version)
+           last-built-svn-version (get-last-built-version)]
+       (if (or force (not (= svn-version last-built-svn-version)))
+         (do
+           (cl-format true "Building new contrib doc for contrib version ~a~%" svn-version)
+           ;; 3) Build contrib, if failure error exit
+           (build-contrib)
+           (put-last-built-version svn-version))
+         (cl-format true "Contrib is up to date~%")))))
+
+(defn build-and-commit-wiki-data 
+  ([] (build-and-commit-wiki-data false))
+  ([force]
+     ;; 2) If it hasn't changed, exit
+     (let [svn-version (get-last-built-version)
+           last-svn-version (get-last-seen-version)]
+       (when (or force (not (= svn-version last-svn-version)))
+         ;; 4) Update wiki svn & if merge issue, error exit
+         (update-wiki)
+         ;; 5) Remove all auto gen files
+         (remove-auto-doc-files)
+         ;; 6) Generate doc files
+         (gen-docs)
+         ;; 7) "svn add" new wiki files & svn delete removed files
+         (let [status-map (svn-status *wiki-work-area*)]
+           (doall (map #(svn-add *wiki-work-area* %) (:? status-map)))
+           (doall (map #(svn-delete *wiki-work-area* %) (:! status-map))))
+         ;; 8) Commit new and changed wiki files, if error, error exit
+         (svn-commit *wiki-work-area*
+                     (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
+         ;; 9) Save contrib svn number
+         (put-last-seen-version svn-version)))))
+
+(defn main [build-type]
+  (try
+   (condp = (keyword build-type)
+     :build-contrib (update-and-build-contrib)
+     :build-wiki (build-and-commit-wiki-data)
+     (do
+       (cl-format *err* "Unknown argument to gen_contrib_docs: \"~a\".~%~
+                         Allowed values are \"build-contrib\" and \"build-wiki\".~%" build-type)
+       (System/exit 1)))
+   (cl-format *err* "Build succeeded.~%")
+   (System/exit 0)
+   (catch Exception e
+     (cl-format *err* "Exception during build: ~a.~%" (str e))
+     (System/exit 1)
+     )))
