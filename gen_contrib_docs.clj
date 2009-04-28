@@ -14,10 +14,9 @@
 ;;; 9) Save contrib svn number
 
 ;;; TODO: add a ! before wiki words in doc
-;;; TODO: build doc for multimethods correctly
-;;; TODO: add a README for GitHub
 ;;; TODO: :skip-wiki tag for namespaces to get them skipped
 ;;; TODO: a :see-also tag for references to other docs
+;;; TODO: don't do a svn commit if we didn't change anything
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
@@ -265,8 +264,8 @@ beginning of paragraphs to get them to line up."
 return it as a string."
   [v]
   (cond (:macro ^v) "macro"
-        (:arglists ^v) "function"
         (= (:tag ^v) clojure.lang.MultiFn) "multimethod"
+        (:arglists ^v) "function"
         :else "var"))
 
 (defn var-file 
@@ -346,10 +345,12 @@ return it as a string."
   (let [vtype (var-type v)]
     (cl-format api-out "----~%===~a===~%" (escape-asterisks (str (:name ^v))))
     (cl-format api-out "====~a====~%" vtype)
-    (if (#{"function" "macro"} vtype)
+    (if (:arglists ^v)
       (cl-format api-out
                  "<pre>~%~<Usage: ~:i*~@{~a~^~:@_~}*~:>~%</pre>~%"
                  (map escape-asterisks (var-headers v))))
+    (if (and (= vtype "multimethod") (not (:arglists ^v)))
+      (cl-format api-out "_No usage documentation available_~%"))
     (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
       (cl-format api-out "~a~%~%" doc))
     (cl-format api-out "[~a~a#~a Source] " *google-source-base* (var-file v) (:line ^v))
