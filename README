@@ -1,0 +1,6 @@
+This is the source code for the robot that automatically generates the
+API reference wiki for clojure.contrib which lives at
+http://code.google.com/p/clojure-contrib/wiki/OverviewOfContrib 
+
+It is pretty much just hacked out without much doc or anything. Maybe
+I will clean it up little by little.
