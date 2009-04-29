@@ -307,6 +307,13 @@ return it as a string."
   (when-let [doc (or (:wiki-doc ^ns) (clean-doc-string (:doc ^ns)))]
     (cl-format writer "~a~a~%" title doc)))
 
+(defn gen-ns-references
+  "Generates the 'See also: ' links, if they are specified"
+  [writer ns]
+  (when-let [references (:see-also ^ns)]
+    (cl-format writer "See also: ~{[~{~a~^ ~a~}]~^, ~}~2%" 
+               (map #(if (string? %) [%] %) references))))
+
 (defn gen-overview [namespaces]
   (with-open [overview (BufferedWriter. (FileWriter. (wiki-file overview-name)))]
     (cl-format overview "#summary An overview of the clojure.contrib library~%")
@@ -323,6 +330,7 @@ return it as a string."
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
       (gen-ns-doc overview "" namespace)
+      (gen-ns-references overview namespace)
       (gen-shortcuts overview "Public Variables and Functions:~%" namespace true)
       (doseq [sub-ns (sub-namespaces namespace)]
         (gen-shortcuts overview 
