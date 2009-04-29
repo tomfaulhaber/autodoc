@@ -14,7 +14,6 @@
 ;;; 9) Save contrib svn number
 
 ;;; TODO: add a ! before wiki words in doc
-;;; TODO: don't do a svn commit if we didn't change anything
 
 ;; jar file definition relative to contrib location
 (def *clojure-jar-file* "../../clojure/clojure.jar")
@@ -476,6 +475,12 @@ the displayed text). Links can be either wiki-words or urls."
                (let [[_ k v] (re-find #"(.)\s+(\S+)" s)]
                  {(keyword k) [v]}))))))
 
+(defn svn-changes? 
+  "Return true iff there are uncommitted changes in dir."
+  [dir]
+  (let [status (svn-status dir)]
+    (or (:A status) (:D status) (:M status))))
+
 (defn svn-add [dir file]
   (let [{result :exit, output :out error :err}
         (sh "svn" "add" file :return-map true :dir dir)]
@@ -587,8 +592,10 @@ the displayed text). Links can be either wiki-words or urls."
            (doall (map #(svn-add *wiki-work-area* %) (:? status-map)))
            (doall (map #(svn-delete *wiki-work-area* %) (:! status-map))))
          ;; 8) Commit new and changed wiki files, if error, error exit
-         (svn-commit *wiki-work-area*
-                     (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
+         (if (svn-changes? *wiki-work-area*)
+           (svn-commit *wiki-work-area*
+                       (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
+           (cl-format true "No files were changed. Skipping svn commit~%"))
          ;; 9) Save contrib svn number
          (put-last-seen-version svn-version)))))
 
@@ -633,8 +640,10 @@ the displayed text). Links can be either wiki-words or urls."
            (doall (map #(svn-add *wiki-work-area* %) (:? status-map)))
            (doall (map #(svn-delete *wiki-work-area* %) (:! status-map))))
          ;; 8) Commit new and changed wiki files, if error, error exit
-         (svn-commit *wiki-work-area*
-                     (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
+         (if (svn-changes? *wiki-work-area*)
+           (svn-commit *wiki-work-area*
+                       (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
+           (cl-format true "No files were changed. Skipping svn commit~%"))
          ;; 9) Save contrib svn number
          (put-last-seen-version svn-version)))))
 
