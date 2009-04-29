@@ -14,8 +14,6 @@
 ;;; 9) Save contrib svn number
 
 ;;; TODO: add a ! before wiki words in doc
-;;; TODO: :skip-wiki tag for namespaces to get them skipped
-;;; TODO: a :see-also tag for references to other docs
 ;;; TODO: don't do a svn commit if we didn't change anything
 
 ;; jar file definition relative to contrib location
@@ -162,9 +160,10 @@ to get more screen space for the index.
        (cl-format true "failed.~%")))))
 
 (defn contrib-namespaces []
-  (map #(find-ns (symbol %)) 
-       (filter #(.startsWith % "clojure.contrib.")
-               (sort (map #(name (.getName %)) (all-ns))))))
+  (filter #(not (:wiki-skip %))
+          (map #(find-ns (symbol %)) 
+               (filter #(.startsWith % "clojure.contrib.")
+                       (sort (map #(name (.getName %)) (all-ns)))))))
 
 (defn trim-ns-name [s]
   (if (.startsWith s "clojure.contrib.")
@@ -192,7 +191,7 @@ have the same prefix followed by a . and then more components"
   (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
     (sort-by
      #(name (.getName %))
-     (filter #(re-matches pat (name (.getName %))) (all-ns)))))
+     (filter #(and (not (:wiki-skip %)) (re-matches pat (name (.getName %)))) (all-ns)))))
 
 (defn ns-short-name [ns]
   (trim-ns-name (name (.getName ns))))
@@ -307,10 +306,13 @@ return it as a string."
   (when-let [doc (or (:wiki-doc ^ns) (clean-doc-string (:doc ^ns)))]
     (cl-format writer "~a~a~%" title doc)))
 
-(defn gen-ns-references
-  "Generates the 'See also: ' links, if they are specified"
-  [writer ns]
-  (when-let [references (:see-also ^ns)]
+(defn gen-references
+  "Generates the 'See also: ' links, if they are specified. The :see-also metadata should be
+a vector of see also links, each of which is either a string (which would be both link and 
+the displayed text) or a 2-vector (where the first element is the link and the second is
+the displayed text). Links can be either wiki-words or urls."
+  [writer v]
+  (when-let [references (:see-also ^v)]
     (cl-format writer "See also: ~{[~{~a~^ ~a~}]~^, ~}~2%" 
                (map #(if (string? %) [%] %) references))))
 
@@ -330,7 +332,7 @@ return it as a string."
         (cl-format overview "~%<br>by ~a" author))
       (cl-format overview "~2%")
       (gen-ns-doc overview "" namespace)
-      (gen-ns-references overview namespace)
+      (gen-references overview namespace)
       (gen-shortcuts overview "Public Variables and Functions:~%" namespace true)
       (doseq [sub-ns (sub-namespaces namespace)]
         (gen-shortcuts overview 
@@ -360,7 +362,8 @@ return it as a string."
     (if (and (= vtype "multimethod") (not (:arglists ^v)))
       (cl-format api-out "_No usage documentation available_~%"))
     (when-let [doc (or (:wiki-doc ^v) (clean-doc-string (:doc ^v)))]
-      (cl-format api-out "~a~%~%" doc))
+      (cl-format api-out "~a~2%" doc))
+    (gen-references api-out v)
     (cl-format api-out "[~a~a#~a Source] " *google-source-base* (var-file v) (:line ^v))
     (cl-format api-out "[http://www.google.com/codesearch?hl=en&lr=&q=~a+package%3Ahttp%3A%2F%2Fclojure-contrib\\.googlecode\\.com&sbtn=Search Search for references in contrib]~%"
                (name (:name ^v)))))
@@ -383,6 +386,7 @@ return it as a string."
                  "~%Usage: ~%{{{~%(ns <your-namespace>~%  (:use clojure.contrib.~a))~%}}}~%"
                  ns-name)
       (gen-ns-doc api-out "==Overview==\n" ns)
+      (gen-references api-out ns)
       (cl-format api-out "~2%")
       (cl-format api-out "==Public Variables and Functions==~%")
       (gen-shortcuts api-out "Shortcuts:~%" ns false)
@@ -395,6 +399,7 @@ return it as a string."
         (when (has-doc? sub-ns)
           (cl-format api-out "==Namespace ~a==~%" (name (.getName sub-ns)))
           (gen-ns-doc api-out "" sub-ns)
+          (gen-references api-out sub-ns)
           (gen-var-doc api-out sub-ns))))))
 
 (defn gen-index []
