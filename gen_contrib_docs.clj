@@ -568,40 +568,6 @@ the displayed text). Links can be either wiki-words or urls."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Put all the pieces together
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn contrib-auto-doc
-  ([] (contrib-auto-doc false))
-  ([force]
-     ;; 1) Update contrib svn
-     (update-contrib)
-     ;; 2) If it hasn't changed, exit
-     (let [svn-version (get-contrib-version)
-           last-svn-version (get-last-seen-version)]
-       (when (or force (not (= svn-version last-svn-version)))
-         (cl-format true "Building new contrib doc for contrib version ~a~%" svn-version)
-         ;; 3) Build contrib, if failure error exit
-         ;(build-contrib)
-         ;; 4) Update wiki svn & if merge issue, error exit
-         (update-wiki)
-         ;; 5) Remove all auto gen files
-         (remove-auto-doc-files)
-         ;; 6) Generate doc files
-         (gen-docs)
-         ;; 7) "svn add" new wiki files & svn delete removed files
-         (let [status-map (svn-status *wiki-work-area*)]
-           (doall (map #(svn-add *wiki-work-area* %) (:? status-map)))
-           (doall (map #(svn-delete *wiki-work-area* %) (:! status-map))))
-         ;; 8) Commit new and changed wiki files, if error, error exit
-         (if (svn-changes? *wiki-work-area*)
-           (svn-commit *wiki-work-area*
-                       (cl-format nil "Auto-documentation for contrib version ~a~%" svn-version))
-           (cl-format true "No files were changed. Skipping svn commit~%"))
-         ;; 9) Save contrib svn number
-         (put-last-seen-version svn-version)))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Put all the pieces together
 ;;; We do the steps in two parts so that we don't trip over the
 ;;; rebuilt contrib, since we use stuff from contrib to build the doc.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
