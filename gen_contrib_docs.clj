@@ -20,10 +20,12 @@
 (def *file-prefix* "../wiki-work-area/clojure-contrib")
 (def *jar-file* (str *file-prefix* "/clojure-contrib.jar"))
 
+(def *wiki-base-url* "http://code.google.com/p/clojure-contrib/wiki/")
 (def *wiki-work-area* "../wiki-work-area/wiki-src/")
 (def *wiki-word-prefix* "")
 (def *wiki-word-suffix* "ApiDoc")
 (def *wiki-file-suffix* ".wiki")
+(def *json-file-suffix* ".json")
 
 (def *google-source-base* "http://code.google.com/p/clojure-contrib/source/browse/trunk/src/")
 
@@ -85,8 +87,10 @@ to get more screen space for the index.
 
 ")
 
+(load "clojure/contrib/json/write")
 (load "clojure.contrib.pprint.utilities")
 (load "clojure.contrib.pprint")
+(refer 'clojure.contrib.json.write)
 (refer 'clojure.contrib.pprint.utilities)
 (refer 'clojure.contrib.pprint)
 
@@ -104,7 +108,19 @@ to get more screen space for the index.
 (defn wiki-file [basename]
   (str *wiki-work-area* basename *wiki-file-suffix*))
 
+(defn json-file [basename] 
+  (str *wiki-work-area* basename *json-file-suffix*))
+
 (defn wiki-wildcard [] (wiki-file-for "*"))
+
+(defmulti wiki-url class)
+
+(defmethod wiki-url clojure.lang.Namespace [ns]
+  (str *wiki-base-url* (wiki-word-for (name (.getName ns)))))
+
+(declare var-anchor)
+(defmethod wiki-url clojure.lang.Var [v]
+  (str (wiki-url (:ns ^v)) "#" (var-anchor v)))
 
 (defn class-methods [x] (map #(.getName %) (.getMethods (class x))))
 
@@ -266,8 +282,15 @@ return it as a string."
         (:arglists ^v) "function"
         :else "var"))
 
+(defn ns-file 
+  "Get the file name (relative to src/ in clojure.contrib) where a namespace lives" 
+  [ns]
+  (let [ns-name (.replaceAll (name (.getName ns)) "-" "_")
+        ns-file (.replaceAll ns-name "\\." "/")]
+    (str ns-file ".clj")))
+
 (defn var-file 
-  "Get the file name (relative to src/ in clojure.contrib where a file lives" 
+  "Get the file name (relative to src/ in clojure.contrib) where a file lives" 
   [v]
   (let [ns (.replaceAll (name (.getName (:ns ^v))) "-" "_")
         ns-file (.replaceAll ns "\\." "/")
@@ -286,6 +309,14 @@ return it as a string."
   (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)
       (reduce (fn ([] false) ([x y] (or x y))) 
               (map has-doc? (sub-namespaces ns)))))
+
+(defmulti source-url class)
+
+(defmethod source-url clojure.lang.Namespace [ns]
+  (str *google-source-base* (ns-file ns)))
+
+(defmethod source-url clojure.lang.Var [v]
+  (str *google-source-base* (var-file v) "#" (:line ^v)))
 
 (defn gen-link [writer namespace v]
   (let [anchor (var-anchor v)] 
@@ -431,12 +462,39 @@ the displayed text). Links can be either wiki-words or urls."
                        (doc-prefix v doc-len))))
         (cl-format index "</pre>~%")))))  
 
+(defmulti index-info class)
+
+(defmethod index-info clojure.lang.Namespace [ns]
+  (assoc (select-keys ^ns [:doc :author])
+    :name (name (.getName ns))
+    :wiki-url (wiki-url ns)
+    :source-url (source-url ns)))
+
+(defmethod index-info clojure.lang.Var [v]
+  (assoc (select-keys ^v [:doc :author :arglists])
+    :name (name (:name ^v))
+    :wiki-url (wiki-url v)
+    :source-url (source-url v)))
+
+
+(defn gen-json-index 
+  "Generate a json formatted index file that can be consumed by other tools"
+  []
+(with-open [index (BufferedWriter. (FileWriter. (json-file index-name)))]
+  (let [namespaces (contrib-namespaces)
+        all-vars (mapcat vars-for-ns namespaces)]
+    (binding [*out* index]
+      (print-json 
+       {:namespaces (map index-info namespaces)
+        :vars (map index-info all-vars)})))))
+
 (defn gen-docs []
   (load-files (read-jar))
   (let [namespaces (filter has-doc? (base-contrib-namespaces))]
     (gen-overview namespaces)
     (gen-sidebar namespaces)
     (gen-index)
+    (gen-json-index)
     (doseq [ns namespaces]
       (gen-api-page ns))))
 
