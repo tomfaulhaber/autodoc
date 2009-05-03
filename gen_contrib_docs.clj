@@ -175,7 +175,7 @@ to get more screen space for the index.
        (cl-format true "failed.~%")))))
 
 (defn contrib-namespaces []
-  (filter #(not (:wiki-skip %))
+  (filter #(not (:skip-wiki %))
           (map #(find-ns (symbol %)) 
                (filter #(.startsWith % "clojure.contrib.")
                        (sort (map #(name (.getName %)) (all-ns)))))))
@@ -206,7 +206,7 @@ have the same prefix followed by a . and then more components"
   (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
     (sort-by
      #(name (.getName %))
-     (filter #(and (not (:wiki-skip %)) (re-matches pat (name (.getName %)))) (all-ns)))))
+     (filter #(and (not (:skip-wiki %)) (re-matches pat (name (.getName %)))) (all-ns)))))
 
 (defn ns-short-name [ns]
   (trim-ns-name (name (.getName ns))))
@@ -237,6 +237,13 @@ beginning of paragraphs to get them to line up."
  (when (and s (pos? (count s)))
    (str " " (.replaceAll s "\\n\\n" "\n\n "))))
 
+(defn add-trailing-spaces 
+  "If a line in a pre ends with a code escape `, somehow we don't get the newline.
+Easiest just to end all lines with an extra space to prevent this."
+  [s]
+  (when (and s (pos? (count s)))
+    (.replaceAll s "\n" " \n")))
+
 (defn escape-asterisks [str] 
   (when str
     (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
@@ -250,7 +257,11 @@ beginning of paragraphs to get them to line up."
     (str "<pre>" s "</pre>")))
 
 (defn clean-doc-string [str]
-  (wrap-pre (insert-para-space (escape-wiki-chars (remove-leading-whitespace str)))))
+  (wrap-pre
+   (add-trailing-spaces
+    (insert-para-space
+     (escape-wiki-chars
+      (remove-leading-whitespace str))))))
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
@@ -303,7 +314,7 @@ return it as a string."
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
-        :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:private ^v)))] v))
+        :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:skip-wiki ^v)) (not (:private ^v)))] v))
 
 (defn has-doc? [ns]
   (or (seq (vars-for-ns ns)) (:wiki-doc ^ns) (:doc ^ns)
