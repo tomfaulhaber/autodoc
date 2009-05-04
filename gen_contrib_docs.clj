@@ -1,4 +1,5 @@
 (ns gen-contrib-docs
+  (:require [org.danlarkin [json :as json]])
   (:import [java.util.jar JarFile]
            [java.io FileWriter BufferedWriter]))
 
@@ -87,10 +88,8 @@ to get more screen space for the index.
 
 ")
 
-(load "clojure/contrib/json/write")
 (load "clojure/contrib/pprint/utilities")
 (load "clojure/contrib/pprint")
-(refer 'clojure.contrib.json.write)
 (refer 'clojure.contrib.pprint.utilities)
 (refer 'clojure.contrib.pprint)
 
@@ -486,10 +485,11 @@ the displayed text). Links can be either wiki-words or urls."
 (with-open [index (BufferedWriter. (FileWriter. (json-file index-name)))]
   (let [namespaces (contrib-namespaces)
         all-vars (mapcat vars-for-ns namespaces)]
-    (binding [*out* index]
-      (print-json 
-       {:namespaces (map index-info namespaces)
-        :vars (map index-info all-vars)})))))
+    (json/encode-to-writer 
+     {:namespaces (map index-info namespaces)
+      :vars (map index-info all-vars)}
+     index
+     :indent 2))))
 
 (defn gen-docs []
   (load-files (read-jar))
