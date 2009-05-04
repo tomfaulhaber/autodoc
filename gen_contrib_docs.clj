@@ -303,14 +303,7 @@ return it as a string."
 (defn var-file 
   "Get the file name (relative to src/ in clojure.contrib) where a file lives" 
   [v]
-  (let [ns (.replaceAll (name (.getName (:ns ^v))) "-" "_")
-        ns-file (.replaceAll ns "\\." "/")
-        ns-tail (re-find #"[^.]*$" ns)
-        filename (:file ^v)
-        basename (second (re-matches #"(.*)\.[^.]*" filename))]
-    (if (= basename ns-tail)
-      (str ns-file ".clj")
-      (str ns-file "/" filename))))
+  (:file ^v))
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
