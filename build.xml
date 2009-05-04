@@ -6,6 +6,7 @@
   </description>
 
 	<property name="clojure-jar" location="../clojure/clojure.jar"/>
+	<property name="miglayout-jar" location="${user.home}/.clojure/miglayout-3.7.jar"/>
   <property name="force" value="false"/>
 
 	<target name="build-contrib" 
@@ -19,7 +20,7 @@
 
 	<target name="build-wiki" 
 					description="Generate and commit wiki files">
-		<java classname="clojure.main" classpath="${clojure-jar}:." 
+		<java classname="clojure.main" classpath="${clojure-jar}:${miglayout-jar}:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
       <arg value="(use 'gen-contrib-docs) (main :build-wiki ${force})"/>
