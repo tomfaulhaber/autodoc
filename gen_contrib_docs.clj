@@ -174,7 +174,7 @@ to get more screen space for the index.
        (cl-format true "failed.~%")))))
 
 (defn contrib-namespaces []
-  (filter #(not (:skip-wiki %))
+  (filter #(not (:skip-wiki ^%))
           (map #(find-ns (symbol %)) 
                (filter #(.startsWith % "clojure.contrib.")
                        (sort (map #(name (.getName %)) (all-ns)))))))
@@ -190,7 +190,9 @@ to get more screen space for the index.
   (first 
    (drop-while 
     (comp not identity) 
-    (map #(find-ns (symbol %))
+    (map #(let [ns-part (find-ns (symbol %))]
+            (if (not (:skip-wiki ^ns-part))
+              ns-part))
          (let [parts (seq (.split (name (.getName ns)) "\\."))]
            (map #(apply str (interpose "." (take (inc %) parts)))
                 (range 2 (count parts))))))))
@@ -205,7 +207,7 @@ have the same prefix followed by a . and then more components"
   (let [pat (re-pattern (str (.replaceAll (name (.getName ns)) "\\." "\\.") "\\..*"))]
     (sort-by
      #(name (.getName %))
-     (filter #(and (not (:skip-wiki %)) (re-matches pat (name (.getName %)))) (all-ns)))))
+     (filter #(and (not (:skip-wiki ^%)) (re-matches pat (name (.getName %)))) (all-ns)))))
 
 (defn ns-short-name [ns]
   (trim-ns-name (name (.getName ns))))
@@ -245,11 +247,15 @@ Easiest just to end all lines with an extra space to prevent this."
 
 (defn escape-asterisks [str] 
   (when str
-    (.replaceAll (.matcher #"(\*|\]|\[)" str) "`$1`")))
+    (.replaceAll (.matcher #"(\*|\]|\[|=)" str) "`$1`")))
+
+(defn anchor-asterisks [str] 
+  (when str
+    (.replaceAll (.matcher #"(\*|\]|\[|=)" str) "_$1")))
 
 (defn escape-wiki-chars [str] 
   (when str
-    (.replaceAll (.matcher #"(\*|\]|\[|_)" str) "`$1`")))
+    (.replaceAll (.matcher #"(\*|\]|\[|_|=)" str) "`$1`")))
 
 (defn wrap-pre [s]
   (when s
@@ -276,12 +282,15 @@ Easiest just to end all lines with an extra space to prevent this."
      arglists)
     [(cl-format nil "_~a_" (:name ^v))]))
 
-(defn var-anchor [v]
-  (.replaceAll
-   (.replaceAll 
-    (.replaceAll (name (:name ^v)) "_? +" "_")
-    "^_+" "")
-   "_+$" ""))
+(defn var-anchor 
+  "Try to emulate google's rules about turning headers into anchor tags"
+  [v]
+  (anchor-asterisks
+   (.replaceAll
+    (.replaceAll 
+     (.replaceAll (name (:name ^v)) "_? +" "_")
+     "^_+" "")
+    "_+$" "")))
 
 (defn var-type 
   "Determing the type (var, function, macro) of a var from the metadata and
