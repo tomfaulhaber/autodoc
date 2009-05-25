@@ -424,7 +424,7 @@ the displayed text). Links can be either wiki-words or urls."
       (when-let [author (:author ^ns)]
         (cl-format api-out "~%by ~a~%" author))
       (cl-format api-out 
-                 "~%Usage: ~%{{{~%(ns <your-namespace>~%  (:use clojure.contrib.~a))~%}}}~%"
+                 "~%Usage: ~%{{{~%(ns <your-namespace>~%  (:require clojure.contrib.~a))~%}}}~%"
                  ns-name)
       (gen-ns-doc api-out "==Overview==\n" ns)
       (gen-references api-out ns)
