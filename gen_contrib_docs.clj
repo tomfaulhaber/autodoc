@@ -1,5 +1,4 @@
 (ns gen-contrib-docs
-  (:require [org.danlarkin [json :as json]])
   (:import [java.util.jar JarFile]
            [java.io FileWriter BufferedWriter]))
 
@@ -92,6 +91,8 @@ to get more screen space for the index.
 (load "clojure/contrib/pprint")
 (refer 'clojure.contrib.pprint.utilities)
 (refer 'clojure.contrib.pprint)
+
+(require ['org.danlarkin ['json :as 'json]])
 
 (defn wiki-word-for [reference]
   (str *wiki-word-prefix* 
@@ -484,21 +485,41 @@ the displayed text). Links can be either wiki-words or urls."
 (defmethod index-info clojure.lang.Var [v]
   (assoc (select-keys ^v [:doc :author :arglists])
     :name (name (:name ^v))
+    :namespace (.getName (.ns v))
     :wiki-url (wiki-url v)
     :source-url (source-url v)))
 
+(defn structured-index 
+  "Create a strutcured index of all the reference information about contrib"
+  []
+  (let [namespaces (contrib-namespaces)
+        all-vars (mapcat vars-for-ns namespaces)]
+     {:namespaces (map index-info namespaces)
+      :vars (map index-info all-vars)}))
+
+(defn xml-index 
+  "Make an index that's structured to be friendly for prxml"
+  []
+  (let [namespaces (contrib-namespaces)
+        all-vars (mapcat vars-for-ns namespaces)
+        helper (fn [top-tag entry-tag objs]
+                 (apply vector top-tag 
+                        (map 
+                         (fn [obj] 
+                           (let [ii (index-info obj)] 
+                             (into []
+                                   (concat [entry-tag {:name (:name ii)}]
+                                           (into [] (dissoc ii :name)))))) 
+                         objs)))]
+    [:index
+     (helper :namespaces :namespace namespaces)
+     (helper :vars :var all-vars)]))
 
 (defn gen-json-index 
   "Generate a json formatted index file that can be consumed by other tools"
   []
 (with-open [index (BufferedWriter. (FileWriter. (json-file index-name)))]
-  (let [namespaces (contrib-namespaces)
-        all-vars (mapcat vars-for-ns namespaces)]
-    (json/encode-to-writer 
-     {:namespaces (map index-info namespaces)
-      :vars (map index-info all-vars)}
-     index
-     :indent 2))))
+  (json/encode-to-writer (structured-index) index)))
 
 (defn gen-docs []
   (load-files (read-jar))
