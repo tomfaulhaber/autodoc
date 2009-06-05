@@ -464,7 +464,7 @@ the displayed text). Links can be either wiki-words or urls."
       (cl-format index "Shortcuts:~2%~{~13@{     [#~A ~:*~A]~}~2%~}" chars)
       (doseq [c chars]
         (cl-format index "==~a==~%<pre>~%" c)
-        (doseq [v (var-map c)]
+        (doseq [v (sort-by (comp :name meta) (var-map c))]
           (let [link (gen-link nil (:ns ^v) v)
                 overhead (- (count link) (inc (count (name (:name ^v)))))
                 short-name (ns-short-name (:ns ^v))
