@@ -252,7 +252,7 @@ Easiest just to end all lines with an extra space to prevent this."
 
 (defn anchor-asterisks [str] 
   (when str
-    (.replaceAll (.matcher #"(\*|\]|\[|=)" str) "_$1")))
+    (.replaceAll (.matcher #"(\*|\]|\[|=)" str) "_$1_")))
 
 (defn escape-wiki-chars [str] 
   (when str
@@ -286,12 +286,14 @@ Easiest just to end all lines with an extra space to prevent this."
 (defn var-anchor 
   "Try to emulate google's rules about turning headers into anchor tags"
   [v]
-  (anchor-asterisks
-   (.replaceAll
-    (.replaceAll 
-     (.replaceAll (name (:name ^v)) "_? +" "_")
-     "^_+" "")
-    "_+$" "")))
+  (.replaceAll
+   (.replaceAll 
+    (.replaceAll
+     (anchor-asterisks
+      (name (:name ^v)))
+     "_? +" "_")
+    "^_+" "")
+   "_+$" ""))
 
 (defn var-type 
   "Determing the type (var, function, macro) of a var from the metadata and
