@@ -16,6 +16,9 @@
   (for [v (vars-for-ns ns)] 
     (select-keys ^v [:name :arglists])))
 
+;; TODO: fill out
+(defn add-vars [ns-info] ns-info)
+
 (defn contrib-namespaces []
   (filter #(not (:skip-wiki ^%))
           (map #(find-ns (symbol %)) 
