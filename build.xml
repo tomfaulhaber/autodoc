@@ -9,7 +9,14 @@
 	<property name="miglayout-jar" location="${user.home}/.clojure/miglayout-3.7.jar"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
   <property name="force" value="false"/>
-
+  <property name="output-dir" value="../wiki-work-area/wiki-src/"/>
+  <property name="static-dir" value="static/"/>
+  <target name="copy-statics"
+          description="Copy all of the static files (css, etc.) from here to the target directory">
+    <copy todir="${output-dir}/${static-dir}">
+      <fileset dir="${static-dir}"/>
+    </copy>
+  </target>
 	<target name="build-contrib" 
 					description="Update and, if necessary, build the contrib files">
 		<java classname="clojure.main" classpath="${clojure-jar}:${clojure-json-jar}:." 
