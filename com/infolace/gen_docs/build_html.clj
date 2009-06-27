@@ -10,7 +10,11 @@
 (def *overview-file* "overview.html")
 
 (deftemplate overview *overview-file* [ns-info]
-  [:.toc-entry] (clone-for [ns ns-info] (content (:short-name ns))))
+  [:.toc-entry] (clone-for [ns ns-info]
+                           #(at % [:a] 
+                                (do->
+                                 (set-attr :href (str "#" (:short-name ns)))
+                                 (content (:short-name ns))))))
 
 (defn make-overview [ns-info]
   (with-out-writer (str *output-directory* *overview-file*) 
