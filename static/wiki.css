@@ -12,7 +12,7 @@
 .wiki #toc { border: 1px solid #AAA; background: #fff; padding: 5px; margin: 0 0 10px 10px; width: 25%; float: right; clear: right;}
 .wiki #toc h1 { font-weight: normal; font-size: 1.2em; padding: 0; }
 .wiki #toc a:hover { color: #00D; background: #FFD; }
-.wiki pre { background-color: #EEE; border: 1px solid #CCC; padding: 10px; font-size: small;}                                                                                                                                                                                                   
+
 .wiki .nob td { border: 0; }
 .wiki hr { height: 1px; color: #AAA; background-color: #AAA; border: 0; margin: 0 10px; }
 .wiki ul { padding: .5em 0 0 3em; margin: 0; }

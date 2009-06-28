@@ -40,7 +40,7 @@ img {border: 0;}
 .wiki #toc a:link, .wiki #toc a:visited, .wiki #toc a:active {color: #646464;}
 .wiki #toc a:hover {background: none;color: #333333;}
 
-.wiki pre {font-size: 11px;line-height: 18px;font-family: Inconsolata, Monaco, Consolas, "Lucida Console", "Courier New", Courier, monospace;background-color: transparent;border: 0px;border-left: 1px solid #d6d6d6;margin: 2em 0 3em 0;padding: 0 10px;}
+.wiki pre {font-family: Inconsolata, Monaco, Consolas, "Lucida Console", "Courier New", Courier, monospace;background-color: transparent;border: 0px;color: #000000}
 #DesignedBy { clear: both; text-align: right; margin-top: 18px;}
 #DesignedBy, #DesignedBy a, #DesignedBy a:link, #DesignedBy a:visited, #DesignedBy a:hover, #DesignedBy a:active { color: #999; }
 

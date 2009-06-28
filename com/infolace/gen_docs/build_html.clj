@@ -32,7 +32,7 @@
                                           (content (:short-name ns)))
                                          [:#author] (content (or (:author ns) "unknown author"))
                                          [:a#api-link] (set-attr :href (ns-html-file ns))
-                                         [:code#namespace-docstr] (content (:doc ns)))))
+                                         [:pre#namespace-docstr] (content (:doc ns)))))
 
 (defn make-overview [ns-info]
   (with-out-writer (str *output-directory* *overview-file*) 

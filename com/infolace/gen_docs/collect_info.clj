@@ -8,6 +8,22 @@
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces}
 ;; vars: {:name :doc :arglists :var-type :file :line}
 
+(defn remove-leading-whitespace 
+  "Find out what the minimum leading whitespace is for a doc block and remove it.
+We do this because lots of people indent their doc blocks to the indentation of the 
+string, which looks nasty when you display it."
+  [s]
+  (when s
+    (let [lines (.split s "\\n") 
+          prefix-lens (map #(count (re-find #"^ *" %)) 
+                           (filter #(not (= 0 (count %))) 
+                                   (next lines)))
+          min-prefix (when (seq prefix-lens) (apply min prefix-lens))
+          regex (when min-prefix (apply str "^" (repeat min-prefix " ")))]
+      (if regex
+        (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
+        s))))
+
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:skip-wiki ^v)) (not (:private ^v)))] v))
@@ -60,7 +76,7 @@ have the same prefix followed by a . and then more components"
 
 (defn build-ns-entry [ns]
   {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
-   :doc (:doc ^ns) :author (:author ^ns) :ns ns})
+   :doc (remove-leading-whitespace (:doc ^ns)) :author (:author ^ns) :ns ns})
 
 (defn build-ns-list [nss]
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))
