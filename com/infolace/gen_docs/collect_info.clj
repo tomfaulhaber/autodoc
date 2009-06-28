@@ -32,8 +32,8 @@ string, which looks nasty when you display it."
   (for [v (vars-for-ns ns)] 
     (select-keys ^v [:name :arglists])))
 
-;; TODO: fill out
-(defn add-vars [ns-info] ns-info)
+(defn add-vars [ns-info]
+  (merge ns-info {:members (vars-info (:ns ns-info))}))
 
 (defn contrib-namespaces []
   (filter #(not (:skip-wiki ^%))
