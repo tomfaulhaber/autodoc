@@ -57,7 +57,7 @@
                                             (set-attr :href link)
                                             (content text)))))))))
 
-(deftemplate overview *overview-file* [ns-info]
+(deftemplate overview (str "templates/" *overview-file*) [ns-info]
   [:.toc-entry] (clone-for [ns ns-info]
                            #(at % [:a] 
                                 (do->
