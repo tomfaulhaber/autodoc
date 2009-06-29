@@ -13,6 +13,25 @@
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
 
+(defn add-ns-vars [ns]
+  (clone-for [f (:members ns)]
+             #(at % 
+                  [:a] (let [link (name (:name f))]
+                         (do->
+                          (set-attr :href
+                                    (str (ns-html-file ns) "#" link))
+                          (content link))))))
+
+(defn process-see-also
+  "Take the variations on the see-also metadata and turn them into a canonical [link text] form"
+  [see-also-seq]
+  (map 
+   #(cond
+      (string? %) [% %] 
+      (< (count %) 2) (repeat 2 %)
+      :else %) 
+   see-also-seq))
+
 (defn namespace-overview [ns template]
   (at template
       [:#namespace-tag] 
@@ -22,13 +41,21 @@
       [:#author] (content (or (:author ns) "unknown author"))
       [:a#api-link] (set-attr :href (ns-html-file ns))
       [:pre#namespace-docstr] (content (:doc ns))
-      [:span#var-link] (clone-for [f (:members ns)]
-                                  #(at % 
-                                       [:a] (let [link (name (:name f))]
-                                              (do->
-                                               (set-attr :href
-                                                         (str (ns-html-file ns) "#" link))
-                                               (content link)))))))
+      [:span#var-link] (add-ns-vars ns)
+      [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
+                         (clone-for [s subspaces]
+                           #(at % 
+                                [:span#name] (content (:short-name s))
+                                [:span#sub-var-link] (add-ns-vars s))))
+      [:span#see-also] (if-let [see-also (seq (:see-also ns))]
+                         #(at % 
+                              [:span#see-also-link] 
+                              (clone-for [[link text] (process-see-also (:see-also ns))]
+                                (fn [t] 
+                                  (at t
+                                      [:a] (do->
+                                            (set-attr :href link)
+                                            (content text)))))))))
 
 (deftemplate overview *overview-file* [ns-info]
   [:.toc-entry] (clone-for [ns ns-info]

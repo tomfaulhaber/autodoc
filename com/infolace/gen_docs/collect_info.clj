@@ -5,7 +5,7 @@
 ;;
 ;; Assumes that all the relevant namespaces have already been loaded
 
-;; namespace: { :full-name :short-name :doc :author :members :subspaces}
+;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
 ;; vars: {:name :doc :arglists :var-type :file :line}
 
 (defn remove-leading-whitespace 
@@ -76,7 +76,8 @@ have the same prefix followed by a . and then more components"
 
 (defn build-ns-entry [ns]
   {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
-   :doc (remove-leading-whitespace (:doc ^ns)) :author (:author ^ns) :ns ns})
+   :doc (remove-leading-whitespace (:doc ^ns)) :author (:author ^ns)
+   :see-also (:see-also ^ns) :ns ns})
 
 (defn build-ns-list [nss]
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))
