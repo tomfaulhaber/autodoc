@@ -28,7 +28,7 @@
   "Strip off the <html><body>  ... </body></html> brackets that tag soup will add to
 partial html data leaving a vector of nodes"
   [nodes]
-  (:content (first (:content (:first nodes)))))
+  (:content (first (:content (first nodes)))))
 
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
@@ -78,11 +78,6 @@ partial html data leaving a vector of nodes"
                                             (content text)))))))))
 
 (deftemplate overview (template-for *overview-file*) [ns-info]
-  [:.toc-entry] (clone-for [ns ns-info]
-                           #(at % [:a] 
-                                (do->
-                                 (set-attr :href (str "#" (:short-name ns)))
-                                 (content (:short-name ns)))))
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (defn make-master-toc [ns-info]
@@ -94,10 +89,21 @@ partial html data leaving a vector of nodes"
                                                     (set-attr :href (ns-html-file ns))
                                                     (content (:short-name ns))))))))
 
+;;;TODO: factor out the ns-info so we can make different kinds of TOCs
+(defn make-local-toc [ns-info]
+  (content-nodes 
+   (at (get-template *local-toc-file*)
+         [:.toc-entry] (clone-for [ns ns-info]
+                           #(at % [:a] 
+                                (do->
+                                 (set-attr :href (str "#" (:short-name ns)))
+                                 (content (:short-name ns))))))))
+
 (deftemplate page (template-for *layout-file*)
   [title master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:div#leftcolumn] (content master-toc)
+  [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content))
 
 (defn make-overview [ns-info]
