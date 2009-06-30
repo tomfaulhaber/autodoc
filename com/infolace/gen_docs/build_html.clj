@@ -8,7 +8,27 @@
 (def *file-prefix* "../wiki-work-area/")
 (def *output-directory* (str *file-prefix* "wiki-src/"))
 
+(def *layout-file* "layout.html")
+(def *master-toc-file* "master-toc.html")
+(def *local-toc-file* "local-toc.html")
+
 (def *overview-file* "overview.html")
+
+(defn template-for
+  "Get the actual filename corresponding to a template"
+  [base] 
+  (str "templates/" base))
+
+(defn get-template 
+  "Get the html node corresponding to this template file"
+  [base]
+  (first (html-resource (template-for base))))
+
+(defn content-nodes 
+  "Strip off the <html><body>  ... </body></html> brackets that tag soup will add to
+partial html data leaving a vector of nodes"
+  [nodes]
+  (:content (first (:content (:first nodes)))))
 
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
@@ -57,18 +77,28 @@
                                             (set-attr :href link)
                                             (content text)))))))))
 
-(deftemplate overview (str "templates/" *overview-file*) [ns-info]
+(deftemplate overview (template-for *overview-file*) [ns-info]
   [:.toc-entry] (clone-for [ns ns-info]
                            #(at % [:a] 
                                 (do->
                                  (set-attr :href (str "#" (:short-name ns)))
                                  (content (:short-name ns)))))
-  [:ul#left-sidebar-list] (clone-for [ns ns-info]
-                                     #(at % [:a] 
-                                          (do->
-                                           (set-attr :href (ns-html-file ns))
-                                           (content (:short-name ns)))))
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
+
+(defn make-master-toc [ns-info]
+  (content-nodes
+   (at (get-template *master-toc-file*)
+       [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
+                                              #(at % [:a] 
+                                                   (do->
+                                                    (set-attr :href (ns-html-file ns))
+                                                    (content (:short-name ns))))))))
+
+(deftemplate page (template-for *layout-file*)
+  [title master-toc local-toc page-content]
+  [:html :head :title] (content title)
+  [:div#leftcolumn] (content master-toc)
+  [:div#content-tag] (content page-content))
 
 (defn make-overview [ns-info]
   (with-out-writer (str *output-directory* *overview-file*) 
