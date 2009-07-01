@@ -84,7 +84,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                                       (set-attr :href link)
                                       (content text)))))))))
 
-(deftemplate overview (template-for *overview-file*) [ns-info]
+(deffragment make-overview-content *overview-file* [ns-info]
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (deffragment make-master-toc *master-toc-file* [ns-info]
@@ -111,5 +111,11 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 
 (defn make-overview [ns-info]
   (with-out-writer (str *output-directory* *overview-file*) 
-    (print (apply str (overview ns-info)))))
+    (print
+     (apply 
+      str
+      (page "Clojure Contrib - Overview"
+            (make-master-toc ns-info)
+            (make-local-toc ns-info)
+            (make-overview-content ns-info))))))
 
