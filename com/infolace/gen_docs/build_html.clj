@@ -26,9 +26,16 @@
 
 (defn content-nodes 
   "Strip off the <html><body>  ... </body></html> brackets that tag soup will add to
-partial html data leaving a vector of nodes"
+partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   [nodes]
-  (:content (first (:content (first nodes)))))
+  {:tag :div, :content (:content (first (:content (first nodes))))})
+
+(defmacro deffragment [name template-file args & body]
+  `(defn ~name ~args
+     (content-nodes
+      (at (get-template ~template-file)
+          ~@body))))
+
 
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
@@ -54,50 +61,46 @@ partial html data leaving a vector of nodes"
 
 (defn namespace-overview [ns template]
   (at template
-      [:#namespace-tag] 
-      (do->
-       (set-attr :id (:short-name ns))
-       (content (:short-name ns)))
-      [:#author] (content (or (:author ns) "unknown author"))
-      [:a#api-link] (set-attr :href (ns-html-file ns))
-      [:pre#namespace-docstr] (content (:doc ns))
-      [:span#var-link] (add-ns-vars ns)
-      [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
-                         (clone-for [s subspaces]
-                           #(at % 
-                                [:span#name] (content (:short-name s))
-                                [:span#sub-var-link] (add-ns-vars s))))
-      [:span#see-also] (if-let [see-also (seq (:see-also ns))]
+    [:#namespace-tag] 
+    (do->
+     (set-attr :id (:short-name ns))
+     (content (:short-name ns)))
+    [:#author] (content (or (:author ns) "unknown author"))
+    [:a#api-link] (set-attr :href (ns-html-file ns))
+    [:pre#namespace-docstr] (content (:doc ns))
+    [:span#var-link] (add-ns-vars ns)
+    [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
+                       (clone-for [s subspaces]
                          #(at % 
-                              [:span#see-also-link] 
-                              (clone-for [[link text] (process-see-also (:see-also ns))]
-                                (fn [t] 
-                                  (at t
-                                      [:a] (do->
-                                            (set-attr :href link)
-                                            (content text)))))))))
+                            [:span#name] (content (:short-name s))
+                            [:span#sub-var-link] (add-ns-vars s))))
+    [:span#see-also] (if-let [see-also (seq (:see-also ns))]
+                       #(at % 
+                          [:span#see-also-link] 
+                          (clone-for [[link text] (process-see-also (:see-also ns))]
+                            (fn [t] 
+                              (at t
+                                [:a] (do->
+                                      (set-attr :href link)
+                                      (content text)))))))))
 
 (deftemplate overview (template-for *overview-file*) [ns-info]
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
-(defn make-master-toc [ns-info]
-  (content-nodes
-   (at (get-template *master-toc-file*)
-       [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
-                                              #(at % [:a] 
-                                                   (do->
-                                                    (set-attr :href (ns-html-file ns))
-                                                    (content (:short-name ns))))))))
+(deffragment make-master-toc *master-toc-file* [ns-info]
+  [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
+                                #(at %
+                                   [:a] (do->
+                                         (set-attr :href (ns-html-file ns))
+                                         (content (:short-name ns))))))
 
 ;;;TODO: factor out the ns-info so we can make different kinds of TOCs
-(defn make-local-toc [ns-info]
-  (content-nodes 
-   (at (get-template *local-toc-file*)
-         [:.toc-entry] (clone-for [ns ns-info]
-                           #(at % [:a] 
-                                (do->
-                                 (set-attr :href (str "#" (:short-name ns)))
-                                 (content (:short-name ns))))))))
+(deffragment make-local-toc *local-toc-file* [ns-info]
+  [:.toc-entry] (clone-for [ns ns-info]
+                  #(at %
+                     [:a] (do->
+                           (set-attr :href (str "#" (:short-name ns)))
+                           (content (:short-name ns))))))
 
 (deftemplate page (template-for *layout-file*)
   [title master-toc local-toc page-content]
