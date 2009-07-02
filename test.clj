@@ -6,6 +6,6 @@
 
   (do
     (load "com/infolace/gen_docs/build_html")
-    (make-overview (contrib-info))
+    (make-all-pages)
     )
 )

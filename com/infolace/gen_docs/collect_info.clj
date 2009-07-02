@@ -24,13 +24,25 @@ string, which looks nasty when you display it."
         (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
         s))))
 
+(defn var-type 
+  "Determing the type (var, function, macro) of a var from the metadata and
+return it as a string."
+  [v]
+  (cond (:macro ^v) "macro"
+        (= (:tag ^v) clojure.lang.MultiFn) "multimethod"
+        (:arglists ^v) "function"
+        :else "var"))
+
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc ^v) (:doc ^v)) (not (:skip-wiki ^v)) (not (:private ^v)))] v))
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
-    (select-keys ^v [:name :arglists])))
+    (merge (select-keys ^v [:arglists :file :line])
+           {:name (name (:name ^v))
+            :doc (remove-leading-whitespace (:doc ^v)),
+            :var-type (var-type v)})))
 
 (defn add-vars [ns-info]
   (merge ns-info {:members (vars-info (:ns ns-info))}))
