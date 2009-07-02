@@ -40,6 +40,10 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
 
+(defn overview-toc-data 
+  [ns-info]
+  (for [ns ns-info] [(:short-name ns) (:short-name ns)]))
+
 (defn add-ns-vars [ns]
   (clone-for [f (:members ns)]
              #(at % 
@@ -94,13 +98,12 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                                          (set-attr :href (ns-html-file ns))
                                          (content (:short-name ns))))))
 
-;;;TODO: factor out the ns-info so we can make different kinds of TOCs
-(deffragment make-local-toc *local-toc-file* [ns-info]
-  [:.toc-entry] (clone-for [ns ns-info]
+(deffragment make-local-toc *local-toc-file* [toc-data]
+  [:.toc-entry] (clone-for [[tag text] toc-data]
                   #(at %
                      [:a] (do->
-                           (set-attr :href (str "#" (:short-name ns)))
-                           (content (:short-name ns))))))
+                           (set-attr :href (str "#" tag))
+                           (content text)))))
 
 (deftemplate page (template-for *layout-file*)
   [title master-toc local-toc page-content]
@@ -116,6 +119,6 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
       str
       (page "Clojure Contrib - Overview"
             (make-master-toc ns-info)
-            (make-local-toc ns-info)
+            (make-local-toc (overview-toc-data ns-info))
             (make-overview-content ns-info))))))
 
