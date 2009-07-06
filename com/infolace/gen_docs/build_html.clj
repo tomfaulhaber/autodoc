@@ -79,6 +79,17 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
       :else %) 
    see-also-seq))
 
+(defn see-also-links [ns]
+  (if-let [see-also (seq (:see-also ns))]
+    #(at %
+       [:span#see-also-link] 
+       (clone-for [[link text] (process-see-also (:see-also ns))]
+         (fn [t] 
+           (at t
+             [:a] (do->
+                   (set-attr :href link)
+                   (content text))))))))
+
 (defn namespace-overview [ns template]
   (at template
     [:#namespace-tag] 
@@ -94,15 +105,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                          #(at % 
                             [:span#name] (content (:short-name s))
                             [:span#sub-var-link] (add-ns-vars s))))
-    [:span#see-also] (if-let [see-also (seq (:see-also ns))]
-                       #(at % 
-                          [:span#see-also-link] 
-                          (clone-for [[link text] (process-see-also (:see-also ns))]
-                            (fn [t] 
-                              (at t
-                                [:a] (do->
-                                      (set-attr :href link)
-                                      (content text)))))))))
+    [:span#see-also] (see-also-links ns)))
 
 (deffragment make-overview-content *overview-file* [ns-info]
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %))
@@ -140,6 +143,11 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 
 ;; TODO: handle sub-namespaces
 (deffragment make-ns-content *namespace-api-file* [ns]
+  [:span#namespace-name] (content (:short-name ns))
+  [:span#author] (content (or (:author ns) "Unknown"))
+  [:span#long-name] (content (:full-name ns))
+  [:pre#namespace-docstr] (content (:doc ns))
+  [:span#see-also] (see-also-links ns)
   [:div#var-entry] (clone-for [v (:members ns)] #(var-details v %))
   )
 
