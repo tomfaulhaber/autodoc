@@ -1,12 +1,11 @@
 (ns com.infolace.gen-docs.build-html
   (:refer-clojure :exclude [empty complement]) 
   (:use net.cgrand.enlive-html
+        com.infolace.gen-docs.params
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]))
 
-;; TODO: consolidate and DRY defs
-(def *file-prefix* "../wiki-work-area/")
 (def *output-directory* (str *file-prefix* "wiki-src/"))
 
 (def *layout-file* "layout.html")
@@ -108,8 +107,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
     [:span#see-also] (see-also-links ns)))
 
 (deffragment make-overview-content *overview-file* [ns-info]
-  [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %))
-)
+  [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (deffragment make-master-toc *master-toc-file* [ns-info]
   [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
