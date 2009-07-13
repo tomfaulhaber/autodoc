@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [empty complement]) 
   (:use net.cgrand.enlive-html
         com.infolace.gen-docs.params
+        [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]))
@@ -14,6 +15,7 @@
 
 (def *overview-file* "overview.html")
 (def *namespace-api-file* "namespace-api.html")
+(def *sub-namespace-api-file* "sub-namespace-api.html")
 
 (defn template-for
   "Get the actual filename corresponding to a template"
@@ -35,7 +37,12 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   `(defn ~name ~args
      (content-nodes
       (at (get-template ~template-file)
-          ~@body))))
+        ~@body))))
+
+(defmacro with-template [template-file & body]
+  `(content-nodes
+    (at (get-template ~template-file)
+      ~@body)))
 
 (deftemplate page (template-for *layout-file*)
   [title master-toc local-toc page-content]
@@ -130,24 +137,43 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                (make-local-toc (overview-toc-data ns-info))
                (make-overview-content ns-info)))
 
+;;; TODO: redo this so the usage parts can be styles
+(defn var-usage [v]
+  (if-let [arglists (:arglists v)]
+    (cl-format nil
+               "~<Usage: ~:i~@{~{(~a~{ ~a~})~}~^~:@_~}~:>~%"
+               (map #(vector %1 %2) (repeat (:name v)) arglists))
+    (if (= (:var-type v) "multimethod")
+      "No usage documentation available")))
+
+;;; TODO: add a link to the source
+;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [v template]
   (at template 
     [:#var-tag] 
     (do->
      (set-attr :id (:name v))
      (content (:name v)))
-    [:pre#var-docstr] (content (:doc v))
-    ))
+    [:span#var-type] (content (:var-type v))
+    [:pre#var-usage] (content (var-usage v))
+    [:pre#var-docstr] (content (:doc v))))
 
-;; TODO: handle sub-namespaces
-(deffragment make-ns-content *namespace-api-file* [ns]
-  [:span#namespace-name] (content (:short-name ns))
-  [:span#author] (content (or (:author ns) "Unknown"))
-  [:span#long-name] (content (:full-name ns))
-  [:pre#namespace-docstr] (content (:doc ns))
-  [:span#see-also] (see-also-links ns)
-  [:div#var-entry] (clone-for [v (:members ns)] #(var-details v %))
-  )
+(declare render-namespace-api)
+
+(defn make-ns-content [ns]
+  (render-namespace-api *namespace-api-file* ns))
+
+(defn render-namespace-api [template-file ns]
+  (with-template template-file
+    [:#namespace-name] (content (:short-name ns))
+    [:span#author] (content (or (:author ns) "Unknown"))
+    [:span#long-name] (content (:full-name ns))
+    [:pre#namespace-docstr] (content (:doc ns))
+    [:span#see-also] (see-also-links ns)
+    [:div#var-entry] (clone-for [v (:members ns)] #(var-details v %))
+    [:div#sub-namespaces]
+    (clone-for [sub-ns (:subspaces ns)]
+      (fn [_] (render-namespace-api *sub-namespace-api-file* sub-ns)))))
 
 (defn make-ns-page [ns master-toc]
   (create-page (ns-html-file ns)
