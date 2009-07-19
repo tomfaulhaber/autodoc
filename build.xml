@@ -9,21 +9,57 @@
 	<property name="miglayout-jar" location="${user.home}/.clojure/miglayout-3.7.jar"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
   <property name="force" value="false"/>
+  <property name="contrib-src-dir" value="../wiki-work-area/clojure-contrib/"/>
   <property name="output-dir" value="../wiki-work-area/wiki-src/"/>
   <property name="static-dir" value="static/"/>
+
   <target name="copy-statics"
           description="Copy all of the static files (css, etc.) from here to the target directory">
     <copy todir="${output-dir}/${static-dir}">
       <fileset dir="${static-dir}"/>
     </copy>
   </target>
+
+  <!-- Tasks for running git and deciding if we have to do work -->
+  <target name="pull-contrib"
+          description="do a git pull --rebase origin master of the contrib source">
+    <exec executable="git" dir="${contrib-src-dir}">
+      <arg value="pull"/>
+      <arg value="--rebase"/>
+      <arg value="origin"/>
+      <arg value="master"/>
+    </exec>
+  </target>
+
+  <target name="set-is-uptodate" depends="set-base-is-uptodate"
+          description="Set the is-uptodate property">
+    <condition property="is-uptodate">
+      <equals arg1="${base-is-uptodate}" arg2="yes"/>
+    </condition>
+    <echo message="base is ${base-is-uptodate}"/>
+    <echo message="value is ${is-uptodate}"/>
+  </target>
+
+  <target name="set-base-is-uptodate" 
+          description="run the external program and get back a yes or no">
+    <exec executable="sh" outputproperty="base-is-uptodate">
+      <arg value="./is-uptodate.sh"/>
+      <arg value="${contrib-src-dir}"/>
+    </exec>
+  </target>
+
+  <target name="set-commit-hash" description="Set the current commit hash!">
+    <exec executable="git" dir="${contrib-src-dir}" outputproperty="commit-hash">
+      <arg value="rev-parse"/>
+      <arg value="HEAD"/>
+    </exec>
+  </target>
+
 	<target name="build-contrib" 
 					description="Update and, if necessary, build the contrib files">
-		<java classname="clojure.main" classpath="${clojure-jar}:${clojure-json-jar}:." 
-					fork="true" failonerror="true">
-      <arg value="-e"/>
-      <arg value="(use 'gen-contrib-docs) (main :build-contrib  ${force})"/>
-		</java>
+    <ant dir="${contrib-src-dir}" inheritAll="false">
+      <property name="clojure.jar" value="${clojure-jar}"/>
+    </ant>
 	</target>
 
 	<target name="build-wiki" 
