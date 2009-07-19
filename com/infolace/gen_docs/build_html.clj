@@ -163,7 +163,10 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
     (if (= (:var-type v) "multimethod")
       "No usage documentation available")))
 
-;;; TODO: add a link to the source
+(defn var-src-link [v]
+  (when (and (:file v) (:line v))
+    (cl-format nil "~a/~a#L~d" *web-src-dir* (:file v) (:line v))))
+
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template]
   (at template 
@@ -173,7 +176,8 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
      (content (:name v)))
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
-    [:pre#var-docstr] (content (:doc v))))
+    [:pre#var-docstr] (content (:doc v))
+    [:a#var-source] (set-attr :href (var-src-link v))))
 
 (declare render-namespace-api)
 
