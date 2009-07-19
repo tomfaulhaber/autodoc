@@ -95,7 +95,9 @@ have the same prefix followed by a . and then more components"
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))
 
 (defn add-subspaces [info]
-     (assoc info :subspaces (build-ns-list (sub-namespaces (:ns info)))))
+     (assoc info :subspaces 
+            (filter #(or (:doc %) (seq (:members %)))
+                    (build-ns-list (sub-namespaces (:ns info))))))
 
 (defn contrib-info [] 
   (map add-subspaces
