@@ -24,9 +24,7 @@
   <target name="pull-contrib"
           description="do a git pull --rebase origin master of the contrib source">
     <exec executable="git" dir="${contrib-src-dir}">
-      <arg value="pull"/>
-      <arg value="--rebase"/>
-      <arg value="origin"/>
+      <arg value="rebase"/>
       <arg value="master"/>
     </exec>
   </target>
@@ -36,8 +34,14 @@
     <condition property="is-uptodate">
       <equals arg1="${base-is-uptodate}" arg2="yes"/>
     </condition>
-    <echo message="base is ${base-is-uptodate}"/>
-    <echo message="value is ${is-uptodate}"/>
+    <condition property="do-build">
+      <or>
+        <equals arg1="${base-is-uptodate}" arg2="no"/>
+        <equals arg1="${force}" arg2="true"/>
+      </or>
+    </condition>
+    <echo message="up-to-date?: ${base-is-uptodate}"/>
+    <echo message="force?: ${force}"/>
   </target>
 
   <target name="set-base-is-uptodate" 
@@ -72,7 +76,12 @@
 		</java>
 	</target>
 
-<target name="all" depends="build-contrib, build-wiki"
-        description="Update the wiki based on the latest source, if appropriate"/>
+  <target name="do-build1" depends="build-contrib"/>
+
+  <target name="all" depends="pull-contrib, set-is-uptodate, set-commit-hash"
+          if="do-build"
+          description="Update the html based on the latest source, if appropriate">
+    <antcall target="do-build1"/>
+  </target>
 
 </project>
