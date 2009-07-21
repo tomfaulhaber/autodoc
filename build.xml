@@ -6,7 +6,11 @@
   </description>
 
 	<property name="clojure-jar" location="../clojure/clojure.jar"/>
-	<property name="miglayout-jar" location="${user.home}/.clojure/miglayout-3.7.jar"/>
+	<property name="clojure-contrib-jar"
+            location="../wiki-work-area/clojure-contrib/clojure-contrib-slim.jar"/>
+	<property name="clojure-contrib-classes"
+            location="../wiki-work-area/clojure-contrib/classes"/>
+  <property name="enlive-src" location="../enlive/src"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
   <property name="force" value="false"/>
   <property name="contrib-src-dir" value="../wiki-work-area/clojure-contrib/"/>
@@ -66,6 +70,23 @@
     </ant>
 	</target>
 
+  <target name="clean-html-dir"
+          description="Delete old API files before creating new ones">
+    <delete>
+      <fileset dir="${output-dir}" includes="*-api.html"/>
+    </delete>
+  </target>
+
+  <target name="build-html" depends="set-commit-hash,clean-html-dir"
+          description="Build the HTML documentation and check it in">
+		<java classname="clojure.main"
+          classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${clojure-json-jar}:." 
+					fork="true" failonerror="true">
+      <arg value="-e"/>
+      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs ${commit-hash})"/>
+		</java>
+  </target>
+
 	<target name="build-wiki" 
 					description="Generate and commit wiki files">
 		<java classname="clojure.main"
@@ -76,12 +97,12 @@
 		</java>
 	</target>
 
-  <target name="do-build1" depends="build-contrib"/>
+  <target name="do-build" depends="build-contrib,build-html"/>
 
-  <target name="all" depends="pull-contrib, set-is-uptodate, set-commit-hash"
+  <target name="all" depends="pull-contrib, set-is-uptodate"
           if="do-build"
           description="Update the html based on the latest source, if appropriate">
-    <antcall target="do-build1"/>
+    <antcall target="do-build"/>
   </target>
 
 </project>
