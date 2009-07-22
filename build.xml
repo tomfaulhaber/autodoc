@@ -11,6 +11,7 @@
 	<property name="clojure-contrib-classes"
             location="../wiki-work-area/clojure-contrib/classes"/>
   <property name="enlive-src" location="../enlive/src"/>
+  <property name="tagsoup-jar" location="/home/tom/.clojure/tagsoup-1.2.jar"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
   <property name="force" value="false"/>
   <property name="contrib-src-dir" value="../wiki-work-area/clojure-contrib/"/>
@@ -67,6 +68,13 @@
 					description="Update and, if necessary, build the contrib files">
     <ant dir="${contrib-src-dir}" inheritAll="false">
       <property name="clojure.jar" value="${clojure-jar}"/>
+      <target name="clean"/>
+      <target name="jar"/>
+    </ant>
+    <delete dir="${contrib-src-dir}/classes"/>
+    <ant dir="${contrib-src-dir}" inheritAll="false">
+      <property name="clojure.jar" value="${clojure-jar}"/>
+      <target name="compile_classes"/>
     </ant>
 	</target>
 
@@ -80,22 +88,12 @@
   <target name="build-html" depends="set-commit-hash,clean-html-dir"
           description="Build the HTML documentation and check it in">
 		<java classname="clojure.main"
-          classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${clojure-json-jar}:." 
+          classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${tagsoup-jar}:${clojure-json-jar}:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
-      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs ${commit-hash})"/>
+      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs &quot;${commit-hash}&quot;)"/>
 		</java>
   </target>
-
-	<target name="build-wiki" 
-					description="Generate and commit wiki files">
-		<java classname="clojure.main"
-          classpath="${clojure-jar}:${miglayout-jar}:${clojure-json-jar}:." 
-					fork="true" failonerror="true">
-      <arg value="-e"/>
-      <arg value="(use 'gen-contrib-docs) (main :build-wiki ${force})"/>
-		</java>
-	</target>
 
   <target name="do-build" depends="build-contrib,build-html"/>
 
