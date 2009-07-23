@@ -27,9 +27,10 @@
 
   <!-- Tasks for running git and deciding if we have to do work -->
   <target name="pull-contrib"
-          description="do a git pull --rebase origin master of the contrib source">
+          description="do a git pull origin master of the contrib source">
     <exec executable="git" dir="${contrib-src-dir}">
-      <arg value="rebase"/>
+      <arg value="pull"/>
+      <arg value="origin"/>
       <arg value="master"/>
     </exec>
   </target>
@@ -57,10 +58,48 @@
     </exec>
   </target>
 
+  <target name="update-last-commit" 
+          description="update the last version that we ran autodoc on">
+    <exec executable="sh">
+      <arg value="./update-last.sh"/>
+      <arg value="${contrib-src-dir}"/>
+    </exec>
+  </target>
+
   <target name="set-commit-hash" description="Set the current commit hash!">
     <exec executable="git" dir="${contrib-src-dir}" outputproperty="commit-hash">
       <arg value="rev-parse"/>
       <arg value="HEAD"/>
+    </exec>
+  </target>
+
+  <target name="set-commit-comment" depends="set-commit-hash,set-is-uptodate"
+          description="Create an appropriate commit comment for the HTML page checkin">
+    <condition property="commit-comment"
+               value="Updated documentation for commit ${commit-hash}"
+               else="Manual (forced) documentation build for commit ${commit-hash}">
+      <equals arg1="${base-is-uptodate}" arg2="no"/>
+    </condition>
+  </target>
+
+  <target name="stage-new-api-files" description="Stage files for new namespaces">
+    <exec executable="git" dir="${output-dir}">
+      <arg value="add"/>
+      <arg value="*-api.html"/>
+    </exec>
+  </target>
+
+  <target name="commit-html" depends="set-commit-comment,stage-new-api-files"
+          description="Commit the rebuild HTML back to github">
+    <exec executable="git" dir="${output-dir}">
+      <arg value="commit"/>
+      <arg value="-a"/>
+      <arg value="-m${commit-comment}"/>
+    </exec>
+    <exec executable="git" dir="${output-dir}">
+      <arg value="push"/>
+      <arg value="origin"/>
+      <arg value="gh-pages"/>
     </exec>
   </target>
 
@@ -95,7 +134,10 @@
 		</java>
   </target>
 
-  <target name="do-build" depends="build-contrib,build-html"/>
+
+  <target name="commit-result" depends="set-commit-comment,commit-html,update-last-commit"/>
+    
+  <target name="do-build" depends="build-contrib,build-html,commit-result"/>
 
   <target name="all" depends="pull-contrib, set-is-uptodate"
           if="do-build"

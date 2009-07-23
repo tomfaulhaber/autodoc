@@ -15,7 +15,7 @@
     (let [ns (first (filter #(= (:short-name %) ns-name) ns-info))]
       (make-ns-page ns master-toc)))
 
-
+  (gen-json-index ns-info)
   (def ns-pprint (first (filter #(= (:short-name %) "pprint") ns-info )))
   (make-ns-page ns-pprint master-toc)
   )

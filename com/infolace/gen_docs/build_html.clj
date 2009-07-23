@@ -1,12 +1,16 @@
 (ns com.infolace.gen-docs.build-html
   (:refer-clojure :exclude [empty complement]) 
+  (:import [java.util.jar JarFile]
+           [java.io FileWriter BufferedWriter])
   (:use net.cgrand.enlive-html
         com.infolace.gen-docs.params
         [clojure.contrib.pprint :only (cl-format)]
+        [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]))
 
+(def *web-home* "http://richhickey.github.com/clojure-contrib/")
 (def *output-directory* (str *file-prefix* "wiki-src/"))
 
 (def *layout-file* "layout.html")
@@ -17,6 +21,7 @@
 (def *namespace-api-file* "namespace-api.html")
 (def *sub-namespace-api-file* "sub-namespace-api.html")
 (def *index-html-file* "api-index.html")
+(def *index-json-file* "api-index.json")
 
 (defn template-for
   "Get the actual filename corresponding to a template"
@@ -78,12 +83,15 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
    (for [sub-ns (:subspaces ns)]
      [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)])))
 
-(defn add-ns-vars [base-ns ns]
+(defn var-url
+  "Return the relative URL of the anchored entry for a var on a namespace detail page"
+  [ns v] (str (ns-html-file (:base-ns ns)) "#" (var-tag-name ns v)))
+
+(defn add-ns-vars [ns]
   (clone-for [v (:members ns)]
              #(at % 
                 [:a] (do->
-                      (set-attr :href
-                                (str (ns-html-file base-ns) "#" (var-tag-name ns v)))
+                      (set-attr :href (var-url ns v))
                       (content (:name v))))))
 
 (defn process-see-also
@@ -116,12 +124,12 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
     [:#author] (content (or (:author ns) "unknown author"))
     [:a#api-link] (set-attr :href (ns-html-file ns))
     [:pre#namespace-docstr] (content (:doc ns))
-    [:span#var-link] (add-ns-vars ns ns)
+    [:span#var-link] (add-ns-vars ns)
     [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
                        (clone-for [s subspaces]
                          #(at % 
                             [:span#name] (content (:short-name s))
-                            [:span#sub-var-link] (add-ns-vars ns s))))
+                            [:span#sub-var-link] (add-ns-vars s))))
     [:span#see-also] (see-also-links ns)))
 
 (deffragment make-overview-content *overview-file* [ns-info]
@@ -148,7 +156,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                                                  (content subtext))))))))
 
 (defn make-overview [ns-info master-toc]
-  (create-page *overview-file*
+  (create-page "index.html"
                "Clojure Contrib - Overview"
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -254,6 +262,51 @@ vars in ns-info that begin with that letter"
                nil
                (make-index-content (vars-by-letter ns-info))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; Make the JSON index
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn ns-file 
+  "Get the file name (relative to src/ in clojure.contrib) where a namespace lives" 
+  [ns]
+  (let [ns-name (.replaceAll (:full-name ns) "-" "_")
+        ns-file (.replaceAll ns-name "\\." "/")]
+    (str ns-file ".clj")))
+
+(defn namespace-index-info [ns]
+  (assoc (select-keys ns [:doc :author])
+    :name (:full-name ns)
+    :wiki-url (str *web-home* (ns-html-file ns))
+    :source-url (str *web-src-dir* "/" (ns-file ns))))
+
+(defn var-index-info [v ns]
+  (assoc (select-keys v [:name :doc :author :arglists])
+    :namespace (:full-name ns)
+    :wiki-url (str *web-home* "/" (var-url ns v))
+    :source-url (var-src-link v)))
+
+(defn structured-index 
+  "Create a structured index of all the reference information about contrib"
+  [ns-info]
+  (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
+        all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
+     {:namespaces (map namespace-index-info namespaces)
+      :vars (map #(apply var-index-info %) all-vars)}))
+
+
+(defn make-index-json
+  "Generate a json formatted index file that can be consumed by other tools"
+  [ns-info]
+  (with-out-writer (BufferedWriter. (FileWriter. (str *output-directory* *index-json-file*)))
+    (print-json (structured-index ns-info))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; Put it all together
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-all-pages []
   (let [ns-info (contrib-info)
@@ -262,5 +315,5 @@ vars in ns-info that begin with that letter"
     (doseq [ns ns-info]
       (make-ns-page ns master-toc))
     (make-index-html ns-info master-toc)
-    ;;TODO: add json index page
+    (make-index-json ns-info)
     ))

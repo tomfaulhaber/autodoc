@@ -99,6 +99,11 @@ have the same prefix followed by a . and then more components"
             (filter #(or (:doc %) (seq (:members %)))
                     (build-ns-list (sub-namespaces (:ns info))))))
 
+(defn add-base-ns-info [ns]
+  (assoc ns
+    :base-ns ns
+    :subspaces (map #(assoc % :base-ns ns) (:subspaces ns))))
+
 (defn contrib-info [] 
-  (map add-subspaces
-       (build-ns-list (base-contrib-namespaces))))
+  (map add-base-ns-info (map add-subspaces
+                             (build-ns-list (base-contrib-namespaces)))))
