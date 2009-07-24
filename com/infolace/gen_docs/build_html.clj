@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
            [java.io FileWriter BufferedWriter])
-  (:use net.cgrand.enlive-html
+ (:require [clojure.contrib.str-utils2 :as str2])
+ (:use net.cgrand.enlive-html
         com.infolace.gen-docs.params
         [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
@@ -49,6 +50,20 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   `(content-nodes
     (at (get-template ~template-file)
       ~@body)))
+
+;;; copied from enlive where this is private
+(defn- xml-str
+ "Like clojure.core/str but escapes < > and &."
+ [x]
+  (-> x str (.replace "&" "&amp;") (.replace "<" "&lt;") (.replace ">" "&gt;")))
+
+;;; Thanks to Chouser for this regex
+(defn expand-links 
+  "Return an HTML string with links expanded into anchor tags."
+  [s] 
+  (str2/replace (xml-str s) 
+                #"(\w+://.*?)([.>]*(?: |$))" 
+                (fn [[_ url etc]] (str "<a href='" url "'>" url "</a>" etc))))
 
 (deftemplate page (template-for *layout-file*)
   [title master-toc local-toc page-content]
@@ -123,7 +138,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
      (content (:short-name ns)))
     [:#author] (content (or (:author ns) "unknown author"))
     [:a#api-link] (set-attr :href (ns-html-file ns))
-    [:pre#namespace-docstr] (content (:doc ns))
+    [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
     [:span#var-link] (add-ns-vars ns)
     [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
                        (clone-for [s subspaces]
@@ -184,7 +199,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
      (content (:name v)))
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
-    [:pre#var-docstr] (content (:doc v))
+    [:pre#var-docstr] (html-content (expand-links (:doc v)))
     [:a#var-source] (set-attr :href (var-src-link v))))
 
 (declare render-namespace-api)
@@ -197,7 +212,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
     [:#namespace-name] (content (:short-name ns))
     [:span#author] (content (or (:author ns) "Unknown"))
     [:span#long-name] (content (:full-name ns))
-    [:pre#namespace-docstr] (content (:doc ns))
+    [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
     [:span#see-also] (see-also-links ns)
     [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
     [:div#sub-namespaces]
