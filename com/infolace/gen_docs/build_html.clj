@@ -2,8 +2,8 @@
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
            [java.io FileWriter BufferedWriter])
- (:require [clojure.contrib.str-utils2 :as str2])
- (:use net.cgrand.enlive-html
+  (:require [clojure.contrib.str-utils2 :as str2])
+  (:use net.cgrand.enlive-html
         com.infolace.gen-docs.params
         [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
