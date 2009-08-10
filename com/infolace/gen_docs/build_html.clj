@@ -9,6 +9,7 @@
         [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
+        [clojure.contrib.shell-out :only (sh)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]))
 
 (def *web-home* "http://richhickey.github.com/clojure-contrib/")
@@ -186,9 +187,27 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
     (if (= (:var-type v) "multimethod")
       "No usage documentation available")))
 
+(def commit-hash-cache (ref {}))
+
+(defn get-last-commit-hash
+  "Gets the commit hash for the last commit that included this file. We
+do this for source links so that we don't change them with every commit (unless that file
+actually changed). This reduces the amount of random doc file changes that happen."
+  [file]
+  (dosync
+   (if-let [hash (get @commit-hash-cache file)]
+     hash
+     (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
+                           :dir *src-dir*))]
+       (alter commit-hash-cache assoc file hash)
+       hash))))
+
+(defn web-src-file [file]
+  (cl-format nil "~a~a/src/~a" *web-src-dir* (get-last-commit-hash file) file))
+
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
-    (cl-format nil "~a/~a#L~d" *web-src-dir* (:file v) (:line v))))
+    (cl-format nil "~a#L~d" (web-src-file (:file v)) (:line v))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template]
@@ -294,7 +313,7 @@ vars in ns-info that begin with that letter"
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
     :wiki-url (str *web-home* (ns-html-file ns))
-    :source-url (str *web-src-dir* "/" (ns-file ns))))
+    :source-url (web-src-file (ns-file ns))))
 
 (defn var-index-info [v ns]
   (assoc (select-keys v [:name :doc :author :arglists])
@@ -330,5 +349,4 @@ vars in ns-info that begin with that letter"
     (doseq [ns ns-info]
       (make-ns-page ns master-toc))
     (make-index-html ns-info master-toc)
-    (make-index-json ns-info)
-    ))
+    (make-index-json ns-info)))

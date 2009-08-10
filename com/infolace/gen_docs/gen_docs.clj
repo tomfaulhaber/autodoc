@@ -7,9 +7,6 @@
 
 (defn gen-docs 
   ([] (gen-docs "master"))
-  ([commit-hash]
-     (binding [*web-src-dir*
-               (cl-format nil "http://github.com/richhickey/clojure-contrib/blob/~a/src" 
-                          commit-hash)]
-       (load-contrib)
-       (make-all-pages))))
+  ([commit-hash] ; TODO: I don't think we need to pass this anymore (change build.xml too)
+     (load-contrib)
+     (make-all-pages)))
