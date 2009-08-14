@@ -117,6 +117,37 @@
     </ant>
 	</target>
 
+  <!-- Build the documention stored in clojure-contrib/doc/... -->
+  <target name="clean-doc"
+          description="Delete existing doc files">
+    <delete dir="${output-dir}/doc"/>
+  </target>
+    
+  <target name="make-doc-directories"
+          description="Make the output directories for doc files pulled from the source area">
+    <apply executable="mkdir" verbose="true" force="true" addsourcefile="false"
+           dest="${output-dir}/doc">
+      <fileset dir="${contrib-src-dir}/doc"/>
+      <mapper type="regexp" from="(.*)/[^/]+" to="\1"/>
+      <arg value="-p"/>
+      <targetfile/>
+    </apply>
+  </target>
+
+  <target name="build-markdown"
+          description="Convert additional markdown files to HTML in the dest directory.">
+    <apply executable="markdown" verbose="true" force="true">
+      <fileset dir="${contrib-src-dir}/doc" includes="**/*.markdown"/>
+      <redirector>
+        <outputmapper type="glob" from="*.markdown" to="${output-dir}/doc/*.html"/>
+      </redirector>
+    </apply>
+  </target>
+  
+  <target name="build-contrib-doc"
+          depends="pull-contrib,clean-doc,make-doc-directories,build-markdown"
+          description="Build the additional documentation that is in clojure-contrib/doc"/>
+          
   <target name="clean-html-dir"
           description="Delete old API files before creating new ones">
     <delete>
