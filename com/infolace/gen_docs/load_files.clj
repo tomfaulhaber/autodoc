@@ -36,6 +36,7 @@
       #"/datalog/tests/"
       #"/datalog/example"
       #"/javadoc"
+      #"/jmx/Bean"
       ])
 
 (defn not-in [str regex-seq] 

@@ -107,6 +107,11 @@
       <property name="clojure.jar" value="${clojure-jar}"/>
       <target name="compile_classes"/>
     </ant>
+    <!-- the following deletes are to hack around clojure issue 130 -->
+    <delete>
+      <fileset dir="${contrib-src-dir}/classes" includes="**/jmx*.class"/>
+    </delete>
+    <delete dir="${contrib-src-dir}/classes/clojure/contrib/jmx"/>
 	</target>
 
   <!-- Build the documention stored in clojure-contrib/doc/... -->
