@@ -133,6 +133,17 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                    (set-attr :href link)
                    (content text))))))))
 
+(defn external-doc-links [ns external-docs]
+  (if-let [ns-docs (get external-docs (:short-name ns))]
+    #(at %
+       [:span#external-doc-link] 
+       (clone-for [[link text] ns-docs]
+         (fn [t] 
+           (at t
+             [:a] (do->
+                   (set-attr :href (str "doc/" link))
+                   (content text))))))))
+
 (defn namespace-overview [ns template]
   (at template
     [:#namespace-tag] 
@@ -226,28 +237,29 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (declare render-namespace-api)
 
-(defn make-ns-content [ns]
-  (render-namespace-api *namespace-api-file* ns))
+(defn make-ns-content [ns external-docs]
+  (render-namespace-api *namespace-api-file* ns external-docs))
 
-(defn render-namespace-api [template-file ns]
+(defn render-namespace-api [template-file ns external-docs]
   (with-template template-file
     [:#namespace-name] (content (:short-name ns))
     [:span#author] (content (or (:author ns) "Unknown"))
     [:span#long-name] (content (:full-name ns))
     [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
     [:span#see-also] (see-also-links ns)
+    [:span#external-doc] (external-doc-links ns external-docs)
     [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
     [:div#sub-namespaces]
     (clone-for [sub-ns (:subspaces ns)]
-      (fn [_] (render-namespace-api *sub-namespace-api-file* sub-ns)))))
+      (fn [_] (render-namespace-api *sub-namespace-api-file* sub-ns external-docs)))))
 
-(defn make-ns-page [ns master-toc]
+(defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
-               (str "clojure contrib - " (:short-name ns) " API reference")
+               (str (:short-name ns) " API reference (clojure.contrib)")
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns)))
+               (make-ns-content ns external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -357,17 +369,30 @@ vars in ns-info that begin with that letter"
   (or (select-content-text node [:title])
       (select-content-text node [:h1])))
 
+(defn external-doc-map [v]
+  (apply 
+   merge-with concat
+   (map 
+    (partial apply assoc {}) 
+    (for [[offset title :as elem] v]
+      (let [[_ dir nm] (re-find #"(.*/)?([^/]*)\.html" offset)
+            package (if dir (apply str (interpose "." (into [] (.split dir "/")))))]
+        (if dir
+          [package [elem]]
+          [nm [elem]]))))))
+
 (defn wrap-external-doc [staging-dir target-dir master-toc]
-  (doall
-   (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
-     (let [source-path (.getAbsolutePath file)
-           offset (.substring source-path (inc (.length staging-dir)))
-           target-path (str target-dir "/" offset)
-           page-content (first (html-resource (java.io.File. source-path)))
-           title (get-title page-content)
-           prefix (apply str (repeat (count (.split offset "/")) "../"))]
-       (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
-       [offset title]))))
+  (external-doc-map
+   (doall ; force the side effect (generating the xml files
+    (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
+      (let [source-path (.getAbsolutePath file)
+            offset (.substring source-path (inc (.length staging-dir)))
+            target-path (str target-dir "/" offset)
+            page-content (first (html-resource (java.io.File. source-path)))
+            title (get-title page-content)
+            prefix (apply str (repeat (count (.split offset "/")) "../"))]
+        (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
+        [offset title])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -381,7 +406,7 @@ vars in ns-info that begin with that letter"
         external-docs (wrap-external-doc *external-doc-tmpdir* "doc" master-toc)]
     (make-overview ns-info master-toc)
     (doseq [ns ns-info]
-      (make-ns-page ns master-toc))
+      (make-ns-page ns master-toc external-docs))
     (make-index-html ns-info master-toc)
     (make-index-json ns-info)))
 
