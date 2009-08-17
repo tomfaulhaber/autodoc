@@ -70,7 +70,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 (deftemplate page (template-for *layout-file*)
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
-  [:link] #(assoc % :attrs (apply assoc (:attrs % {}) [:href (str prefix (:href (:attrs %)))]))
+  [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content))
@@ -347,6 +347,9 @@ vars in ns-info that begin with that letter"
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn add-href-prefix [node prefix]
+  (at node
+    [:a] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])))
 (defmacro select-content-text [node selectr]
   `(first (:content (first (select [~node] ~selectr)))))
 
@@ -363,7 +366,7 @@ vars in ns-info that begin with that letter"
            page-content (first (html-resource (java.io.File. source-path)))
            title (get-title page-content)
            prefix (apply str (repeat (count (.split offset "/")) "../"))]
-       (create-page target-path title prefix master-toc nil page-content)
+       (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
        [offset title]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
