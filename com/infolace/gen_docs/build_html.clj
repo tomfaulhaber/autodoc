@@ -14,6 +14,7 @@
 
 (def *web-home* "http://richhickey.github.com/clojure-contrib/")
 (def *output-directory* (str *file-prefix* "wiki-src/"))
+(def *external-doc-tmpdir* "/tmp/autodoc/doc")
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -67,16 +68,17 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
                 (fn [[_ url etc]] (str "<a href='" url "'>" url "</a>" etc))))
 
 (deftemplate page (template-for *layout-file*)
-  [title master-toc local-toc page-content]
+  [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
+  [:link] #(assoc % :attrs (apply assoc (:attrs % {}) [:href (str prefix (:href (:attrs %)))]))
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content))
 
-(defn create-page [output-file title master-toc local-toc page-content]
+(defn create-page [output-file title prefix master-toc local-toc page-content]
   (with-out-writer (str *output-directory* output-file) 
     (print
-     (apply str (page title master-toc local-toc page-content)))))
+     (apply str (page title prefix master-toc local-toc page-content)))))
 
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
@@ -174,6 +176,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 (defn make-overview [ns-info master-toc]
   (create-page "index.html"
                "Clojure Contrib - Overview"
+               nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
                (make-overview-content ns-info)))
@@ -241,6 +244,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn make-ns-page [ns master-toc]
   (create-page (ns-html-file ns)
                (str "clojure contrib - " (:short-name ns) " API reference")
+               nil
                master-toc
                (make-local-toc (ns-toc-data ns))
                (make-ns-content ns)))
@@ -292,6 +296,7 @@ vars in ns-info that begin with that letter"
 (defn make-index-html [ns-info master-toc]
   (create-page *index-html-file*
                "Clojure Contrib - Index"
+               nil
                master-toc
                nil
                (make-index-content (vars-by-letter ns-info))))
@@ -338,15 +343,42 @@ vars in ns-info that begin with that letter"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
+;;; Wrap the external doc
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro select-content-text [node selectr]
+  `(first (:content (first (select [~node] ~selectr)))))
+
+(defn get-title [node]
+  (or (select-content-text node [:title])
+      (select-content-text node [:h1])))
+
+(defn wrap-external-doc [staging-dir target-dir master-toc]
+  (doall
+   (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
+     (let [source-path (.getAbsolutePath file)
+           offset (.substring source-path (inc (.length staging-dir)))
+           target-path (str target-dir "/" offset)
+           page-content (first (html-resource (java.io.File. source-path)))
+           title (get-title page-content)
+           prefix (apply str (repeat (count (.split offset "/")) "../"))]
+       (create-page target-path title prefix master-toc nil page-content)
+       [offset title]))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
 ;;; Put it all together
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-all-pages []
   (let [ns-info (contrib-info)
-        master-toc (make-master-toc ns-info)]
+        master-toc (make-master-toc ns-info)
+        external-docs (wrap-external-doc *external-doc-tmpdir* "doc" master-toc)]
     (make-overview ns-info master-toc)
     (doseq [ns ns-info]
       (make-ns-page ns master-toc))
     (make-index-html ns-info master-toc)
     (make-index-json ns-info)))
+

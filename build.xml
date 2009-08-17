@@ -16,6 +16,7 @@
   <property name="force" value="false"/>
   <property name="contrib-src-dir" value="../wiki-work-area/clojure-contrib/"/>
   <property name="output-dir" value="../wiki-work-area/wiki-src/"/>
+  <property name="doc-tmp" value="/tmp/autodoc"/>
 
   <!-- Tasks for running git and deciding if we have to do work -->
   <target name="pull-contrib"
@@ -81,7 +82,14 @@
     </exec>
   </target>
 
-  <target name="commit-html" depends="set-commit-comment,stage-new-api-files"
+  <target name="stage-new-doc-files" description="Stage new files added to clojure-contrib/doc">
+    <exec executable="git" dir="${output-dir}">
+      <arg value="add"/>
+      <arg value="doc/*"/>
+    </exec>
+  </target>
+
+  <target name="commit-html" depends="set-commit-comment,stage-new-doc-files,stage-new-api-files"
           description="Commit the rebuild HTML back to github">
     <exec executable="git" dir="${output-dir}">
       <arg value="commit"/>
@@ -118,10 +126,20 @@
   <target name="clean-doc"
           description="Delete existing doc files">
     <delete dir="${output-dir}/doc"/>
+    <delete dir="${doc-tmp}/doc"/>
   </target>
     
   <target name="make-doc-directories"
           description="Make the output directories for doc files pulled from the source area">
+    <!-- first make the temporary directory tree -->
+    <apply executable="mkdir" verbose="true" force="true" addsourcefile="false"
+           dest="${doc-tmp}/doc">
+      <fileset dir="${contrib-src-dir}/doc"/>
+      <mapper type="regexp" from="(.*)/[^/]+" to="\1"/>
+      <arg value="-p"/>
+      <targetfile/>
+    </apply>
+    <!-- now make the eventual targets in the output area -->
     <apply executable="mkdir" verbose="true" force="true" addsourcefile="false"
            dest="${output-dir}/doc">
       <fileset dir="${contrib-src-dir}/doc"/>
@@ -136,7 +154,7 @@
     <apply executable="markdown" verbose="true" force="true">
       <fileset dir="${contrib-src-dir}/doc" includes="**/*.markdown"/>
       <redirector>
-        <outputmapper type="glob" from="*.markdown" to="${output-dir}/doc/*.html"/>
+        <outputmapper type="glob" from="*.markdown" to="${doc-tmp}/doc/*.html"/>
       </redirector>
     </apply>
   </target>
@@ -144,7 +162,8 @@
   <target name="build-contrib-doc"
           depends="pull-contrib,clean-doc,make-doc-directories,build-markdown"
           description="Build the additional documentation that is in clojure-contrib/doc"/>
-          
+  
+  <!-- build the html documentation itself -->
   <target name="clean-html-dir"
           description="Delete old API files before creating new ones">
     <delete>
@@ -152,7 +171,7 @@
     </delete>
   </target>
 
-  <target name="build-html" depends="set-commit-hash,clean-html-dir"
+  <target name="build-html" depends="set-commit-hash,clean-html-dir,build-contrib-doc"
           description="Build the HTML documentation and check it in">
 		<java classname="clojure.main"
           classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${tagsoup-jar}:${clojure-json-jar}:." 
@@ -163,13 +182,16 @@
   </target>
 
 
+  <!-- roll-up targets -->
   <target name="commit-result" depends="set-commit-comment,commit-html,update-last-commit"/>
     
-  <target name="do-build" depends="build-contrib,build-html,commit-result"/>
+  <target name="do-build" 
+          depends="build-contrib,build-html,commit-result"
+          description="once everything is up-to-date, build the source, build the html, then commit the new documentation"/>
 
   <target name="all" depends="pull-contrib, set-is-uptodate"
           if="do-build"
-          description="Update the html based on the latest source, if appropriate">
+          description="Update the html on github based on the latest source, if appropriate">
     <antcall target="do-build"/>
   </target>
 
