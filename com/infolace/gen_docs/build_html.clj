@@ -4,17 +4,12 @@
            [java.io FileWriter BufferedWriter])
   (:require [clojure.contrib.str-utils2 :as str2])
   (:use net.cgrand.enlive-html
-        com.infolace.gen-docs.params
         [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [clojure.contrib.shell-out :only (sh)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]))
-
-(def *web-home* "http://richhickey.github.com/clojure-contrib/")
-(def *output-directory* (str *file-prefix* "wiki-src/"))
-(def *external-doc-tmpdir* "/tmp/autodoc/doc")
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")

@@ -7,6 +7,6 @@
 
 (defn gen-docs 
   ([] (gen-docs "master"))
-  ([commit-hash] ; TODO: I don't think we need to pass this anymore (change build.xml too)
+  ([src-dir output-dir]
      (load-contrib)
      (make-all-pages)))

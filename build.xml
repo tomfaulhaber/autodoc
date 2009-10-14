@@ -1,27 +1,36 @@
-<project name="contrib-autodoc" default="all">
+<project name="autodoc" default="all">
 
   <description>
-    Generate documentation for the current version of clojure-contrib and post it to 
-    the google code wiki for the project.
+    Generate documentation for a project and post it to the github pages for that project.
+    (See the properties at the top of build.xml for info on how to customize it
+    for different projects.)
   </description>
 
+  <!-- set force to true to build and checkin even if the source hasn't changed -->
+  <property name="force" value="false"/>
+
+  <!-- Properties that are (potentially) redefined for each project that we document -->
+  <property name="work-root-dir" value="../autodoc-work-area/clojure-contrib"/>
+  <property name="src-dir" value="${work-root-dir}/src/"/>
+  <property name="output-dir" value="${work-root-dir}/autodoc/"/>
+  <property name="extra-doc" value="${src-dir}/doc"/>
+
+  <!-- These properties are special-cased when we're documenting clojure
+       contrib itself -->
+	<property name="clojure-contrib-jar" location="${src-dir}/clojure-contrib-slim.jar"/>
+	<property name="clojure-contrib-classes" location="${src-dir}/classes"/>
+
+  <!-- Properties that define where various resources are that we need -->
 	<property name="clojure-jar" location="../clojure/clojure.jar"/>
-	<property name="clojure-contrib-jar"
-            location="../wiki-work-area/clojure-contrib/clojure-contrib-slim.jar"/>
-	<property name="clojure-contrib-classes"
-            location="../wiki-work-area/clojure-contrib/classes"/>
   <property name="enlive-src" location="../enlive/src"/>
   <property name="tagsoup-jar" location="/home/tom/.clojure/tagsoup-1.2.jar"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
-  <property name="force" value="false"/>
-  <property name="contrib-src-dir" value="../wiki-work-area/clojure-contrib/"/>
-  <property name="output-dir" value="../wiki-work-area/wiki-src/"/>
   <property name="doc-tmp" value="/tmp/autodoc"/>
 
   <!-- Tasks for running git and deciding if we have to do work -->
-  <target name="pull-contrib"
-          description="do a git pull origin master of the contrib source">
-    <exec executable="git" dir="${contrib-src-dir}">
+  <target name="pull-src"
+          description="do a git pull origin master of the project source">
+    <exec executable="git" dir="${src-dir}">
       <arg value="pull"/>
       <arg value="origin"/>
       <arg value="master"/>
@@ -47,7 +56,7 @@
           description="run the external program and get back a yes or no">
     <exec executable="sh" outputproperty="base-is-uptodate">
       <arg value="./is-uptodate.sh"/>
-      <arg value="${contrib-src-dir}"/>
+      <arg value="${src-dir}"/>
     </exec>
   </target>
 
@@ -55,12 +64,12 @@
           description="update the last version that we ran autodoc on">
     <exec executable="sh">
       <arg value="./update-last.sh"/>
-      <arg value="${contrib-src-dir}"/>
+      <arg value="${src-dir}"/>
     </exec>
   </target>
 
   <target name="set-commit-hash" description="Set the current commit hash!">
-    <exec executable="git" dir="${contrib-src-dir}" outputproperty="commit-hash">
+    <exec executable="git" dir="${src-dir}" outputproperty="commit-hash">
       <arg value="rev-parse"/>
       <arg value="HEAD"/>
     </exec>
@@ -82,7 +91,8 @@
     </exec>
   </target>
 
-  <target name="stage-new-doc-files" description="Stage new files added to clojure-contrib/doc">
+  <target name="stage-new-doc-files"
+          description="Stage new files added to the extra doc directory">
     <exec executable="git" dir="${output-dir}">
       <arg value="add"/>
       <arg value="doc/*"/>
@@ -103,26 +113,26 @@
     </exec>
   </target>
 
-	<target name="build-contrib" 
-					description="Update and, if necessary, build the contrib files">
-    <ant dir="${contrib-src-dir}" inheritAll="false">
+	<target name="build-src" 
+					description="Update and, if necessary, build the project src files">
+    <ant dir="${src-dir}" inheritAll="false">
       <property name="clojure.jar" value="${clojure-jar}"/>
       <target name="clean"/>
       <target name="jar"/>
     </ant>
-    <delete dir="${contrib-src-dir}/classes"/>
-    <ant dir="${contrib-src-dir}" inheritAll="false">
+    <delete dir="${src-dir}/classes"/>
+    <ant dir="${src-dir}" inheritAll="false">
       <property name="clojure.jar" value="${clojure-jar}"/>
       <target name="compile_classes"/>
     </ant>
     <!-- the following deletes are to hack around clojure issue 130 -->
     <delete>
-      <fileset dir="${contrib-src-dir}/classes" includes="**/jmx*.class"/>
+      <fileset dir="${src-dir}/classes" includes="**/jmx*.class"/>
     </delete>
-    <delete dir="${contrib-src-dir}/classes/clojure/contrib/jmx"/>
+    <delete dir="${src-dir}/classes/clojure/contrib/jmx"/>
 	</target>
 
-  <!-- Build the documention stored in clojure-contrib/doc/... -->
+  <!-- Build the documention stored in the extra doc directory -->
   <target name="clean-doc"
           description="Delete existing doc files">
     <delete dir="${output-dir}/doc"/>
@@ -134,7 +144,7 @@
     <!-- first make the temporary directory tree -->
     <apply executable="mkdir" verbose="true" force="true" addsourcefile="false"
            dest="${doc-tmp}/doc">
-      <fileset dir="${contrib-src-dir}/doc"/>
+      <fileset dir="${extra-doc}"/>
       <mapper type="regexp" from="(.*)/[^/]+" to="\1"/>
       <arg value="-p"/>
       <targetfile/>
@@ -142,7 +152,7 @@
     <!-- now make the eventual targets in the output area -->
     <apply executable="mkdir" verbose="true" force="true" addsourcefile="false"
            dest="${output-dir}/doc">
-      <fileset dir="${contrib-src-dir}/doc"/>
+      <fileset dir="${extra-doc}"/>
       <mapper type="regexp" from="(.*)/[^/]+" to="\1"/>
       <arg value="-p"/>
       <targetfile/>
@@ -152,16 +162,16 @@
   <target name="build-markdown"
           description="Convert additional markdown files to HTML in the dest directory.">
     <apply executable="markdown" verbose="true" force="true">
-      <fileset dir="${contrib-src-dir}/doc" includes="**/*.markdown"/>
+      <fileset dir="${extra-doc}/" includes="**/*.markdown"/>
       <redirector>
         <outputmapper type="glob" from="*.markdown" to="${doc-tmp}/doc/*.html"/>
       </redirector>
     </apply>
   </target>
   
-  <target name="build-contrib-doc"
-          depends="pull-contrib,clean-doc,make-doc-directories,build-markdown"
-          description="Build the additional documentation that is in clojure-contrib/doc"/>
+  <target name="build-extra-doc"
+          depends="pull-src,clean-doc,make-doc-directories,build-markdown"
+          description="Build the additional documentation that is in extra doc directories"/>
   
   <!-- build the html documentation itself -->
   <target name="clean-html-dir"
@@ -171,13 +181,13 @@
     </delete>
   </target>
 
-  <target name="build-html" depends="set-commit-hash,clean-html-dir,build-contrib-doc"
+  <target name="build-html" depends="set-commit-hash,clean-html-dir,build-extra-doc"
           description="Build the HTML documentation and check it in">
 		<java classname="clojure.main"
           classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${tagsoup-jar}:${clojure-json-jar}:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
-      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs &quot;${commit-hash}&quot;)"/>
+      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs { :src-dir &quot;${src-dir}&quot; :output-dir &quot;${output-dir}&quot;)"/>
 		</java>
   </target>
 
@@ -189,7 +199,7 @@
           depends="build-contrib,build-html,commit-result"
           description="once everything is up-to-date, build the source, build the html, then commit the new documentation"/>
 
-  <target name="all" depends="pull-contrib, set-is-uptodate"
+  <target name="all" depends="pull-src, set-is-uptodate"
           if="do-build"
           description="Update the html on github based on the latest source, if appropriate">
     <antcall target="do-build"/>

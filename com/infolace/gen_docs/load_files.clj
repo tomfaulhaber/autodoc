@@ -1,12 +1,9 @@
 (ns com.infolace.gen-docs.load-files
-  (:import [java.util.jar JarFile])
-  (:use com.infolace.gen-docs.params))
+  (:import [java.util.jar JarFile]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
 ;;; to load the files because of bug in namespace metadata
-
-(def *jar-file* (str *file-prefix* "/clojure-contrib/clojure-contrib.jar"))
 
 ;(add-classpath (str "file:" *file-prefix* "/clojure-contrib-slim.jar"))
 ;(add-classpath (str "file:" *file-prefix* "/classes/"))
