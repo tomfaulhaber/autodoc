@@ -25,6 +25,8 @@
   <property name="enlive-src" location="../enlive/src"/>
   <property name="tagsoup-jar" location="/home/tom/.clojure/tagsoup-1.2.jar"/>
 	<property name="clojure-json-jar" location="${user.home}/.clojure/clojure-json.jar"/>
+  <property name="ant-jar" location="/usr/share/ant/lib/ant.jar"/>
+  <property name="ant-launcher-jar" location="/usr/share/ant/lib/ant-launcher.jar"/>
   <property name="doc-tmp" value="/tmp/autodoc"/>
 
   <!-- Tasks for running git and deciding if we have to do work -->
@@ -196,7 +198,7 @@
   <target name="commit-result" depends="set-commit-comment,commit-html,update-last-commit"/>
     
   <target name="do-build" 
-          depends="build-contrib,build-html,commit-result"
+          depends="build-src,build-html,commit-result"
           description="once everything is up-to-date, build the source, build the html, then commit the new documentation"/>
 
   <target name="all" depends="pull-src, set-is-uptodate"
@@ -205,4 +207,14 @@
     <antcall target="do-build"/>
   </target>
 
+  <target name="ant-test" description="testing ant">
+		<java classname="clojure.main"
+          classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${ant-jar}:${ant-launcher-jar}:." 
+					fork="true" failonerror="true">
+      <arg value="-e"/>
+      <arg value="(use 'com.infolace.gen-docs.ant-wrapper) (ant-wrapper &quot;${param-file}&quot; &quot;${build-target}&quot;)"/>
+		</java>
+  </target>
+
+  <target name="null"><echo message="exec null target"/></target>
 </project>
