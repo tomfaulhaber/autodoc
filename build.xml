@@ -216,5 +216,5 @@
 		</java>
   </target>
 
-  <target name="null"><echo message="exec null target"/></target>
+  <target name="null"><echo message="exec null target. src-dir = ${src-dir}"/></target>
 </project>

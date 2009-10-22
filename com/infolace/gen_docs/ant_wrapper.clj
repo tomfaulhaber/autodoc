@@ -3,8 +3,14 @@
    [java.io File]
    [org.apache.tools.ant Project ProjectHelper DefaultLogger]))
 
+(def param-map
+     {'work-root-dir '*file-prefix*,
+      'src-dir '*src-dir*,
+      'output-dir '*output-directory*})
+
 (defn ant-wrapper
   [param-file build-target]
+  (load param-file)
   (let [p (Project.)
         helper (ProjectHelper/getProjectHelper)
         build-file (File. "build.xml")]
@@ -16,6 +22,11 @@
       (.setUserProperty "ant.file" (.getAbsolutePath build-file))
       (.init)
       (.addReference "ant.projectHelper" helper))
+    (doseq [item param-map] 
+      (.setUserProperty 
+       p
+       (name (first item))
+       (var-get (find-var (symbol (name (ns-name *ns*)) (name (second item)))))))
     (.parse helper p build-file)
     (.executeTarget p build-target)))
 
