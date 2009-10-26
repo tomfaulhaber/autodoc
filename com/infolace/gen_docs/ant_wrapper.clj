@@ -9,8 +9,8 @@
       'output-dir '*output-directory*})
 
 (defn ant-wrapper
-  [param-file build-target]
-  (load param-file)
+  [param-dir build-target]
+  (load (str param-dir "/params"))
   (let [p (Project.)
         helper (ProjectHelper/getProjectHelper)
         build-file (File. "build.xml")]
@@ -20,6 +20,7 @@
                            (.setErrorPrintStream System/err)
                            (.setMessageOutputLevel Project/MSG_INFO)))
       (.setUserProperty "ant.file" (.getAbsolutePath build-file))
+      (.setUserProperty "param-dir" param-dir)
       (.init)
       (.addReference "ant.projectHelper" helper))
     (doseq [item param-map] 
