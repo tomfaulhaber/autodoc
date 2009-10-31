@@ -1,7 +1,8 @@
 (ns com.infolace.gen-docs.ant-wrapper
-  (import
+  (:import
    [java.io File]
-   [org.apache.tools.ant Project ProjectHelper DefaultLogger]))
+   [org.apache.tools.ant Project ProjectHelper AntClassLoader DefaultLogger])
+  (:use clojure.contrib.shell-out))
 
 (def param-map
      {'work-root-dir '*file-prefix*,
@@ -13,6 +14,7 @@
   (load (str param-dir "/params"))
   (let [p (Project.)
         helper (ProjectHelper/getProjectHelper)
+        acl (AntClassLoader. p nil true)
         build-file (File. "build.xml")]
     (doto p
       (.addBuildListener (doto (DefaultLogger.)

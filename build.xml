@@ -195,18 +195,18 @@
 
   <target name="ant-test" description="testing ant">
 		<java classname="clojure.main"
-          classpath="${clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${ant-jar}:${ant-launcher-jar}:." 
+          classpath="${clojure-jar}:../clojure-contrib/clojure-contrib.jar:${clojure-contrib-classes}:${ant-jar}:${ant-launcher-jar}:/usr/lib/jvm/java-6-sun-1.6.0.07/lib/tools.jar:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
       <arg value="(use 'com.infolace.gen-docs.ant-wrapper) (ant-wrapper &quot;${param-dir}&quot; &quot;${build-target}&quot;)"/>
 		</java>
   </target>
 
-  <target name="null"><echo message="exec null target. src-dir = ${src-dir}"/></target>
-
   <!-- 
        Testing targets - should be deleted later
   -->
+
+  <target name="null"><echo message="exec null target. src-dir = ${src-dir}"/></target>
 
   <target name="jc-test">
     <javac srcdir="." destdir="." includeJavaRuntime="yes"
