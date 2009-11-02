@@ -7,7 +7,8 @@
 (def param-map
      {'work-root-dir '*file-prefix*,
       'src-dir '*src-dir*,
-      'output-dir '*output-directory*})
+      'output-dir '*output-directory*,
+      'built-clojure-jar '*built-clojure-jar*})
 
 (defn ant-wrapper
   [param-dir build-target]
@@ -26,10 +27,11 @@
       (.init)
       (.addReference "ant.projectHelper" helper))
     (doseq [item param-map] 
-      (.setUserProperty 
-       p
-       (name (first item))
-       (var-get (find-var (symbol (name (ns-name *ns*)) (name (second item)))))))
+      (if-let [param-var (find-var (symbol (name (ns-name *ns*)) (name (second item))))]
+        (.setUserProperty 
+         p
+         (name (first item))
+         (var-get param-var))))
     (.parse helper p build-file)
     (.executeTarget p build-target)))
 

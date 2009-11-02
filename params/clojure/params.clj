@@ -9,3 +9,4 @@
 (def *external-doc-tmpdir* "/tmp/autodoc/doc")
 (def *jar-file* (str *file-prefix* "/clojure-contrib/clojure-contrib.jar"))
 
+(def *built-clojure-jar* (str *src-dir* "/clojure-slim.jar"))
