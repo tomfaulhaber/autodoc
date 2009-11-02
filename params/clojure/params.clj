@@ -7,6 +7,6 @@
 (def *web-home* "http://richhickey.github.com/clojure-contrib/")
 (def *output-directory* (str *file-prefix* "/autodoc/"))
 (def *external-doc-tmpdir* "/tmp/autodoc/doc")
-(def *jar-file* (str *file-prefix* "/clojure-contrib/clojure-contrib.jar"))
+(def *jar-file* (str *src-dir* "clojure-slim.jar"))
 
 (def *built-clojure-jar* (str *src-dir* "/clojure-slim.jar"))

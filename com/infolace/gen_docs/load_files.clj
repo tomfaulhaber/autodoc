@@ -1,5 +1,6 @@
 (ns com.infolace.gen-docs.load-files
-  (:import [java.util.jar JarFile]))
+  (:import [java.util.jar JarFile])
+  (:use [com.infolace.gen-docs.utils :only (param get-param*)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
@@ -12,6 +13,7 @@
 (use 'clojure.contrib.pprint.utilities)
 (use 'clojure.contrib.pprint)
 
+
 (defn get-elements [iterable]
   (loop [acc []]
     (if-not (.hasMoreElements iterable)
@@ -19,11 +21,11 @@
       (recur (conj acc (.nextElement iterable))))))
 
 (defn read-jar []
-  (with-open [jar
-              (JarFile. *jar-file*)]
-    (filter 
-     #(re-find #".clj$" %) 
-     (map #(.getName %) (get-elements (.entries jar))))))
+  (when false (with-open [jar
+               (JarFile. (param *jar-file*))]
+     (filter 
+      #(re-find #".clj$" %) 
+      (map #(.getName %) (get-elements (.entries jar)))))))
 
 (def except-list 
      [

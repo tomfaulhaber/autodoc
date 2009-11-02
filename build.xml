@@ -17,7 +17,8 @@
 
   <!-- These properties are special-cased when we're documenting clojure
        contrib itself -->
-	<property name="clojure-contrib-jar" location="${src-dir}/clojure-contrib-slim.jar"/>
+  <!-- <property name="clojure-contrib-jar" location="${src-dir}/clojure-contrib-slim.jar"/> -->
+  <property name="clojure-contrib-jar" location="../clojure-contrib/clojure-contrib.jar"/>
 	<property name="clojure-contrib-classes" location="${src-dir}/classes"/>
 
   <!-- Properties that define where various resources are that we need -->
@@ -215,23 +216,6 @@
   <!-- 
        Testing targets - should be deleted later
   -->
-
-  <target name="null"><echo message="exec null target. src-dir = ${src-dir}"/></target>
-
-  <target name="jc-test">
-    <javac srcdir="." destdir="." includeJavaRuntime="yes"
-           debug="true" target="1.5"/>
-  </target>
-
-  <target name="test-if" if="has-target"><echo message="has-target true. target = ${target}"/></target>
-
-  <target name="do-my-test">
-    <property name="target-1" value=""/>
-    <condition property="has-target"><not><equals arg1="${target-1}" arg2=""/></not></condition>
-    <antcall target="test-if">
-      <param name="target" value="${target-1}"/>
-    </antcall>
-  </target>
 </project>
 
 
