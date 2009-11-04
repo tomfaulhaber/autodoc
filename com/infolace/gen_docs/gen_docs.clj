@@ -4,7 +4,7 @@
         [com.infolace.gen-docs.utils :only (load-params)]))
 
 (defn gen-docs 
-  ([param-file]
-     (load-params)
+  ([param-dir]
+     (load-params (str param-dir "/params"))
      (load-contrib)
      (make-all-pages)))

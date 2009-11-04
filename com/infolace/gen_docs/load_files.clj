@@ -1,15 +1,11 @@
 (ns com.infolace.gen-docs.load-files
   (:import [java.util.jar JarFile])
-  (:use [com.infolace.gen-docs.utils :only (param get-param*)]))
+  (:use [com.infolace.gen-docs.params :only (*jar-file*)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
 ;;; to load the files because of bug in namespace metadata
 
-;(add-classpath (str "file:" *file-prefix* "/clojure-contrib-slim.jar"))
-;(add-classpath (str "file:" *file-prefix* "/classes/"))
-
-;(load (str *file-prefix* "/src/" "clojure/contrib/pprint/utilities"))
 (use 'clojure.contrib.pprint.utilities)
 (use 'clojure.contrib.pprint)
 
@@ -21,11 +17,10 @@
       (recur (conj acc (.nextElement iterable))))))
 
 (defn read-jar []
-  (when false (with-open [jar
-               (JarFile. (param *jar-file*))]
-     (filter 
-      #(re-find #".clj$" %) 
-      (map #(.getName %) (get-elements (.entries jar)))))))
+  (when false (with-open [jar (JarFile. *jar-file*)]
+                (filter 
+                 #(re-find #".clj$" %) 
+                 (map #(.getName %) (get-elements (.entries jar)))))))
 
 (def except-list 
      [

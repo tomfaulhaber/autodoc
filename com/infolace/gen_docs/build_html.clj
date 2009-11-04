@@ -9,7 +9,10 @@
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [clojure.contrib.shell-out :only (sh)]
-        [com.infolace.gen-docs.collect-info :only (contrib-info)]))
+        [com.infolace.gen-docs.collect-info :only (contrib-info)]
+        [com.infolace.gen-docs.params
+         :only (*output-directory* *src-dir* *web-src-dir* *web-home*
+                *external-doc-tmpdir*)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
