@@ -15,3 +15,5 @@
 (def *jar-file* nil)
 
 (def *built-clojure-jar* nil)
+
+(def *namespaces-to-document* nil)

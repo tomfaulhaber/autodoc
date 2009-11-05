@@ -1,4 +1,6 @@
-(ns com.infolace.gen-docs.collect-info)
+(ns com.infolace.gen-docs.collect-info
+(:use [com.infolace.gen-docs.params
+       :only (*namespaces-to-document*)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -47,10 +49,11 @@ return it as a string."
 (defn add-vars [ns-info]
   (merge ns-info {:members (vars-info (:ns ns-info))}))
 
-(defn contrib-namespaces []
+(defn relevant-namespaces []
   (filter #(not (:skip-wiki ^%))
           (map #(find-ns (symbol %)) 
-               (filter #(.startsWith % "clojure.contrib.")
+               (filter #(some (fn [n] (or (= % n) (.startsWith % (str n "."))))
+                              *namespaces-to-document*)
                        (sort (map #(name (ns-name %)) (all-ns)))))))
 
 (defn trim-ns-name [s]
@@ -69,10 +72,10 @@ return it as a string."
               ns-part))
          (let [parts (seq (.split (name (ns-name ns)) "\\."))]
            (map #(apply str (interpose "." (take (inc %) parts)))
-                (range 2 (count parts))))))))
+                (range 0 (count parts)))))))) ;; TODO first arg to range was 0 for contrib
 
-(defn base-contrib-namespaces []
-  (filter #(= % (base-namespace %)) (contrib-namespaces)))
+(defn base-relevant-namespaces []
+  (filter #(= % (base-namespace %)) (relevant-namespaces)))
 
 (defn sub-namespaces 
   "Find the list of namespaces that are sub-namespaces of this one. That is they 
@@ -104,6 +107,7 @@ have the same prefix followed by a . and then more components"
     :base-ns ns
     :subspaces (map #(assoc % :base-ns ns) (:subspaces ns))))
 
-(defn contrib-info [] 
+(defn contrib-info []
+  (println (map #(base-namespace %) (relevant-namespaces)))
   (map add-base-ns-info (map add-subspaces
-                             (build-ns-list (base-contrib-namespaces)))))
+                             (build-ns-list (base-relevant-namespaces)))))

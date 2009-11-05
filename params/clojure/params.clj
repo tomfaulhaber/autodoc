@@ -10,3 +10,6 @@
 (def *jar-file* (str *src-dir* "clojure-slim.jar"))
 
 (def *built-clojure-jar* (str *src-dir* "/clojure-slim.jar"))
+
+(def *namespaces-to-document* ["clojure.core" "clojure.inspector" "clojure.main" 
+                               "clojure.parallel" "clojure.set" "clojure.xml" "clojure.zip"])

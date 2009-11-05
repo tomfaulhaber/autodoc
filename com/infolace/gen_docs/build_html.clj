@@ -402,6 +402,7 @@ vars in ns-info that begin with that letter"
   (let [ns-info (contrib-info)
         master-toc (make-master-toc ns-info)
         external-docs (wrap-external-doc *external-doc-tmpdir* "doc" master-toc)]
+    (println ns-info)
     (make-overview ns-info master-toc)
     (doseq [ns ns-info]
       (make-ns-page ns master-toc external-docs))
