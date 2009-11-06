@@ -5,9 +5,6 @@
   </description>
 
   <target name="all">
-    <!--    <javac srcdir="." destdir="." includeJavaRuntime="yes"
-           debug="true" target="1.5"/>
-    -->
     <ant dir="${src-dir}" inheritAll="false">
       <target name="clean"/>
       <target name="clojure-slim"/>

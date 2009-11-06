@@ -11,7 +11,7 @@
         [clojure.contrib.shell-out :only (sh)]
         [com.infolace.gen-docs.collect-info :only (contrib-info)]
         [com.infolace.gen-docs.params
-         :only (*output-directory* *src-dir* *web-src-dir* *web-home*
+         :only (*output-directory* *src-dir* *src-root* *web-src-dir* *web-home*
                 *external-doc-tmpdir* *param-dir*)]))
 
 (def *layout-file* "layout.html")
@@ -214,12 +214,13 @@ actually changed). This reduces the amount of random doc file changes that happe
    (if-let [hash (get @commit-hash-cache file)]
      hash
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                           :dir *src-dir*))]
+                           :dir (str *src-dir* "/" *src-root*)))]
+       (cl-format true "~a: ~a~%" file hash)
        (alter commit-hash-cache assoc file hash)
        hash))))
 
 (defn web-src-file [file]
-  (cl-format nil "~a~a/src/~a" *web-src-dir* (get-last-commit-hash file) file))
+  (cl-format nil "~a~a/~a/~a" *web-src-dir* (get-last-commit-hash file) *src-root* file))
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))

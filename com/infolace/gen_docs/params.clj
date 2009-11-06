@@ -9,6 +9,7 @@
 
 (def *file-prefix* nil)
 (def *src-dir* nil)
+(def *src-root* nil)
 (def *web-src-dir* nil)
 
 (def *web-home* nil)
