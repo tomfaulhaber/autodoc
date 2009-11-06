@@ -1,7 +1,7 @@
 (ns com.infolace.gen-docs.build-html
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
-           [java.io FileWriter BufferedWriter])
+           [java.io File FileWriter BufferedWriter])
   (:require [clojure.contrib.str-utils2 :as str2])
   (:use net.cgrand.enlive-html
         [clojure.contrib.pprint :only (cl-format)]
@@ -12,7 +12,7 @@
         [com.infolace.gen-docs.collect-info :only (contrib-info)]
         [com.infolace.gen-docs.params
          :only (*output-directory* *src-dir* *web-src-dir* *web-home*
-                *external-doc-tmpdir*)]))
+                *external-doc-tmpdir* *param-dir*)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -25,9 +25,13 @@
 (def *index-json-file* "api-index.json")
 
 (defn template-for
-  "Get the actual filename corresponding to a template"
+  "Get the actual filename corresponding to a template. We check in the project
+specific directory first, then in the base template directory."
   [base] 
-  (str "templates/" base))
+  (let [custom-template (str *param-dir* "/templates/" base)]
+    (if (.exists (File. custom-template))
+      custom-template
+      (str "templates/" base))))
 
 (defn get-template 
   "Get the html node corresponding to this template file"
@@ -402,7 +406,6 @@ vars in ns-info that begin with that letter"
   (let [ns-info (contrib-info)
         master-toc (make-master-toc ns-info)
         external-docs (wrap-external-doc *external-doc-tmpdir* "doc" master-toc)]
-    (println ns-info)
     (make-overview ns-info master-toc)
     (doseq [ns ns-info]
       (make-ns-page ns master-toc external-docs))

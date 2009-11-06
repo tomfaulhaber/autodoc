@@ -108,6 +108,5 @@ have the same prefix followed by a . and then more components"
     :subspaces (map #(assoc % :base-ns ns) (:subspaces ns))))
 
 (defn contrib-info []
-  (println (map #(base-namespace %) (relevant-namespaces)))
   (map add-base-ns-info (map add-subspaces
                              (build-ns-list (base-relevant-namespaces)))))

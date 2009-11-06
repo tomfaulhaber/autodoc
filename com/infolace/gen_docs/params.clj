@@ -5,6 +5,8 @@
 ;;; per project parameters file.
 ;;;
 
+(def *param-dir* nil)                   ;set automatically from the first arg when executing
+
 (def *file-prefix* nil)
 (def *src-dir* nil)
 (def *web-src-dir* nil)

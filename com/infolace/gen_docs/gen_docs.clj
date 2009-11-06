@@ -5,6 +5,9 @@
 
 (defn gen-docs 
   ([param-dir]
+     (alter-var-root
+      (find-var 'com.infolace.gen-docs.params/*param-dir*)
+      (constantly param-dir))
      (load-params (str param-dir "/params"))
      (load-contrib)
      (make-all-pages)))
