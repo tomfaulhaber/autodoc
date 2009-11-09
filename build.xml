@@ -195,22 +195,29 @@
   <!-- roll-up targets -->
   <target name="commit-result" depends="set-commit-comment,commit-html,update-last-commit"/>
     
+  <!-- reset to:           depends="build-src,build-html,commit-result" -->
   <target name="do-build" 
-          depends="build-src,build-html,commit-result"
+          depends="build-src,build-html"
           description="once everything is up-to-date, build the source, build the html, then commit the new documentation"/>
 
-  <target name="all" depends="pull-src, set-is-uptodate"
+  <target name="main-build" depends="pull-src, set-is-uptodate"
           if="do-build"
           description="Update the html on github based on the latest source, if appropriate">
     <antcall target="do-build"/>
   </target>
 
-  <target name="ant-test" description="testing ant">
+  <target name="all">
+    <property name="build-target" value="main-build"/>
+    <antcall target="ant-wrapper"/>
+  </target>
+
+  <target name="ant-wrapper"
+          description="do a pass-through to clojure so that it can set various project-specific params">
 		<java classname="clojure.main"
           classpath="${clojure-jar}:../clojure-contrib/clojure-contrib.jar:${clojure-contrib-classes}:${ant-jar}:${ant-launcher-jar}:/usr/lib/jvm/java-6-sun-1.6.0.07/lib/tools.jar:/usr/share/java/ant-nodeps.jar:." 
 					fork="true" failonerror="true">
       <arg value="-e"/>
-      <arg value="(use 'com.infolace.gen-docs.ant-wrapper) (ant-wrapper &quot;${param-dir}&quot; &quot;${build-target}&quot;)"/>
+      <arg value="(use 'com.infolace.gen-docs.ant-wrapper) (ant-wrapper &quot;${param-dir}&quot; &quot;${build-target}&quot; ${force})"/>
 		</java>
   </target>
 

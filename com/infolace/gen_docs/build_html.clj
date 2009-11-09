@@ -212,6 +212,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 do this for source links so that we don't change them with every commit (unless that file
 actually changed). This reduces the amount of random doc file changes that happen."
   [file]
+  (cl-format true "file=~a, dir=~a~%" file (str *src-dir* "/" *src-root*))
   (dosync
    (if-let [hash (get @commit-hash-cache file)]
      hash

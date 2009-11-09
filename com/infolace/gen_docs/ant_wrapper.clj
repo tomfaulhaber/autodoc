@@ -11,7 +11,7 @@
       'built-clojure-jar '*built-clojure-jar*})
 
 (defn ant-wrapper
-  [param-dir build-target]
+  [param-dir build-target force]
   (load (str param-dir "/params"))
   (let [p (Project.)
         helper (ProjectHelper/getProjectHelper)
@@ -24,6 +24,7 @@
                            (.setMessageOutputLevel Project/MSG_INFO)))
       (.setUserProperty "ant.file" (.getAbsolutePath build-file))
       (.setUserProperty "param-dir" param-dir)
+      (.setUserProperty "force" (if force "true" "false"))
       (.init)
       (.addReference "ant.projectHelper" helper))
     (doseq [item param-map] 
