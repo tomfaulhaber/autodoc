@@ -17,10 +17,10 @@
       (recur (conj acc (.nextElement iterable))))))
 
 (defn read-jar []
-  (when false (with-open [jar (JarFile. *jar-file*)]
-                (filter 
-                 #(re-find #".clj$" %) 
-                 (map #(.getName %) (get-elements (.entries jar)))))))
+  (with-open [jar (JarFile. *jar-file*)]
+    (filter 
+     #(re-find #".clj$" %) 
+     (map #(.getName %) (get-elements (.entries jar))))))
 
 (def except-list 
      [
@@ -60,5 +60,5 @@
      (catch Exception e 
        (cl-format true "failed.~%")))))
 
-(defn load-contrib []
+(defn load-namespaces []
   (load-files (read-jar)))

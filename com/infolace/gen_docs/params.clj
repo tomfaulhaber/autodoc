@@ -20,3 +20,9 @@
 (def *built-clojure-jar* nil)
 
 (def *namespaces-to-document* nil)
+
+(def *do-load* true)
+
+(def *page-title* "Undefined Title")
+(def *copyright* "No copyright info")
+

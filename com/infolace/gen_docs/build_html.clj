@@ -12,7 +12,7 @@
         [com.infolace.gen-docs.collect-info :only (contrib-info)]
         [com.infolace.gen-docs.params
          :only (*output-directory* *src-dir* *src-root* *web-src-dir* *web-home*
-                *external-doc-tmpdir* *param-dir*)]))
+                *external-doc-tmpdir* *param-dir* *page-title* *copyright*)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -73,9 +73,11 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
+  [:a#page-header] (content *page-title*)
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
-  [:div#content-tag] (content page-content))
+  [:div#content-tag] (content page-content)
+  [:div#copyright] (content *copyright*))
 
 (defn create-page [output-file title prefix master-toc local-toc page-content]
   (with-out-writer (str *output-directory* output-file) 
@@ -188,7 +190,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 
 (defn make-overview [ns-info master-toc]
   (create-page "index.html"
-               "Clojure Contrib - Overview"
+               (str *page-title* " - Overview")
                nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -215,7 +217,6 @@ actually changed). This reduces the amount of random doc file changes that happe
      hash
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
                            :dir (str *src-dir* "/" *src-root*)))]
-       (cl-format true "~a: ~a~%" file hash)
        (alter commit-hash-cache assoc file hash)
        hash))))
 
@@ -258,7 +259,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
-               (str (:short-name ns) " API reference (clojure.contrib)")
+               (str (:short-name ns) " API reference (" *page-title* ")")
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
@@ -310,7 +311,7 @@ vars in ns-info that begin with that letter"
 
 (defn make-index-html [ns-info master-toc]
   (create-page *index-html-file*
-               "Clojure Contrib - Index"
+               (str *page-title* " - Index")
                nil
                master-toc
                nil
