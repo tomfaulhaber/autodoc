@@ -212,7 +212,6 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
 do this for source links so that we don't change them with every commit (unless that file
 actually changed). This reduces the amount of random doc file changes that happen."
   [file]
-  (cl-format true "file=~a, dir=~a~%" file (str *src-dir* "/" *src-root*))
   (dosync
    (if-let [hash (get @commit-hash-cache file)]
      hash
@@ -292,20 +291,22 @@ vars in ns-info that begin with that letter"
         short-name (:short-name ns)
         doc-len (+ 50 (min 0 (- 18 (count short-name))))]
     #(at %
-       [:a] (do->
-             (set-attr :href (str (ns-html-file ns) "#" (:name v)))
-             (content (:name v)))
-       [:#line-content] (content 
-                        (cl-format nil "~vt~a~vt~a~vt~a~%"
-                                   (- 29 overhead)
-                                   (:var-type v) (- 43 overhead)
-                                   short-name (- 62 overhead)
-                                   (doc-prefix v doc-len))))))
+         [:a] (do->
+               (set-attr :href
+                         (str (ns-html-file ns) "#" (:full-name ns) "/" (:name v)))
+               (content (:name v)))
+         [:#line-content] (content 
+                           (cl-format nil "~vt~a~vt~a~vt~a~%"
+                                      (- 29 overhead)
+                                      (:var-type v) (- 43 overhead)
+                                      short-name (- 62 overhead)
+                                      (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
 (deffragment make-index-content *index-html-file* [vars-by-letter]
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
+                         [:h2] (set-attr :id letter)
                          [:span#section-head] (content letter)
                          [:span#section-content] (clone-for [[v ns] vars]
                                                    (gen-index-line v ns)))))
