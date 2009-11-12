@@ -14,9 +14,12 @@
 
 (def *namespaces-to-document* ["clojure.core" "clojure.inspector" "clojure.main" 
                                "clojure.parallel" "clojure.set" "clojure.stacktrace"
-                               "clojure.xml" "clojure.zip"])
+                               "clojure.test" "clojure.xml" "clojure.zip"])
 
-(def *do-load* false)
+(def *load-except-list* 
+     [ 
+      #"clojure/core.clj"
+      ])
 
 (def *page-title* "Clojure")
 (def *copyright* "Copyright 2007-2009 by Rich Hickey")

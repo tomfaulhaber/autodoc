@@ -1,6 +1,6 @@
 (ns com.infolace.gen-docs.load-files
   (:import [java.util.jar JarFile])
-  (:use [com.infolace.gen-docs.params :only (*jar-file*)]))
+  (:use [com.infolace.gen-docs.params :only (*jar-file* *load-except-list*)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
@@ -22,16 +22,6 @@
      #(re-find #".clj$" %) 
      (map #(.getName %) (get-elements (.entries jar))))))
 
-(def except-list 
-     [
-      #"/test_contrib"
-      #"/test_clojure"
-      #"/load_all"
-      #"/datalog/tests/"
-      #"/datalog/example"
-      #"/javadoc"
-      #"/jmx/Bean"
-      ])
 
 (defn not-in [str regex-seq] 
   (loop [regex-seq regex-seq]
@@ -52,7 +42,7 @@
   (.substring filename 0 (- (.length filename) 4)))
 
 (defn load-files [filelist]
-  (doseq [file (filter #(not-in % except-list) filelist)]
+  (doseq [file (filter #(not-in % *load-except-list*) filelist)]
     (cl-format true "~a: " file)
     (try 
      (load (basename file))

@@ -22,6 +22,7 @@
 (def *namespaces-to-document* nil)
 
 (def *do-load* true)
+(def *load-except-list* [])
 
 (def *page-title* "Undefined Title")
 (def *copyright* "No copyright info")
