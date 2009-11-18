@@ -304,6 +304,7 @@ vars in ns-info that begin with that letter"
 
 ;; TODO: skip entries for letters with no members
 (deffragment make-index-content *index-html-file* [vars-by-letter]
+  [:span.project-name-span] (content *page-title*)
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
