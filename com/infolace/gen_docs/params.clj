@@ -17,6 +17,9 @@
 (def *external-doc-tmpdir* nil)
 (def *jar-file* nil)
 
+(def *clojure-contrib-jar* nil)
+(def *clojure-contrib-classes* nil)
+
 (def *built-clojure-jar* nil)
 
 (def *namespaces-to-document* nil)

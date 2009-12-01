@@ -8,7 +8,9 @@
      {'work-root-dir '*file-prefix*,
       'src-dir '*src-dir*,
       'output-dir '*output-directory*,
-      'built-clojure-jar '*built-clojure-jar*})
+      'built-clojure-jar '*built-clojure-jar*
+      'clojure-contrib-jar '*clojure-contrib-jar*,
+      'clojure-contrib-classes '*clojure-contrib-classes*})
 
 (defn ant-wrapper
   [param-dir build-target force]

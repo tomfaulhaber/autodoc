@@ -91,7 +91,7 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   [ns-info]
   (for [ns ns-info] [(:short-name ns) (:short-name ns)]))
 
-(defn var-tag-name [ns v] (str (:short-name ns) "/" (:name v)))
+(defn var-tag-name [ns v] (str (:full-name ns) "/" (:name v)))
 
 (defn var-toc-entries 
   "Build the var-name, <a> tag pairs for the vars in ns"
