@@ -169,7 +169,7 @@
   </target>
   
   <target name="build-extra-doc"
-          depends="pull-src,set-has-doc,clean-doc,make-doc-directories,build-markdown"
+          depends="set-has-doc,clean-doc,make-doc-directories,build-markdown"
           description="Build the additional documentation that is in extra doc directories"/>
   
   <!-- build the html documentation itself -->
