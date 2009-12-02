@@ -11,7 +11,6 @@ srcdir=$1
 cd $srcdir
 
 commit=`git log -1 | awk '/^commit/ {print $2;}'`
-lastcommit=`cat ../last-seen-revision`
 
 echo $commit > ../last-seen-revision
 

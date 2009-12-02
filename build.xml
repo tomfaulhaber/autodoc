@@ -195,9 +195,8 @@
   <!-- roll-up targets -->
   <target name="commit-result" depends="set-commit-comment,commit-html,update-last-commit"/>
     
-  <!-- reset to:           depends="build-src,build-html,commit-result" -->
   <target name="do-build" 
-          depends="build-src,build-html"
+          depends="build-src,build-html,commit-result"
           description="once everything is up-to-date, build the source, build the html, then commit the new documentation"/>
 
   <target name="main-build" depends="pull-src, set-is-uptodate"
