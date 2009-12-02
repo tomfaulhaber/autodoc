@@ -13,8 +13,9 @@
 (def *built-clojure-jar* (str *src-dir* "/clojure-slim.jar"))
 
 (def *namespaces-to-document* ["clojure.core" "clojure.inspector" "clojure.main" 
-                               "clojure.set" "clojure.stacktrace"
-                               "clojure.test" "clojure.xml" "clojure.zip"])
+                               "clojure.set" "clojure.stacktrace" "clojure.template"
+                               "clojure.test" "clojure.walk" "clojure.xml"
+                               "clojure.zip"])
 
 (def *load-except-list* 
      [ 
