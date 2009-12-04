@@ -248,23 +248,31 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:pre#var-docstr] (html-content (expand-links (:doc v)))
     [:a#var-source] (set-attr :href (var-src-link v))))
 
-(declare render-namespace-api)
+(declare common-namespace-api)
+
+(deffragment render-sub-namespace-api *sub-namespace-api-file*
+ [ns external-docs]
+  (common-namespace-api ns external-docs))
+
+(deffragment render-namespace-api *namespace-api-file*
+ [ns external-docs]
+  (common-namespace-api ns external-docs))
 
 (defn make-ns-content [ns external-docs]
-  (render-namespace-api *namespace-api-file* ns external-docs))
+  (render-namespace-api ns external-docs))
 
-(defn render-namespace-api [template-file ns external-docs]
-  (with-template template-file
-    [:#namespace-name] (content (:short-name ns))
-    [:span#author] (content (or (:author ns) "Unknown"))
-    [:span#long-name] (content (:full-name ns))
-    [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
-    [:span#see-also] (see-also-links ns)
-    [:span#external-doc] (external-doc-links ns external-docs)
-    [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
-    [:div#sub-namespaces]
-    (clone-for [sub-ns (:subspaces ns)]
-      (fn [_] (render-namespace-api *sub-namespace-api-file* sub-ns external-docs)))))
+(defn common-namespace-api [ns external-docs]
+  (fn [node]
+    (at node
+      [:#namespace-name] (content (:short-name ns))
+      [:span#author] (content (or (:author ns) "Unknown"))
+      [:span#long-name] (content (:full-name ns))
+      [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
+      [:span#see-also] (see-also-links ns)
+      [:span#external-doc] (external-doc-links ns external-docs)
+      [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
+      [:div#sub-namespaces]
+        (substitute (map #(render-sub-namespace-api % external-docs) (:subspaces ns))))))
 
 (defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
