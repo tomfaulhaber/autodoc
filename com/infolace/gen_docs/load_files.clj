@@ -1,6 +1,9 @@
 (ns com.infolace.gen-docs.load-files
   (:import [java.util.jar JarFile])
-  (:use [com.infolace.gen-docs.params :only (*jar-file* *load-except-list*)]))
+  (:use [clojure.contrib.java-utils :only [file]]
+        [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
+        [clojure.contrib.pprint.utilities :only [prlabel]]
+        [com.infolace.gen-docs.params :only (*src-dir* *src-root* *load-except-list*)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
@@ -8,19 +11,6 @@
 
 (use 'clojure.contrib.pprint.utilities)
 (use 'clojure.contrib.pprint)
-
-
-(defn get-elements [iterable]
-  (loop [acc []]
-    (if-not (.hasMoreElements iterable)
-      acc
-      (recur (conj acc (.nextElement iterable))))))
-
-(defn read-jar []
-  (with-open [jar (JarFile. *jar-file*)]
-    (filter 
-     #(re-find #".clj$" %) 
-     (map #(.getName %) (get-elements (.entries jar))))))
 
 
 (defn not-in [str regex-seq] 
@@ -33,8 +23,15 @@
 (defn file-to-ns [file]
   (.replaceAll (.replaceFirst file ".clj$" "") "/" "."))
 
-(defn ns-to-file [ns-name]
-  (.replaceAll (.replaceAll ns-name "\\." "/") "-" "_"))
+(defn ns-to-file [ns]
+  (str (-> (name ns)
+           (.replaceAll "\\." "/")
+           (.replaceAll "-" "_"))
+       ".clj"))
+
+(defn find-files [dir]
+  (prlabel ff dir)
+  (map ns-to-file (find-namespaces-in-dir (file dir))))
 
 (defn basename
   "Strip the .clj extension so we can pass the filename to load"
@@ -42,13 +39,14 @@
   (.substring filename 0 (- (.length filename) 4)))
 
 (defn load-files [filelist]
-  (doseq [file (filter #(not-in % *load-except-list*) filelist)]
-    (cl-format true "~a: " file)
+  (doseq [filename (filter #(not-in % *load-except-list*) filelist)]
+    (cl-format true "~a: " filename)
     (try 
-     (load (basename file))
+     (load (basename filename))
      (cl-format true "done.~%")
      (catch Exception e 
-       (cl-format true "failed.~%")))))
+       (cl-format true "failed (ex = ~a).~%" (.getMessage e))))))
 
 (defn load-namespaces []
-  (load-files (read-jar)))
+  (prlabel ln (System/getProperty "java.class.path"))
+  (load-files (find-files (str *src-dir* *src-root*))))

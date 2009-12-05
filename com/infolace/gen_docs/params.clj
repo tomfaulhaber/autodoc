@@ -16,6 +16,7 @@
 (def *output-directory* nil)
 (def *external-doc-tmpdir* nil)
 (def *jar-file* nil)
+(def *ext-dir* nil)
 
 (def *clojure-contrib-jar* nil)
 (def *clojure-contrib-classes* nil)

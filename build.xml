@@ -14,6 +14,8 @@
   <property name="src-dir" value="${work-root-dir}/src/"/>
   <property name="output-dir" value="${work-root-dir}/autodoc/"/>
   <property name="extra-doc" value="${src-dir}/doc"/>
+  <property name="src-files" value="."/>
+  <property name="ext-dir" value="templates"/> <!-- just a dummy -->
 
   <!-- These properties are special-cased when we're documenting clojure
        contrib itself -->
@@ -183,11 +185,24 @@
   <target name="build-html" depends="set-commit-hash,clean-html-dir,build-extra-doc"
           description="Build the HTML documentation and check it in">
     <echo message="param-dir ${param-dir}"/>
+    <echo message="src-files ${src-files}"/>
 		<java classname="clojure.main"
-          classpath="${built-clojure-jar}:${clojure-contrib-jar}:${clojure-contrib-classes}:${enlive-src}:${tagsoup-jar}:${clojure-json-jar}:." 
 					fork="true" failonerror="true">
+      <classpath>
+        <pathelement location="${built-clojure-jar}"/>
+        <pathelement location="${clojure-contrib-jar}"/>
+        <pathelement location="${clojure-contrib-classes}"/>
+        <pathelement location="${enlive-src}"/>
+        <pathelement location="${tagsoup-jar}"/>
+        <pathelement location="${clojure-json-jar}"/>
+        <pathelement location="${src-files}"/>
+        <pathelement location="."/>
+        <fileset dir="${ext-dir}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
       <arg value="-e"/>
-     <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs &quot;${param-dir}&quot;)"/>
+      <arg value="(use 'com.infolace.gen-docs.gen-docs) (gen-docs &quot;${param-dir}&quot;)"/>
 		</java>
   </target>
 
