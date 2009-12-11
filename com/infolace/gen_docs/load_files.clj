@@ -21,7 +21,10 @@
       :else (recur (next regex-seq)))))
 
 (defn file-to-ns [file]
-  (.replaceAll (.replaceFirst file ".clj$" "") "/" "."))
+  (find-ns (symbol (-> file
+                       (.replaceFirst ".clj$" "")
+                       (.replaceAll "/" ".")
+                       (.replaceAll "_" "-")))))
 
 (defn ns-to-file [ns]
   (str (-> (name ns)
@@ -30,7 +33,6 @@
        ".clj"))
 
 (defn find-files [dir]
-  (prlabel ff dir)
   (map ns-to-file (find-namespaces-in-dir (file dir))))
 
 (defn basename
