@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter])
-  (:require [clojure.contrib.str-utils2 :as str2])
+  (:require [clojure.contrib.str-utils :as str])
   (:use net.cgrand.enlive-html
         [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
@@ -47,19 +47,15 @@ specific directory first, then in the base template directory."
           (let [nodes# (memo-nodes ~source)]
             (flatmap (transformation ~@forms) nodes#)))))  
 
-;;; copied from enlive where this is private
-(defn- xml-str
- "Like clojure.core/str but escapes < > and &."
- [x]
-  (-> x str (.replace "&" "&amp;") (.replace "<" "&lt;") (.replace ">" "&gt;")))
-
 ;;; Thanks to Chouser for this regex
 (defn expand-links 
-  "Return an HTML string with links expanded into anchor tags."
-  [s] 
-  (str2/replace (xml-str s) 
-                #"(\w+://.*?)([.>]*(?: |$))" 
-                (fn [[_ url etc]] (str "<a href='" url "'>" url "</a>" etc))))
+  "Return a seq of nodes with links expanded into anchor tags."
+  [s]
+  (when s
+    (for [x (str/re-partition #"(\w+://.*?)([.>]*(?: |$))" s)]
+      (if (vector? x)
+        [{:tag :a :attrs {:href (x 1)} :content [(x 1)]} (x 2)]
+        x))))
 
 (deftemplate page (template-for *layout-file*)
   [title prefix master-toc local-toc page-content]
@@ -148,7 +144,7 @@ specific directory first, then in the base template directory."
      (content (:short-name ns)))
     [:#author] (content (or (:author ns) "unknown author"))
     [:a#api-link] (set-attr :href (ns-html-file ns))
-    [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
+    [:pre#namespace-docstr] (content (expand-links (:doc ns)))
     [:span#var-link] (add-ns-vars ns)
     [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
                        (clone-for [s subspaces]
@@ -228,7 +224,7 @@ actually changed). This reduces the amount of random doc file changes that happe
      (content (:name v)))
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
-    [:pre#var-docstr] (html-content (expand-links (:doc v)))
+    [:pre#var-docstr] (content (expand-links (:doc v)))
     [:a#var-source] (set-attr :href (var-src-link v))))
 
 (declare common-namespace-api)
@@ -250,7 +246,7 @@ actually changed). This reduces the amount of random doc file changes that happe
       [:#namespace-name] (content (:short-name ns))
       [:span#author] (content (or (:author ns) "Unknown"))
       [:span#long-name] (content (:full-name ns))
-      [:pre#namespace-docstr] (html-content (expand-links (:doc ns)))
+      [:pre#namespace-docstr] (content (expand-links (:doc ns)))
       [:span#see-also] (see-also-links ns)
       [:span#external-doc] (external-doc-links ns external-docs)
       [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
