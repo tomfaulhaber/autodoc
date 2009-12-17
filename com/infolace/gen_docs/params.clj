@@ -27,6 +27,7 @@
 
 (def *do-load* true)
 (def *load-except-list* [])
+(def *build-json-index* false)
 
 (def *page-title* "Undefined Title")
 (def *copyright* "No copyright info")

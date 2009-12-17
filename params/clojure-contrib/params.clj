@@ -26,6 +26,8 @@
       #"/jmx/Bean"
       ])
 
+(def *build-json-index* true)
+
 (def *page-title* "Clojure-contrib")
 (def *copyright* "Copyright 2007-2009 by Rich Hickey and the various contributors")
 

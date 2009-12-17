@@ -12,7 +12,8 @@
         [com.infolace.gen-docs.collect-info :only (contrib-info)]
         [com.infolace.gen-docs.params
          :only (*output-directory* *src-dir* *src-root* *web-src-dir* *web-home*
-                *external-doc-tmpdir* *param-dir* *page-title* *copyright*)]))
+                *external-doc-tmpdir* *param-dir* *page-title* *copyright*
+                *build-json-index*)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -29,6 +30,7 @@
 specific directory first, then in the base template directory."
   [base] 
   (let [custom-template (str *param-dir* "/templates/" base)]
+    (prlabel template-for custom-template (.exists (File. custom-template)))
     (if (.exists (File. custom-template))
       custom-template
       (str "templates/" base))))
@@ -44,11 +46,18 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
   [nodes]
   {:tag :div, :content (:content (first (:content (first nodes))))})
 
-(defmacro deffragment [name template-file args & body]
-  `(defn ~name ~args
-     (content-nodes
-      (at (get-template ~template-file)
-        ~@body))))
+(def memo-nodes
+     (memoize
+      (fn [source]
+        (map annotate (select (html-resource (template-for source)) [:body :> any-node])))))
+
+(defmacro deffragment
+  [name source args & forms]
+  `(def ~name
+        (fn ~args
+          (let [nodes# (memo-nodes ~source)]
+            (flatmap (transformation ~@forms) nodes#)))))  
+
 
 (defmacro with-template [template-file & body]
   `(content-nodes
@@ -357,8 +366,9 @@ vars in ns-info that begin with that letter"
 (defn make-index-json
   "Generate a json formatted index file that can be consumed by other tools"
   [ns-info]
-  (with-out-writer (BufferedWriter. (FileWriter. (str *output-directory* *index-json-file*)))
-    (print-json (structured-index ns-info))))
+  (when *build-json-index*
+    (with-out-writer (BufferedWriter. (FileWriter. (str *output-directory* *index-json-file*)))
+                     (print-json (structured-index ns-info)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
