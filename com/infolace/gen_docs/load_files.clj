@@ -50,5 +50,4 @@
        (cl-format true "failed (ex = ~a).~%" (.getMessage e))))))
 
 (defn load-namespaces []
-  (prlabel ln (System/getProperty "java.class.path"))
   (load-files (find-files (str *src-dir* *src-root*))))

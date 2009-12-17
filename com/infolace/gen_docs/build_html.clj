@@ -30,7 +30,6 @@
 specific directory first, then in the base template directory."
   [base] 
   (let [custom-template (str *param-dir* "/templates/" base)]
-    (prlabel template-for custom-template (.exists (File. custom-template)))
     (if (.exists (File. custom-template))
       custom-template
       (str "templates/" base))))
