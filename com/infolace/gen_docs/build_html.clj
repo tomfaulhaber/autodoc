@@ -35,17 +35,6 @@ specific directory first, then in the base template directory."
       custom-template
       (str "templates/" base))))
 
-(defn get-template 
-  "Get the html node corresponding to this template file"
-  [base]
-  (first (html-resource (template-for base))))
-
-(defn content-nodes 
-  "Strip off the <html><body>  ... </body></html> brackets that tag soup will add to
-partial html data leaving a vector of nodes which we then wrap in a <div> tag"
-  [nodes]
-  {:tag :div, :content (:content (first (:content (first nodes))))})
-
 (def memo-nodes
      (memoize
       (fn [source]
@@ -57,12 +46,6 @@ partial html data leaving a vector of nodes which we then wrap in a <div> tag"
         (fn ~args
           (let [nodes# (memo-nodes ~source)]
             (flatmap (transformation ~@forms) nodes#)))))  
-
-
-(defmacro with-template [template-file & body]
-  `(content-nodes
-    (at (get-template ~template-file)
-      ~@body)))
 
 ;;; copied from enlive where this is private
 (defn- xml-str
