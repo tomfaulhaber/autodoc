@@ -3,7 +3,7 @@
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter])
   (:require [clojure.contrib.str-utils :as str])
-  (:use net.cgrand.enlive-html
+  (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.contrib.pprint :only (cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
@@ -46,6 +46,21 @@ specific directory first, then in the base template directory."
           (let [nodes# (memo-nodes ~source)]
             (flatmap (transformation ~@forms) nodes#)))))  
 
+(def memo-html-resource
+     (memoize
+      (fn [source]
+        (html-resource (template-for source)))))
+
+(defmacro deftemplate
+  "A template returns a seq of string:
+   Overridden from enlive to defer evaluation of the source until runtime.
+   Builds in \"template-for\""
+  [name source args & forms] 
+  `(def ~name
+        (comp emit* 
+              (fn ~args (let [nodes# (memo-html-resource ~source)]
+                          (flatmap (transformation ~@forms) nodes#))))))
+
 ;;; Thanks to Chouser for this regex
 (defn expand-links 
   "Return a seq of nodes with links expanded into anchor tags."
@@ -56,7 +71,7 @@ specific directory first, then in the base template directory."
         [{:tag :a :attrs {:href (x 1)} :content [(x 1)]} (x 2)]
         x))))
 
-(deftemplate page (template-for *layout-file*)
+(deftemplate page *layout-file*
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
