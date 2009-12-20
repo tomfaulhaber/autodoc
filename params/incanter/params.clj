@@ -2,7 +2,7 @@
 
 (def *file-prefix* (.getAbsolutePath (File. "../autodoc-work-area/incanter")))
 (def *src-dir* (str *file-prefix* "/src/"))
-(def *src-root* "src")
+(def *src-root* "src/main/clojure")
 (def *web-src-dir* "http://github.com/liebke/incanter/blob/")
 
 (def *web-home* "http://tomfaulhaber.github.com/incanter/")
