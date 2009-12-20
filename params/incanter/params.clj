@@ -14,6 +14,7 @@
 (def *ext-dir* (str *src-dir* "lib"))
 
 (def *namespaces-to-document* ["incanter"])
+(def *trim-prefix* "incanter.")
 
 
 (def *page-title* "Incanter")

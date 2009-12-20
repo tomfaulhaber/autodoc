@@ -1,6 +1,6 @@
 (ns com.infolace.gen-docs.collect-info
   (:use [clojure.contrib.pprint.utilities :only [prlabel]]
-        [com.infolace.gen-docs.params :only (*namespaces-to-document*)]))
+        [com.infolace.gen-docs.params :only (*namespaces-to-document* *trim-prefix*)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -57,8 +57,8 @@ return it as a string."
                        (sort (map #(name (ns-name %)) (all-ns)))))))
 
 (defn trim-ns-name [s]
-  (if (.startsWith s "clojure.contrib.")
-    (subs s 16)
+  (if (and *trim-prefix* (.startsWith s *trim-prefix*))
+    (subs s (count *trim-prefix*))
     s))
 
 (defn base-namespace

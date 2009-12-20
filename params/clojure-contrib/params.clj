@@ -14,6 +14,7 @@
 (def *clojure-contrib-classes* (str *src-dir* "classes/"))
 
 (def *namespaces-to-document* ["clojure.contrib"])
+(def *trim-prefix* "clojure.contrib.")
 
 (def *load-except-list* 
      [ 

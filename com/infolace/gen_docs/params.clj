@@ -24,6 +24,7 @@
 (def *built-clojure-jar* nil)
 
 (def *namespaces-to-document* nil)
+(def *trim-prefix* nil)
 
 (def *do-load* true)
 (def *load-except-list* [])
