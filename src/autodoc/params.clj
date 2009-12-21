@@ -1,4 +1,4 @@
-(ns com.infolace.gen-docs.params)
+(ns autodoc.params)
 
 ;;; 
 ;;; Default values for settable parameters. These are overridden in the

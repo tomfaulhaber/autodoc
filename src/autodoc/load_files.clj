@@ -1,9 +1,9 @@
-(ns com.infolace.gen-docs.load-files
+(ns autodoc.load-files
   (:import [java.util.jar JarFile])
   (:use [clojure.contrib.java-utils :only [file]]
         [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
         [clojure.contrib.pprint.utilities :only [prlabel]]
-        [com.infolace.gen-docs.params :only (*src-dir* *src-root* *load-except-list*)]))
+        [autodoc.params :only (*src-dir* *src-root* *load-except-list*)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 

@@ -1,4 +1,4 @@
-(ns com.infolace.gen-docs.build-html
+(ns autodoc.build-html
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter])
@@ -9,8 +9,8 @@
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [clojure.contrib.shell-out :only (sh)]
-        [com.infolace.gen-docs.collect-info :only (contrib-info)]
-        [com.infolace.gen-docs.params
+        [autodoc.collect-info :only (contrib-info)]
+        [autodoc.params
          :only (*output-directory* *src-dir* *src-root* *web-src-dir* *web-home*
                 *external-doc-tmpdir* *param-dir* *page-title* *copyright*
                 *build-json-index*)]))

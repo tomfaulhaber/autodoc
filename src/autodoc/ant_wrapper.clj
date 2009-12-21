@@ -1,4 +1,4 @@
-(ns com.infolace.gen-docs.ant-wrapper
+(ns autodoc.ant-wrapper
   (:import
    [java.io File]
    [org.apache.tools.ant Project ProjectHelper AntClassLoader DefaultLogger]))

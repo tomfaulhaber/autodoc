@@ -1,6 +1,6 @@
-(ns com.infolace.gen-docs.collect-info
+(ns autodoc.collect-info
   (:use [clojure.contrib.pprint.utilities :only [prlabel]]
-        [com.infolace.gen-docs.params :only (*namespaces-to-document* *trim-prefix*)]))
+        [autodoc.params :only (*namespaces-to-document* *trim-prefix*)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
