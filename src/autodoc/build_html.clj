@@ -4,16 +4,13 @@
            [java.io File FileWriter BufferedWriter])
   (:require [clojure.contrib.str-utils :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
-        [clojure.contrib.pprint :only (cl-format)]
+        [clojure.contrib.pprint :only (pprint cl-format)]
         [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [clojure.contrib.shell-out :only (sh)]
         [autodoc.collect-info :only (contrib-info)]
-        [autodoc.params
-         :only (*output-directory* *src-dir* *src-root* *web-src-dir* *web-home*
-                *external-doc-tmpdir* *param-dir* *page-title* *copyright*
-                *build-json-index*)]))
+        [autodoc.params :only (params)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -29,7 +26,7 @@
   "Get the actual filename corresponding to a template. We check in the project
 specific directory first, then in the base template directory."
   [base] 
-  (let [custom-template (str *param-dir* "/templates/" base)]
+  (let [custom-template (str (params :param-dir) "/templates/" base)]
     (if (.exists (File. custom-template))
       custom-template
       (str "templates/" base))))
@@ -75,14 +72,14 @@ specific directory first, then in the base template directory."
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
-  [:a#page-header] (content *page-title*)
+  [:a#page-header] (content (params :page-title))
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content)
-  [:div#copyright] (content *copyright*))
+  [:div#copyright] (content (params :copyright)))
 
 (defn create-page [output-file title prefix master-toc local-toc page-content]
-  (with-out-writer (str *output-directory* output-file) 
+  (with-out-writer (str (params :output-directory) output-file) 
     (print
      (apply str (page title prefix master-toc local-toc page-content)))))
 
@@ -192,7 +189,7 @@ specific directory first, then in the base template directory."
 
 (defn make-overview [ns-info master-toc]
   (create-page "index.html"
-               (str *page-title* " - Overview")
+               (str (params :page-title) " - Overview")
                nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -218,12 +215,12 @@ actually changed). This reduces the amount of random doc file changes that happe
    (if-let [hash (get @commit-hash-cache file)]
      hash
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                           :dir (str *src-dir* "/" *src-root*)))]
+                           :dir (str (params :src-dir) "/" (params :src-root))))]
        (alter commit-hash-cache assoc file hash)
        hash))))
 
 (defn web-src-file [file]
-  (cl-format nil "~a~a/~a/~a" *web-src-dir* (get-last-commit-hash file) *src-root* file))
+  (cl-format nil "~a~a/~a/~a" (params :web-src-dir) (get-last-commit-hash file) (params :src-root) file))
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
@@ -269,7 +266,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
-               (str (:short-name ns) " API reference (" *page-title* ")")
+               (str (:short-name ns) " API reference (" (params :page-title) ")")
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
@@ -314,7 +311,7 @@ vars in ns-info that begin with that letter"
 
 ;; TODO: skip entries for letters with no members
 (deffragment make-index-content *index-html-file* [vars-by-letter]
-  [:span.project-name-span] (content *page-title*)
+  [:span.project-name-span] (content (params :page-title))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -324,7 +321,7 @@ vars in ns-info that begin with that letter"
 
 (defn make-index-html [ns-info master-toc]
   (create-page *index-html-file*
-               (str *page-title* " - Index")
+               (str (params :page-title) " - Index")
                nil
                master-toc
                nil
@@ -346,13 +343,13 @@ vars in ns-info that begin with that letter"
 (defn namespace-index-info [ns]
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
-    :wiki-url (str *web-home* (ns-html-file ns))
+    :wiki-url (str (params :web-home) (ns-html-file ns))
     :source-url (web-src-file (ns-file ns))))
 
 (defn var-index-info [v ns]
   (assoc (select-keys v [:name :doc :author :arglists])
     :namespace (:full-name ns)
-    :wiki-url (str *web-home* "/" (var-url ns v))
+    :wiki-url (str (params :web-home) "/" (var-url ns v))
     :source-url (var-src-link v)))
 
 (defn structured-index 
@@ -367,8 +364,9 @@ vars in ns-info that begin with that letter"
 (defn make-index-json
   "Generate a json formatted index file that can be consumed by other tools"
   [ns-info]
-  (when *build-json-index*
-    (with-out-writer (BufferedWriter. (FileWriter. (str *output-directory* *index-json-file*)))
+  (when (params :build-json-index)
+    (with-out-writer (BufferedWriter.
+                      (FileWriter. (str (params :output-directory) *index-json-file*)))
                      (print-json (structured-index ns-info)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -421,7 +419,7 @@ vars in ns-info that begin with that letter"
 (defn make-all-pages []
   (let [ns-info (contrib-info)
         master-toc (make-master-toc ns-info)
-        external-docs (wrap-external-doc *external-doc-tmpdir* "doc" master-toc)]
+        external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
     (make-overview ns-info master-toc)
     (doseq [ns ns-info]
       (make-ns-page ns master-toc external-docs))

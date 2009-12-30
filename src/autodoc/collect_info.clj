@@ -1,6 +1,6 @@
 (ns autodoc.collect-info
   (:use [clojure.contrib.pprint.utilities :only [prlabel]]
-        [autodoc.params :only (*namespaces-to-document* *trim-prefix*)]))
+        [autodoc.params :only (params)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -37,7 +37,10 @@ return it as a string."
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
-        :when (and (or (:wiki-doc (meta v)) (:doc (meta v))) (not (:skip-wiki (meta v))) (not (:private (meta v))))] v))
+        :when (and (or (:wiki-doc (meta v)) (:doc (meta v)))
+                   (not (:skip-wiki (meta v)))
+                   (not (:private (meta v))))]
+    v))
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
@@ -53,13 +56,14 @@ return it as a string."
   (filter #(not (:skip-wiki (meta %)))
           (map #(find-ns (symbol %)) 
                (filter #(some (fn [n] (or (= % n) (.startsWith % (str n "."))))
-                              *namespaces-to-document*)
+                              (params :namespaces-to-document))
                        (sort (map #(name (ns-name %)) (all-ns)))))))
 
 (defn trim-ns-name [s]
-  (if (and *trim-prefix* (.startsWith s *trim-prefix*))
-    (subs s (count *trim-prefix*))
-    s))
+  (let [trim-prefix (params :trim-prefix)]
+    (if (and trim-prefix (.startsWith s trim-prefix))
+      (subs s (count trim-prefix))
+      s)))
 
 (defn base-namespace
   "A nasty function that finds the shortest prefix namespace of this one"
@@ -75,6 +79,7 @@ return it as a string."
                 (range 0 (count parts)))))))) ;; TODO first arg to range was 0 for contrib
 
 (defn base-relevant-namespaces []
+  (prlabel brn (relevant-namespaces))
   (filter #(= % (base-namespace %)) (relevant-namespaces)))
 
 (defn sub-namespaces 

@@ -1,21 +1,22 @@
 (import (java.io File))
 
-(def *file-prefix* (.getAbsolutePath (File. "../autodoc-work-area/incanter")))
-(def *src-dir* (str *file-prefix* "/src/"))
-(def *src-root* "src/main/clojure")
-(def *web-src-dir* "http://github.com/liebke/incanter/blob/")
+(let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/incanter"))
+      src-dir (str file-prefix "/src/")]
+  {:file-prefix file-prefix,
+   :src-dir src-dir,
+   :src-root "src/main/clojure",
+   :web-src-dir "http://github.com/liebke/incanter/blob/",
 
-(def *web-home* "http://tomfaulhaber.github.com/incanter/")
-(def *output-directory* (str *file-prefix* "/autodoc/"))
-(def *external-doc-tmpdir* "/tmp/autodoc/doc")
-(def *jar-file* (str *src-dir* *src-root*))
-(def *clojure-contrib-classes* (str *src-dir* "build"))
+   :web-home "http://tomfaulhaber.github.com/incanter/",
+   :output-directory (str file-prefix "/autodoc/"),
+   :external-doc-tmpdir "/tmp/autodoc/doc",
+   :clojure-contrib-classes (str src-dir "build"),
 
-(def *ext-dir* (str *src-dir* "lib"))
+   :ext-dir (str src-dir "lib"),
 
-(def *namespaces-to-document* ["incanter"])
-(def *trim-prefix* "incanter.")
+   :namespaces-to-document ["incanter"],
+   :trim-prefix "incanter.",
 
 
-(def *page-title* "Incanter")
-; (def *copyright* "Copyright 2007-2009 by Rich Hickey")
+   :page-title "Incanter"})
+

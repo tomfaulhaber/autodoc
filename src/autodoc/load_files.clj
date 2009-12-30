@@ -3,7 +3,7 @@
   (:use [clojure.contrib.java-utils :only [file]]
         [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
         [clojure.contrib.pprint.utilities :only [prlabel]]
-        [autodoc.params :only (*src-dir* *src-root* *load-except-list*)]))
+        [autodoc.params :only (params)]))
 
 ;;; Load all the files from contrib. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
@@ -41,7 +41,7 @@
   (.substring filename 0 (- (.length filename) 4)))
 
 (defn load-files [filelist]
-  (doseq [filename (filter #(not-in % *load-except-list*) filelist)]
+  (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
     (cl-format true "~a: " filename)
     (try 
      (load (basename filename))
@@ -50,4 +50,4 @@
        (cl-format true "failed (ex = ~a).~%" (.getMessage e))))))
 
 (defn load-namespaces []
-  (load-files (find-files (str *src-dir* *src-root*))))
+  (load-files (find-files (str (params :src-dir) (params :src-root)))))

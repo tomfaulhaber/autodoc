@@ -1,27 +1,31 @@
 (import (java.io File))
 
-(def *file-prefix* (.getAbsolutePath (File. "../autodoc-work-area/clojure")))
-(def *src-dir* (str *file-prefix* "/src/"))
-(def *src-root* "src/clj")
-(def *web-src-dir* "http://github.com/richhickey/clojure/blob/")
+(let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/clojure"))
+      src-dir (str file-prefix "/src/")]
+ {
+  :file-prefix file-prefix,
+  :src-dir src-dir,
+  :src-root "src/clj",
+  :web-src-dir "http://github.com/richhickey/clojure/blob/",
 
-(def *web-home* "http://richhickey.github.com/clojure-contrib/")
-(def *output-directory* (str *file-prefix* "/autodoc/"))
-(def *external-doc-tmpdir* "/tmp/autodoc/doc")
-(def *jar-file* (str *src-dir* "clojure-slim.jar"))
+  :web-home "http://richhickey.github.com/clojure-contrib/",
+  :output-directory (str file-prefix "/autodoc/"),
+  :external-doc-tmpdir "/tmp/autodoc/doc",
+  :jar-file (str src-dir "clojure-slim.jar"),
 
-(def *built-clojure-jar* (str *src-dir* "/clojure-slim.jar"))
+  :built-clojure-jar (str src-dir "/clojure-slim.jar"),
 
-(def *namespaces-to-document* ["clojure.core" "clojure.inspector" "clojure.main" 
-                               "clojure.set" "clojure.stacktrace" "clojure.template"
-                               "clojure.test" "clojure.walk" "clojure.xml"
-                               "clojure.zip"])
+  :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" 
+                            "clojure.set" "clojure.stacktrace" "clojure.template"
+                            "clojure.test" "clojure.walk" "clojure.xml"
+                            "clojure.zip"],
 
-(def *load-except-list* 
-     [ 
-      #"clojure/core.clj"
-      #"clojure/parallel.clj"
-      ])
+  :load-except-list 
+  [ 
+   #"clojure/core.clj"
+   #"clojure/parallel.clj"
+   ],
 
-(def *page-title* "Clojure")
-(def *copyright* "Copyright 2007-2009 by Rich Hickey")
+  :page-title "Clojure",
+  :copyright "Copyright 2007-2009 by Rich Hickey",
+  })

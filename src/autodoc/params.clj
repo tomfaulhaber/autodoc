@@ -5,31 +5,42 @@
 ;;; per project parameters file.
 ;;;
 
-(def *param-dir* nil)                   ;set automatically from the first arg when executing
+(def default-params
+     {:param-dir nil ; set automatically from the first arg when executing
 
-(def *file-prefix* nil)
-(def *src-dir* nil)
-(def *src-root* nil)
-(def *web-src-dir* nil)
+      :file-prefix nil,
+      :src-dir nil,
+      :src-root nil,
+      :web-src-dir nil,
 
-(def *web-home* nil)
-(def *output-directory* nil)
-(def *external-doc-tmpdir* nil)
-(def *jar-file* nil)
-(def *ext-dir* nil)
+      :web-home nil,
+      :output-directory nil,
+      :external-doc-tmpdir nil,
+      :ext-dir nil,
 
-(def *clojure-contrib-jar* nil)
-(def *clojure-contrib-classes* nil)
+      :clojure-contrib-jar nil,
+      :clojure-contrib-classes nil,
 
-(def *built-clojure-jar* nil)
+      :built-clojure-jar nil,
+      :namespaces-to-document nil,
+      :trim-prefix nil,
 
-(def *namespaces-to-document* nil)
-(def *trim-prefix* nil)
+      :do-load true,
+      :load-except-list [],
+      :build-json-index false,
 
-(def *do-load* true)
-(def *load-except-list* [])
-(def *build-json-index* false)
+      :page-title "Undefined Title",
+      :copyright "No copyright info"
+      })
 
-(def *page-title* "Undefined Title")
-(def *copyright* "No copyright info")
+(def params default-params)
 
+(defn merge-params 
+  "Merge the param map supplied into the params defined in the params var"
+  [param-map]
+  (alter-var-root #'params merge param-map))
+
+(defn params-from-dir 
+  "Read param.clj from the specified directory and set the params accordingly"
+  [param-dir]
+  (merge-params (merge {:param-dir param-dir} (load-file (str param-dir "/params.clj")))))
