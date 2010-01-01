@@ -26,8 +26,8 @@
   "Get the actual filename corresponding to a template. We check in the project
 specific directory first, then in the base template directory."
   [base] 
-  (let [custom-template (str (params :param-dir) "/templates/" base)]
-    (if (.exists (File. custom-template))
+  (let [custom-template (File. (str (params :param-dir) "/templates/" base))]
+    (if (.exists custom-template)
       custom-template
       (str "templates/" base))))
 

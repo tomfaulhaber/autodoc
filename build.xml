@@ -197,6 +197,7 @@
         <pathelement location="${clojure-json-jar}"/>
         <pathelement location="${src-files}"/>
         <pathelement location="src"/>
+        <pathelement location="resources"/>
         <pathelement location="."/>
         <fileset dir="${ext-dir}">
           <include name="**/*.jar"/>

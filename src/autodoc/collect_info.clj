@@ -79,7 +79,6 @@ return it as a string."
                 (range 0 (count parts)))))))) ;; TODO first arg to range was 0 for contrib
 
 (defn base-relevant-namespaces []
-  (prlabel brn (relevant-namespaces))
   (filter #(= % (base-namespace %)) (relevant-namespaces)))
 
 (defn sub-namespaces 
