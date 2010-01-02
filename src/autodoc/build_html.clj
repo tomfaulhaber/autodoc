@@ -398,17 +398,18 @@ vars in ns-info that begin with that letter"
           [nm [elem]]))))))
 
 (defn wrap-external-doc [staging-dir target-dir master-toc]
-  (external-doc-map
-   (doall ; force the side effect (generating the xml files
-    (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
-      (let [source-path (.getAbsolutePath file)
-            offset (.substring source-path (inc (.length staging-dir)))
-            target-path (str target-dir "/" offset)
-            page-content (first (html-resource (java.io.File. source-path)))
-            title (get-title page-content)
-            prefix (apply str (repeat (count (.split offset "/")) "../"))]
-        (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
-        [offset title])))))
+  (when staging-dir
+    (external-doc-map
+     (doall          ; force the side effect (generating the xml files
+      (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
+        (let [source-path (.getAbsolutePath file)
+              offset (.substring source-path (inc (.length staging-dir)))
+              target-path (str target-dir "/" offset)
+              page-content (first (html-resource (java.io.File. source-path)))
+              title (get-title page-content)
+              prefix (apply str (repeat (count (.split offset "/")) "../"))]
+          (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
+          [offset title]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

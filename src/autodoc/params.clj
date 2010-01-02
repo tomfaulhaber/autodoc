@@ -6,15 +6,15 @@
 ;;;
 
 (def default-params
-     {:param-dir nil ; set automatically from the first arg when executing
+     {:param-dir "autodoc-params"
 
       :file-prefix nil,
-      :src-dir nil,
-      :src-root nil,
+      :src-dir ".",
+      :src-root "src/",
       :web-src-dir nil,
 
       :web-home nil,
-      :output-directory nil,
+      :output-directory "autodoc/",
       :external-doc-tmpdir nil,
       :ext-dir nil,
 
