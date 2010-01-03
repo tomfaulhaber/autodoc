@@ -44,7 +44,7 @@ Available commands:~%~:{~a: ~a~%~}"
      (merge-params myparams)
      (if (nil? (params :namespaces-to-document))
        (merge-params {:namespaces-to-document
-                      (find-namespaces-in-dir (file (params :src-dir) (params :src-root)))}))
+                      (map name (find-namespaces-in-dir (file (params :src-dir) (params :src-root))))}))
      (if-let [cmd-sym ((set commands) (symbol (or cmd 'build-html)))]
        (apply (sym-to-var cmd-sym) cmd-args)
        (do

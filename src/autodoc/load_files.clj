@@ -1,7 +1,7 @@
 (ns autodoc.load-files
   (:import [java.util.jar JarFile])
   (:use [clojure.contrib.java-utils :only [file]]
-        [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
+        [clojure.contrib.find-namespaces :only [find-clojure-sources-in-dir]]
         [clojure.contrib.pprint.utilities :only [prlabel]]
         [autodoc.params :only (params)]))
 
@@ -32,9 +32,6 @@
            (.replaceAll "-" "_"))
        ".clj"))
 
-(defn find-files [dir]
-  (map ns-to-file (find-namespaces-in-dir (file dir))))
-
 (defn basename
   "Strip the .clj extension so we can pass the filename to load"
   [filename]
@@ -44,10 +41,13 @@
   (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
     (cl-format true "~a: " filename)
     (try 
-     (load (basename filename))
+     (load-file filename)
      (cl-format true "done.~%")
      (catch Exception e 
        (cl-format true "failed (ex = ~a).~%" (.getMessage e))))))
 
 (defn load-namespaces []
-  (load-files (find-files (str (params :src-dir) (params :src-root)))))
+  (load-files
+   (map #(.getPath %)
+        (find-clojure-sources-in-dir
+         (file (params :src-dir) (params :src-root))))))

@@ -9,7 +9,7 @@
      {:param-dir "autodoc-params"
 
       :file-prefix nil,
-      :src-dir ".",
+      :src-dir "./",
       :src-root "src/",
       :web-src-dir nil,
 
@@ -33,7 +33,7 @@
       :copyright "No copyright info"
       })
 
-(def params default-params)
+(defonce params default-params)
 
 (defn merge-params 
   "Merge the param map supplied into the params defined in the params var"
