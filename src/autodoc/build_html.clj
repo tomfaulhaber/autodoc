@@ -80,7 +80,7 @@ specific directory first, then in the base template directory."
   [:div#copyright] (content (params :copyright)))
 
 (defn create-page [output-file title prefix master-toc local-toc page-content]
-  (with-out-writer (str (params :output-directory) output-file) 
+  (with-out-writer (file (params :output-directory) output-file) 
     (print
      (apply str (page title prefix master-toc local-toc page-content)))))
 
@@ -227,12 +227,17 @@ actually changed). This reduces the amount of random doc file changes that happe
    (fn []
      (.length (.getPath (File. (params :src-dir)))))))
 
+(def memoized-working-directory
+     (memoize 
+      (fn [] (.getAbsolutePath (file ".")))))
+
 (defn var-base-file
   "strip off the prepended path to the source directory from the filename"
   [f]
-  (if (.startsWith f (params :src-dir))
-    (.substring f (inc (src-prefix-length)))
-    (.getPath (file (params :src-root) f))))
+  (cond
+   (.startsWith f (params :src-dir)) (.substring f (inc (src-prefix-length)))
+   (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
+   true (.getPath (file (params :src-root) f))))
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
@@ -379,7 +384,7 @@ vars in ns-info that begin with that letter"
   [ns-info]
   (when (params :build-json-index)
     (with-out-writer (BufferedWriter.
-                      (FileWriter. (str (params :output-directory) *index-json-file*)))
+                      (FileWriter. (file (params :output-directory) *index-json-file*)))
                      (print-json (structured-index ns-info)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -9,12 +9,12 @@
      {:param-dir "autodoc-params"
 
       :file-prefix nil,
-      :src-dir "./",
-      :src-root "src/",
+      :src-dir ".",
+      :src-root "src",
       :web-src-dir nil,
 
       :web-home nil,
-      :output-directory "autodoc/",
+      :output-directory "autodoc",
       :external-doc-tmpdir nil,
       :ext-dir nil,
 
