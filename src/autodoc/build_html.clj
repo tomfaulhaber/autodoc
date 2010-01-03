@@ -212,12 +212,15 @@ actually changed). This reduces the amount of random doc file changes that happe
   get-last-commit-hash
   (memoize
    (fn [file]
-     (prlabel glch file)
-     (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                :dir (params :src-dir))))))
+     (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
+                       :dir (params :src-dir)))]
+       (when (not (.startsWith hash "fatal"))
+         hash)))))
 
 (defn web-src-file [file]
-  (cl-format nil "~a~a/~a" (params :web-src-dir) (get-last-commit-hash file) file))
+  (when-let [web-src-dir (params :web-src-dir)]
+    (when-let [hash (get-last-commit-hash file)]
+      (cl-format nil "~a~a/~a" (params :web-src-dir) hash file))))
 
 (def src-prefix-length
   (memoize
@@ -233,7 +236,8 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
-    (cl-format nil "~a#L~d" (web-src-file (var-base-file (:file v))) (:line v))))
+    (when-let [web-file (web-src-file (var-base-file (:file v)))]
+      (cl-format nil "~a#L~d" web-file (:line v)))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template]
@@ -245,7 +249,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
-    [:a#var-source] (set-attr :href (var-src-link v))))
+    [:a#var-source] (fn [n] (when-let [link (var-src-link v)] (apply (set-attr :href link) [n])))))
 
 (declare common-namespace-api)
 
