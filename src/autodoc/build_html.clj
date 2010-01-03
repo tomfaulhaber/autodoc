@@ -308,7 +308,10 @@ vars in ns-info that begin with that letter"
   (let [doc (:doc v)
         len (min (count doc) n)
         suffix (if (< len (count doc)) "..." ".")]
-    (str (.replaceAll (.substring doc 0 len) "\n *" " ") suffix)))
+    (str (.replaceAll 
+          (.replaceAll (.substring doc 0 len) "^[ \n]*" "")
+          "\n *" " ")
+         suffix)))
 
 (defn gen-index-line [v ns]
   (let [var-name (:name v)
