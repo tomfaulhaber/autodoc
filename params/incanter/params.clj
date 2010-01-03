@@ -4,7 +4,7 @@
       src-dir (str file-prefix "/src/")]
   {:file-prefix file-prefix,
    :src-dir src-dir,
-   :src-root "src/main/clojure",
+   :src-root "modules",
    :web-src-dir "http://github.com/liebke/incanter/blob/",
 
    :web-home "http://tomfaulhaber.github.com/incanter/",
@@ -16,6 +16,8 @@
 
    :namespaces-to-document ["incanter"],
    :trim-prefix "incanter.",
+
+   :load-except-list [#"/test/" #"/classes/"],
 
 
    :page-title "Incanter"})
