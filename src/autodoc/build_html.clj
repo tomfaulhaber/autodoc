@@ -8,6 +8,7 @@
         [clojure.contrib.pprint.examples.json :only (print-json)]
         [clojure.contrib.pprint.utilities :only (prlabel)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
+        [clojure.contrib.java-utils :only (file)]
         [clojure.contrib.shell-out :only (sh)]
         [autodoc.collect-info :only (contrib-info)]
         [autodoc.params :only (params)]))
@@ -204,27 +205,35 @@ specific directory first, then in the base template directory."
     (if (= (:var-type v) "multimethod")
       "No usage documentation available")))
 
-(def commit-hash-cache (ref {}))
-
-(defn get-last-commit-hash
-  "Gets the commit hash for the last commit that included this file. We
+(def 
+  #^{:doc "Gets the commit hash for the last commit that included this file. We
 do this for source links so that we don't change them with every commit (unless that file
-actually changed). This reduces the amount of random doc file changes that happen."
-  [file]
-  (dosync
-   (if-let [hash (get @commit-hash-cache file)]
-     hash
-     (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                           :dir (str (params :src-dir) "/" (params :src-root))))]
-       (alter commit-hash-cache assoc file hash)
-       hash))))
+actually changed). This reduces the amount of random doc file changes that happen."}
+  get-last-commit-hash
+  (memoize
+   (fn [file]
+     (prlabel glch file)
+     (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
+                :dir (params :src-dir))))))
 
 (defn web-src-file [file]
-  (cl-format nil "~a~a/~a/~a" (params :web-src-dir) (get-last-commit-hash file) (params :src-root) file))
+  (cl-format nil "~a~a/~a" (params :web-src-dir) (get-last-commit-hash file) file))
+
+(def src-prefix-length
+  (memoize
+   (fn []
+     (.length (.getPath (File. (params :src-dir)))))))
+
+(defn var-base-file
+  "strip off the prepended path to the source directory from the filename"
+  [f]
+  (if (.startsWith f (params :src-dir))
+    (.substring f (inc (src-prefix-length)))
+    (.getPath (file (params :src-root) f))))
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
-    (cl-format nil "~a#L~d" (web-src-file (:file v)) (:line v))))
+    (cl-format nil "~a#L~d" (web-src-file (var-base-file (:file v))) (:line v))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template]
@@ -344,7 +353,7 @@ vars in ns-info that begin with that letter"
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
     :wiki-url (str (params :web-home) (ns-html-file ns))
-    :source-url (web-src-file (ns-file ns))))
+    :source-url (web-src-file (.getPath (file (params :src-root) (ns-file ns))))))
 
 (defn var-index-info [v ns]
   (assoc (select-keys v [:name :doc :author :arglists])

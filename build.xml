@@ -15,7 +15,7 @@
   <property name="output-dir" value="${work-root-dir}/autodoc/"/>
   <property name="extra-doc" value="${src-dir}/doc"/>
   <property name="src-files" value="."/>
-  <property name="ext-dir" value="templates"/> <!-- just a dummy -->
+  <property name="ext-dir" value="resources/templates"/> <!-- just a dummy -->
 
   <!-- These properties are special-cased when we're documenting clojure
        contrib itself -->
