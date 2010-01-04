@@ -38,8 +38,11 @@ Available commands:~%~:{~a: ~a~%~}"
 
 (def commands ['build-html 'help])
 
+(defn directory-name []
+  (.replaceFirst (.getParent (.getAbsoluteFile (file "."))) ".*/" ""))
+
 (defn autodoc
-  ([myparams] (autodoc params nil))
+  ([myparams] (autodoc myparams nil))
   ([myparams cmd & cmd-args]
      (merge-params myparams)
      (if (nil? (params :namespaces-to-document))
@@ -52,4 +55,4 @@ Available commands:~%~:{~a: ~a~%~}"
          (help)))))
 
 (defn -main [& args]
-  (apply autodoc {} args))
+  (apply autodoc {:project-name (directory-name)} args))
