@@ -1,7 +1,7 @@
 (ns autodoc.build-html
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
-           [java.io File FileWriter BufferedWriter])
+           [java.io File FileWriter BufferedWriter StringReader])
   (:require [clojure.contrib.str-utils :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.contrib.pprint :only (pprint cl-format)]
@@ -18,6 +18,7 @@
 (def *local-toc-file* "local-toc.html")
 
 (def *overview-file* "overview.html")
+(def *description-file* "description.html")
 (def *namespace-api-file* "namespace-api.html")
 (def *sub-namespace-api-file* "sub-namespace-api.html")
 (def *index-html-file* "api-index.html")
@@ -25,29 +26,34 @@
 
 (defn template-for
   "Get the actual filename corresponding to a template. We check in the project
-specific directory first, then in the base template directory."
+specific directory first, then sees if a parameter with that name is set, then 
+looks in the base template directory."
   [base] 
   (let [custom-template (File. (str (params :param-dir) "/templates/" base))]
     (if (.exists custom-template)
       custom-template
-      (str "templates/" base))))
+      (if-let [param (params (keyword (.replaceFirst base "\\.html$" "")))]
+        (StringReader. param)
+        (-> (clojure.lang.RT/baseLoader) (.getResourceAsStream (str "templates/" base)))))))
 
 (def memo-nodes
      (memoize
       (fn [source]
-        (map annotate (select (html-resource (template-for source)) [:body :> any-node])))))
+        (if-let [source (template-for source)]
+          (map annotate (select (html-resource source) [:body :> any-node]))))))
 
 (defmacro deffragment
   [name source args & forms]
   `(def ~name
         (fn ~args
-          (let [nodes# (memo-nodes ~source)]
+          (if-let [nodes# (memo-nodes ~source)]
             (flatmap (transformation ~@forms) nodes#)))))  
 
 (def memo-html-resource
      (memoize
       (fn [source]
-        (html-resource (template-for source)))))
+        (if-let [source (template-for source)]
+          (html-resource source)))))
 
 (defmacro deftemplate
   "A template returns a seq of string:
@@ -56,8 +62,9 @@ specific directory first, then in the base template directory."
   [name source args & forms] 
   `(def ~name
         (comp emit* 
-              (fn ~args (let [nodes# (memo-html-resource ~source)]
-                          (flatmap (transformation ~@forms) nodes#))))))
+              (fn ~args
+                (if-let [nodes# (memo-html-resource ~source)]
+                  (flatmap (transformation ~@forms) nodes#))))))
 
 ;;; Thanks to Chouser for this regex
 (defn expand-links 
@@ -73,7 +80,7 @@ specific directory first, then in the base template directory."
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
-  [:a#page-header] (content (params :page-title))
+  [:a#page-header] (content (or (params :page-title) (params :project-name)))
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content)
@@ -165,7 +172,11 @@ specific directory first, then in the base template directory."
                             [:span#sub-var-link] (add-ns-vars s))))
     [:span#see-also] (see-also-links ns)))
 
+(deffragment make-project-description *description-file* [])
+
 (deffragment make-overview-content *overview-file* [ns-info]
+  [:span#header-project] (content (or (params :project-name) "Project"))
+  [:div#project-description] (content (make-project-description))
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (deffragment make-master-toc *master-toc-file* [ns-info]
@@ -190,7 +201,7 @@ specific directory first, then in the base template directory."
 
 (defn make-overview [ns-info master-toc]
   (create-page "index.html"
-               (str (params :page-title) " - Overview")
+               (str (params :project-name) " - Overview")
                nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -284,7 +295,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
-               (str (:short-name ns) " API reference (" (params :page-title) ")")
+               (str (:short-name ns) " API reference (" (params :project-name) ")")
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
@@ -309,7 +320,7 @@ vars in ns-info that begin with that letter"
         len (min (count doc) n)
         suffix (if (< len (count doc)) "..." ".")]
     (str (.replaceAll 
-          (.replaceAll (.substring doc 0 len) "^[ \n]*" "")
+          (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
           "\n *" " ")
          suffix)))
 
@@ -332,7 +343,7 @@ vars in ns-info that begin with that letter"
 
 ;; TODO: skip entries for letters with no members
 (deffragment make-index-content *index-html-file* [vars-by-letter]
-  [:span.project-name-span] (content (params :page-title))
+  [:span.project-name-span] (content (params :project-name))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -342,7 +353,7 @@ vars in ns-info that begin with that letter"
 
 (defn make-index-html [ns-info master-toc]
   (create-page *index-html-file*
-               (str (params :page-title) " - Index")
+               (str (params :project-name) " - Index")
                nil
                master-toc
                nil

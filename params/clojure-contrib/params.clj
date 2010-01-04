@@ -2,7 +2,8 @@
 
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/clojure-contrib"))
       src-dir (str file-prefix "/src/")]
-  {:file-prefix file-prefix,
+  {:project-name "clojure-contrib",
+   :file-prefix file-prefix,
    :src-dir src-dir,
    :src-root "src",
    :web-src-dir "http://github.com/richhickey/clojure-contrib/blob/",
@@ -29,7 +30,6 @@
     ],
 
    :build-json-index true,
-
-   :page-title "Clojure-contrib",
+   :page-title "Clojure-contrib API Reference"
    :copyright "Copyright 2007-2009 by Rich Hickey and the various contributors"})
 

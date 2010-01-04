@@ -6,7 +6,8 @@
 ;;;
 
 (def default-params
-     {:param-dir "autodoc-params"
+     {:project-name nil,
+      :param-dir "autodoc-params",
 
       :file-prefix nil,
       :src-dir ".",
@@ -29,7 +30,7 @@
       :load-except-list [],
       :build-json-index false,
 
-      :page-title "Undefined Title",
+      :page-title nil,
       :copyright "No copyright info"
       })
 

@@ -3,6 +3,7 @@
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/clojure"))
       src-dir (str file-prefix "/src/")]
  {
+  :project-name "Clojure",
   :file-prefix file-prefix,
   :src-dir src-dir,
   :src-root "src/clj",
@@ -26,6 +27,6 @@
    #"clojure/parallel.clj"
    ],
 
-  :page-title "Clojure",
+  :page-title "Clojure Core API Reference",
   :copyright "Copyright 2007-2009 by Rich Hickey",
   })

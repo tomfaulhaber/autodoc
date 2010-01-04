@@ -2,7 +2,8 @@
 
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/incanter"))
       src-dir (str file-prefix "/src/")]
-  {:file-prefix file-prefix,
+  {:project-name "Incanter",
+   :file-prefix file-prefix,
    :src-dir src-dir,
    :src-root "modules",
    :web-src-dir "http://github.com/liebke/incanter/blob/",
@@ -18,7 +19,5 @@
    :trim-prefix "incanter.",
 
    :load-except-list [#"/test/" #"/classes/"],
-
-
-   :page-title "Incanter"})
+   })
 
