@@ -1,40 +1,49 @@
-(ns autodoc.params)
+(ns autodoc.params
+  (:use [clojure.contrib.pprint :only (cl-format)]
+        [clojure.contrib.pprint.utilities :only (consume)]))
 
 ;;; 
-;;; Default values for settable parameters. These are overridden in the
-;;; per project parameters file.
+;;; Description and default values for settable parameters. These are overridden in the
+;;; per project parameters file, or from leiningen, or on the command line.
 ;;;
 
-(def default-params
-     {:project-name nil,
-      :param-dir "autodoc-params",
+(def available-params
+     ;; name, default val, description (for help)
+     [[:project-name nil "The name of this project"],
+      [:param-dir "autodoc-params" "A directory from which to load custom project data"],
+      
+      [:file-prefix nil nil], ;; only used with ant-wrapper
+      [:src-dir "." "The directory in which to find the project"],
+      [:src-root "src" "The relative path within the project directory where we find the source"],
+      [:web-src-dir nil "The web address for source files (e.g., http://github.com/richhickey/clojure/blob/)"],
+      
+      [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
+      [:output-directory "autodoc" "Where to create the output html tree."],
+      [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
+      [:ext-dir nil nil], ;; only used with ant-wrapper
+      
+      [:clojure-contrib-jar nil nil], ;; only used with ant-wrapper
+      [:clojure-contrib-classes nil nil], ;; only used with ant-wrapper
+      
+      [:built-clojure-jar nil nil],;; only used with ant-wrapper
+      [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
+      [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
+      
+      [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
+      [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
+      
+      [:page-title nil "A title to put on each page"],
+      [:copyright "No copyright info " "Copyright (or other page footer data) to put at the bottom of each page"]
+      ])
 
-      :file-prefix nil,
-      :src-dir ".",
-      :src-root "src",
-      :web-src-dir nil,
+(def param-set (set (for [[kw _ _] available-params] kw)))
 
-      :web-home nil,
-      :output-directory "autodoc",
-      :external-doc-tmpdir nil,
-      :ext-dir nil,
+(defonce params (into {} (for [[kw val _] available-params] [kw val])))
 
-      :clojure-contrib-jar nil,
-      :clojure-contrib-classes nil,
-
-      :built-clojure-jar nil,
-      :namespaces-to-document nil,
-      :trim-prefix nil,
-
-      :do-load true,
-      :load-except-list [],
-      :build-json-index false,
-
-      :page-title nil,
-      :copyright "No copyright info"
-      })
-
-(defonce params default-params)
+(defn params-help 
+  ([writer]
+     (cl-format writer "Parameters:~%~:{   --~a: ~a~%~}"
+                (for [[kw _ desc] available-params :when desc] [(name kw) desc]))))
 
 (defn merge-params 
   "Merge the param map supplied into the params defined in the params var"
@@ -45,3 +54,23 @@
   "Read param.clj from the specified directory and set the params accordingly"
   [param-dir]
   (merge-params (merge {:param-dir param-dir} (load-file (str param-dir "/params.clj")))))
+
+(defn extract-arg [arglist]
+  (let [param (first arglist)]
+    (if (and param (.startsWith param "--"))
+      (let [param (.substring param 2)
+            parts (.split param "=" 2)
+            one-arg (= (count parts) 2)
+            [param val] (if one-arg parts [param (second arglist)])
+            param (keyword param)
+            remainder (if one-arg (next arglist) (next (next arglist)))]
+        (if (param-set param)
+          [[param val] remainder]
+          (throw (RuntimeException. (str "No such parameter --" (name param))))))
+      [nil arglist])))
+
+(defn process-command-line 
+  "Process the command line arguments returning [ map-of-params [ remaining-args ]]"
+  [args]
+  (let [[params args] (consume extract-arg args)]
+    [(into {} params) (into [] args)]))

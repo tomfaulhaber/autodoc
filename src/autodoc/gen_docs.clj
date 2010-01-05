@@ -6,6 +6,5 @@
 (defn gen-docs 
   ([param-dir]
      (params-from-dir param-dir)
-     (when (params :do-load)
-       (load-namespaces))
+     (load-namespaces)
      (make-all-pages)))

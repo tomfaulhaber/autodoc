@@ -5,7 +5,7 @@
    [clojure.contrib.duck-streams :only [make-parents]]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
-   [autodoc.params :only (merge-params params)]
+   [autodoc.params :only (merge-params params params-help process-command-line)]
    [autodoc.load-files :only (load-namespaces)]
    [autodoc.build-html :only (make-all-pages)])
   (:gen-class))
@@ -15,8 +15,7 @@
 (defn build-html 
   "Build the documentation (default command)"
   [& _]
-  (when (params :do-load)
-    (load-namespaces))
+  (load-namespaces)
   (make-doc-dir)
   (make-all-pages))
 
@@ -29,12 +28,13 @@
   "Print this help message"
   [& _]
   (prlabel help *out*)
-  ;; TODO: We should have a fixed width tab (~20t) between the terms below, but something's funky
   (cl-format true 
-             "Usage: autodoc [params] cmd args~%~%~
-Available commands:~%~:{~a: ~a~%~}"
+             "Usage: autodoc [params] cmd args~%~%") 
+  ;; TODO: We should have a fixed width tab (~20t) between the terms below, but something's funky
+  (cl-format true "Available commands:~%~:{   ~a: ~a~%~}~%"
              (for [cmd commands]
-               [cmd (:doc (meta (sym-to-var cmd)))])))
+               [cmd (:doc (meta (sym-to-var cmd)))]))
+    (params-help *out*))
 
 (def commands ['build-html 'help])
 
@@ -55,4 +55,10 @@ Available commands:~%~:{~a: ~a~%~}"
          (help)))))
 
 (defn -main [& args]
-  (apply autodoc {:project-name (directory-name)} args))
+  (if-let [[params args] (try 
+                          (process-command-line args)
+                          (catch RuntimeException e
+                            (println (.getMessage e))
+                            (prn)
+                            (help)))]
+    (apply autodoc (merge {:project-name (directory-name)} params) args)))

@@ -231,7 +231,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn web-src-file [file]
   (when-let [web-src-dir (params :web-src-dir)]
     (when-let [hash (get-last-commit-hash file)]
-      (cl-format nil "~a~a/~a" (params :web-src-dir) hash file))))
+      (cl-format nil "~a~a/~a" web-src-dir hash file))))
 
 (def src-prefix-length
   (memoize
