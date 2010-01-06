@@ -7,7 +7,8 @@
    [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
    [autodoc.params :only (merge-params params params-help process-command-line)]
    [autodoc.load-files :only (load-namespaces)]
-   [autodoc.build-html :only (make-all-pages)])
+   [autodoc.build-html :only (make-all-pages)]
+   [autodoc.copy-statics :only (copy-statics)])
   (:gen-class))
 
 (defn make-doc-dir [] (make-parents (file (params :output-directory) "foo")))
@@ -17,6 +18,7 @@
   [& _]
   (load-namespaces)
   (make-doc-dir)
+  (copy-statics)
   (make-all-pages))
 
 (defn sym-to-var [sym] 
