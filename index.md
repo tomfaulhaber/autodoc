@@ -1,3 +1,6 @@
+---
+title: Autodoc
+---
 Autodoc - an automated documentation system for Clojure
 =======================================================
 
