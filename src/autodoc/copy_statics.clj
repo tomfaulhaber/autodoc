@@ -19,7 +19,7 @@
 (defn copy-statics []
   (doseq [f static-file-list]
     (let [source (file "autodoc/static" f)
-          target (file (params :output-directory) "static" f)]
+          target (file (params :output-path) "static" f)]
       (-> target .getParent File. .mkdirs)
       (copy (.getResourceAsStream (clojure.lang.RT/baseLoader) (.getPath source))
             target))))

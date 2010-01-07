@@ -9,16 +9,16 @@
 
 (def available-params
      ;; name, default val, description (for help)
-     [[:project-name nil "The name of this project"],
+     [[:name nil "The name of this project"],
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
       
       [:file-prefix nil nil], ;; only used with ant-wrapper
-      [:src-dir "." "The directory in which to find the project"],
-      [:src-root "src" "The relative path within the project directory where we find the source"],
+      [:root "." "The directory in which to find the project"],
+      [:source-path "src" "The relative path within the project directory where we find the source"],
       [:web-src-dir nil "The web address for source files (e.g., http://github.com/richhickey/clojure/blob/)"],
       
       [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
-      [:output-directory "autodoc" "Where to create the output html tree."],
+      [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
       [:ext-dir nil nil], ;; only used with ant-wrapper
       

@@ -80,14 +80,14 @@ looks in the base template directory."
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
-  [:a#page-header] (content (or (params :page-title) (params :project-name)))
+  [:a#page-header] (content (or (params :page-title) (params :name)))
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content)
   [:div#copyright] (content (params :copyright)))
 
 (defn create-page [output-file title prefix master-toc local-toc page-content]
-  (with-out-writer (file (params :output-directory) output-file) 
+  (with-out-writer (file (params :output-path) output-file) 
     (print
      (apply str (page title prefix master-toc local-toc page-content)))))
 
@@ -175,7 +175,7 @@ looks in the base template directory."
 (deffragment make-project-description *description-file* [])
 
 (deffragment make-overview-content *overview-file* [ns-info]
-  [:span#header-project] (content (or (params :project-name) "Project"))
+  [:span#header-project] (content (or (params :name) "Project"))
   [:div#project-description] (content (make-project-description))
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
@@ -201,7 +201,7 @@ looks in the base template directory."
 
 (defn make-overview [ns-info master-toc]
   (create-page "index.html"
-               (str (params :project-name) " - Overview")
+               (str (params :name) " - Overview")
                nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -224,7 +224,7 @@ actually changed). This reduces the amount of random doc file changes that happe
   (memoize
    (fn [file]
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                       :dir (params :src-dir)))]
+                       :dir (params :root)))]
        (when (not (.startsWith hash "fatal"))
          hash)))))
 
@@ -236,7 +236,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 (def src-prefix-length
   (memoize
    (fn []
-     (.length (.getPath (File. (params :src-dir)))))))
+     (.length (.getPath (File. (params :root)))))))
 
 (def memoized-working-directory
      (memoize 
@@ -246,9 +246,9 @@ actually changed). This reduces the amount of random doc file changes that happe
   "strip off the prepended path to the source directory from the filename"
   [f]
   (cond
-   (.startsWith f (params :src-dir)) (.substring f (inc (src-prefix-length)))
+   (.startsWith f (params :root)) (.substring f (inc (src-prefix-length)))
    (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
-   true (.getPath (file (params :src-root) f))))
+   true (.getPath (file (params :source-path) f))))
 
 (defn var-src-link [v]
   (when (and (:file v) (:line v))
@@ -295,7 +295,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (defn make-ns-page [ns master-toc external-docs]
   (create-page (ns-html-file ns)
-               (str (:short-name ns) " API reference (" (params :project-name) ")")
+               (str (:short-name ns) " API reference (" (params :name) ")")
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
@@ -343,7 +343,7 @@ vars in ns-info that begin with that letter"
 
 ;; TODO: skip entries for letters with no members
 (deffragment make-index-content *index-html-file* [vars-by-letter]
-  [:span.project-name-span] (content (params :project-name))
+  [:span.project-name-span] (content (params :name))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -353,7 +353,7 @@ vars in ns-info that begin with that letter"
 
 (defn make-index-html [ns-info master-toc]
   (create-page *index-html-file*
-               (str (params :project-name) " - Index")
+               (str (params :name) " - Index")
                nil
                master-toc
                nil
@@ -376,7 +376,7 @@ vars in ns-info that begin with that letter"
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
     :wiki-url (str (params :web-home) (ns-html-file ns))
-    :source-url (web-src-file (.getPath (file (params :src-root) (ns-file ns))))))
+    :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))))))
 
 (defn var-index-info [v ns]
   (assoc (select-keys v [:name :doc :author :arglists])
@@ -398,7 +398,7 @@ vars in ns-info that begin with that letter"
   [ns-info]
   (when (params :build-json-index)
     (with-out-writer (BufferedWriter.
-                      (FileWriter. (file (params :output-directory) *index-json-file*)))
+                      (FileWriter. (file (params :output-path) *index-json-file*)))
                      (print-json (structured-index ns-info)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

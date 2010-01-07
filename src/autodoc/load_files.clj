@@ -50,4 +50,4 @@
   (load-files
    (map #(.getPath %)
         (find-clojure-sources-in-dir
-         (file (params :src-dir) (params :src-root))))))
+         (file (params :root) (params :source-path))))))

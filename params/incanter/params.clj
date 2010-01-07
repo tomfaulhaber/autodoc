@@ -1,19 +1,19 @@
 (import (java.io File))
 
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/incanter"))
-      src-dir (str file-prefix "/src/")]
-  {:project-name "Incanter",
+      root (str file-prefix "/src/")]
+  {:name "Incanter",
    :file-prefix file-prefix,
-   :src-dir src-dir,
-   :src-root "modules",
+   :root root,
+   :source-path "modules",
    :web-src-dir "http://github.com/liebke/incanter/blob/",
 
    :web-home "http://tomfaulhaber.github.com/incanter/",
-   :output-directory (str file-prefix "/autodoc/"),
+   :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
-   :clojure-contrib-classes (str src-dir "build"),
+   :clojure-contrib-classes (str root "build"),
 
-   :ext-dir (str src-dir "lib"),
+   :ext-dir (str root "lib"),
 
    :namespaces-to-document ["incanter"],
    :trim-prefix "incanter.",

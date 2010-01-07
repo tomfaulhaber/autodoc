@@ -1,20 +1,20 @@
 (import (java.io File))
 
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/clojure"))
-      src-dir (str file-prefix "/src/")]
+      root (str file-prefix "/src/")]
  {
-  :project-name "Clojure",
+  :name "Clojure",
   :file-prefix file-prefix,
-  :src-dir src-dir,
-  :src-root "src/clj",
+  :root root,
+  :source-path "src/clj",
   :web-src-dir "http://github.com/richhickey/clojure/blob/",
 
   :web-home "http://richhickey.github.com/clojure-contrib/",
-  :output-directory (str file-prefix "/autodoc/"),
+  :output-path (str file-prefix "/autodoc/"),
   :external-doc-tmpdir "/tmp/autodoc/doc",
-  :jar-file (str src-dir "clojure-slim.jar"),
+  :jar-file (str root "clojure-slim.jar"),
 
-  :built-clojure-jar (str src-dir "/clojure-slim.jar"),
+  :built-clojure-jar (str root "/clojure-slim.jar"),
 
   :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" 
                             "clojure.set" "clojure.stacktrace" "clojure.template"

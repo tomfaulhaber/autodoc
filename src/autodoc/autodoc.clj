@@ -11,7 +11,7 @@
    [autodoc.copy-statics :only (copy-statics)])
   (:gen-class))
 
-(defn make-doc-dir [] (make-parents (file (params :output-directory) "foo")))
+(defn make-doc-dir [] (make-parents (file (params :output-path) "foo")))
 
 (defn build-html 
   "Build the documentation (default command)"
@@ -43,13 +43,26 @@
 (defn directory-name []
   (.replaceFirst (.getParent (.getAbsoluteFile (file "."))) ".*/" ""))
 
+;;; Leiningen likes to make the source path include the absolute path to this directory
+;;; for whatever reason, so we clean it up on the way in.
+(defn clean-params [params]
+  (update-in params [:source-path]
+             #(if (.startsWith % (params :root)) 
+                (.substring % (inc (count (params :root))))
+                %)))
+
 (defn autodoc
   ([myparams] (autodoc myparams nil))
   ([myparams cmd & cmd-args]
-     (merge-params myparams)
+     (prlabel autodoc myparams)
+     (merge-params (clean-params myparams))
      (if (nil? (params :namespaces-to-document))
        (merge-params {:namespaces-to-document
-                      (map name (find-namespaces-in-dir (file (params :src-dir) (params :src-root))))}))
+                      (map
+                       name
+                       (find-namespaces-in-dir
+                        (file (params :root)
+                              (params :source-path))))}))
      (if-let [cmd-sym ((set commands) (symbol (or cmd 'build-html)))]
        (apply (sym-to-var cmd-sym) cmd-args)
        (do
@@ -63,4 +76,4 @@
                             (println (.getMessage e))
                             (prn)
                             (help)))]
-    (apply autodoc (merge {:project-name (directory-name)} params) args)))
+    (apply autodoc (merge {:name (directory-name)} params) args)))

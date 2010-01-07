@@ -1,19 +1,18 @@
 (import (java.io File))
 
 (let [file-prefix (.getAbsolutePath (File. "../autodoc-work-area/clojure-contrib"))
-      src-dir (str file-prefix "/src/")]
-  {:project-name "clojure-contrib",
+      root (str file-prefix "/src/")]
+  {:name "clojure-contrib",
    :file-prefix file-prefix,
-   :src-dir src-dir,
-   :src-root "src",
+   :root root,
    :web-src-dir "http://github.com/richhickey/clojure-contrib/blob/",
 
    :web-home "http://richhickey.github.com/clojure-contrib/",
-   :output-directory (str file-prefix "/autodoc/"),
+   :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
 
-   :clojure-contrib-jar (str src-dir "clojure-contrib-slim.jar"),
-   :clojure-contrib-classes (str src-dir "classes/"),
+   :clojure-contrib-jar (str root "clojure-contrib-slim.jar"),
+   :clojure-contrib-classes (str root "classes/"),
 
    :namespaces-to-document ["clojure.contrib"],
    :trim-prefix "clojure.contrib.",

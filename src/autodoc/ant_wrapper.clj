@@ -6,8 +6,8 @@
 
 (def param-map
      {'work-root-dir :file-prefix,
-      'src-dir :src-dir,
-      'output-dir :output-directory,
+      'src-dir :root,
+      'output-dir :output-path,
       'built-clojure-jar :built-clojure-jar
       'clojure-contrib-jar :clojure-contrib-jar,
       'clojure-contrib-classes :clojure-contrib-classes,
@@ -28,7 +28,7 @@
       (.setUserProperty "ant.file" (.getAbsolutePath build-file))
       (.setUserProperty "param-dir" param-dir)
       (.setUserProperty "force" (if force "true" "false"))
-      (.setUserProperty "src-files" (str (params :src-dir) (params :src-root)))
+      (.setUserProperty "src-files" (str (params :root) (params :source-path)))
       (.init)
       (.addReference "ant.projectHelper" helper))
     (doseq [item param-map] 

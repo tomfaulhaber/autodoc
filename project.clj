@@ -6,5 +6,8 @@
                  [org.clojure/clojure-contrib "1.1.0-master-SNAPSHOT"]
                  [enlive "1.0.0-SNAPSHOT"]
                  [ant/ant "1.6.2"]
+                 [swank-clojure "1.1.0"] ; testing
+                 [org.apache.maven/maven-ant-tasks "2.0.10"] ; testing
                  [ant/ant-launcher "1.6.2"]]
-    :dev-dependencies [[leiningen/lein-swank "1.0.0-SNAPSHOT"]])
+  :dev-dependencies [[leiningen/lein-swank "1.0.0-SNAPSHOT"]
+                     [lein-clojars "0.5.0-SNAPSHOT"]])
