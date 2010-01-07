@@ -44,6 +44,12 @@ Running Autodoc
 
 ### Getting Autodoc ###
 
+Unless you are using Autodoc from leiningen, you will need to get a
+copy of the standalone jar. Download the latest version from 
+[github](http://github.com/tomfaulhaber/autodoc/downloads).
+
+If you're using leiningen, the autodoc code will be pulled
+automatically from its home on clojars.org.
 
 ### From the command line ###
 
