@@ -3,12 +3,12 @@ from Clojure source code. It can be run
 as a standalone application or from a build system such as ant or leiningen.
 
 Complete documentation is available at
-(http://tomfaulhaber.github.com/autodoc)[http://tomfaulhaber.github.com/autodoc].
+[http://tomfaulhaber.github.com/autodoc](http://tomfaulhaber.github.com/autodoc).
 
 Autodoc is used to generate the documentation for
-(Clojure)[http://richhickey.github.com/clojure] itself, 
-(Clojure-contrib)[http://richhickey.github.com/clojure-contrib], 
-and (Incanter)[http://leibke.github.com/incanter].  
+[Clojure](http://richhickey.github.com/clojure) itself, 
+[Clojure-contrib](http://richhickey.github.com/clojure-contrib), 
+and [Incanter](http://leibke.github.com/incanter).
 
 I run it on Ubuntu. I expect it would work fine on any Unix, but probably would have 
 some glitches on Windows.
