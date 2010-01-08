@@ -8,7 +8,7 @@ Complete documentation is available at
 Autodoc is used to generate the documentation for
 [Clojure](http://richhickey.github.com/clojure) itself, 
 [Clojure-contrib](http://richhickey.github.com/clojure-contrib), 
-and [Incanter](http://leibke.github.com/incanter).
+and [Incanter](http://liebke.github.com/incanter).
 
 I run it on Ubuntu. I expect it would work fine on any Unix, but probably would have 
 some glitches on Windows.
