@@ -78,6 +78,20 @@ options like `--<parameter-name>=<value>` or `--<parameter-name>
 ### Autodoc parameters ###
 
 <table>
+<thead>
+<tr>
+<td>
+Parameter
+</td>
+<td>
+Descriptiion
+</td>
+<td>
+Default Value
+</td>
+</tr>
+</thead>
+
 <tr>
 <td>
 name 
