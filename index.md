@@ -56,7 +56,197 @@ automatically from its home on clojars.org.
 
 ### From the command line ###
 
+The simplest way to use autodoc is to launch it from the command line
+in the root directory of your project:
+
+    java -jar autodoc-<version>.jar 
+
+This will scan the source in the `src/` directory and produce an
+HTML tree in `autodoc/` directory.
+
+To modify the behavior of autodoc, use parameters. For example:
+
+    java -jar autodoc-<version>.jar --source-directory=master
+
+will use the sub-directory `master/` as the location of the source
+files.
+
+As shown above, to set parameters from the command line, simply use
+options like `--<parameter-name>=<value>` or `--<parameter-name>
+<value>`. The full list of available parameters is below.
+
 ### Autodoc parameters ###
+
+<table>
+<tr>
+<td>
+name 
+</td>
+<td>
+The name of this project
+</td>
+<td>
+nil 
+</td>
+</tr>
+
+<tr>
+<td>
+param-dir 
+</td>
+<td>
+A directory from which to load custom project data
+</td>
+<td>
+autodoc-params 
+</td>
+</tr>
+
+<tr>
+<td>
+root 
+</td>
+<td>
+The directory in which to find the project
+</td>
+<td>
+. 
+</td>
+</tr>
+
+<tr>
+<td>
+source-path 
+</td>
+<td>
+The relative path within the project directory where we find the source
+</td>
+<td>
+src 
+</td>
+</tr>
+
+<tr>
+<td>
+web-src-dir 
+</td>
+<td>
+The web address for source files (e.g., http://github.com/richhickey/clojure/blob/)
+</td>
+<td>
+nil 
+</td>
+</tr>
+
+<tr>
+<td>
+web-home 
+</td>
+<td>
+Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<proj
+ect>/)
+</td>
+<td>
+nil
+</td>
+</tr>
+
+<tr>
+<td>
+output-path 
+</td>
+<td>
+Where to create the output html tree.
+</td>
+<td>
+autodoc 
+</td>
+</tr>
+
+<tr>
+<td>
+external-doc-tmpdir 
+</td>
+<td>
+The place to store temporary doc files during conversion (i.e., when converting markdown).
+</td>
+<td>
+/tmp/autodoc/doc 
+</td>
+</tr>
+
+<tr>
+<td>
+namespaces-to-document 
+</td>
+<td>
+The list of namespaces to include in the documentation, separated by commas
+</td>
+<td>
+nil 
+</td>
+</tr>
+
+<tr>
+<td>
+trim-prefix 
+</td>
+<td>
+The prefix to trim off namespaces in page names and references (e.g. "clojure.contrib")
+</td>
+<td>
+nil 
+</td>
+</tr>
+
+<tr>
+<td>
+load-except-list 
+</td>
+<td>
+A list of regexps that describe files that shouldn't be loaded
+</td>
+<td>
+[]
+</td>
+</tr>
+
+<tr>
+<td>
+build-json-index 
+</td>
+<td>
+Set to true if you want to create an index file in JSON (currently slow)
+</td>
+<td>
+false 
+</td>
+</tr>
+
+<tr>
+<td>
+page-title 
+</td>
+<td>
+A title to put on each page
+</td>
+<td>
+nil 
+</td>
+</tr>
+
+<tr>
+<td>
+copyright 
+</td>
+<td>
+Copyright (or other page footer data) to put at the bottom of each page
+</td>
+<td>
+No copyright info 
+</td>
+</tr>
+</table>
 
 Integrating Autodoc with your build
 -----------------------------------
