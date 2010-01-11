@@ -143,8 +143,7 @@ nil
 web-home 
 </td>
 <td>
-Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<proj
-ect>/)
+Where these autodoc pages will be stored on the web (for gh-pages, http://&lt;user&gt;.github.com/&lt;project&gt;/)
 </td>
 <td>
 nil
