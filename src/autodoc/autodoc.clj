@@ -29,7 +29,6 @@
 (defn help
   "Print this help message"
   [& _]
-  (prlabel help *out*)
   (cl-format true 
              "Usage: autodoc [params] cmd args~%~%") 
   ;; TODO: We should have a fixed width tab (~20t) between the terms below, but something's funky
@@ -46,10 +45,11 @@
 ;;; Leiningen likes to make the source path include the absolute path to this directory
 ;;; for whatever reason, so we clean it up on the way in.
 (defn clean-params [params]
-  (update-in params [:source-path]
-             #(if (.startsWith % (params :root)) 
-                (.substring % (inc (count (params :root))))
-                %)))
+  (when (and (params :root) (params :source-path))
+    (update-in params [:source-path]
+               #(if (.startsWith % (params :root)) 
+                  (.substring % (inc (count (params :root))))
+                  %))))
 
 (defn autodoc
   ([myparams] (autodoc myparams nil))
