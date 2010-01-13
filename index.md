@@ -28,18 +28,18 @@ project, and an overview of each namespace (from the namespace's
 metadata) with a list of documented, public variables and functions in
 that namespace. 
 
-(put an image)
+    ![(A sample of the overview page)](static/sample-overview.png)
 
 2. A page for each namespace in the project which has the detailed
 documentation for each variable, function and macro. This includes
 name, type, usage and documentation. 
 
-![(A sample of the namespace page)](static/sample-namespace.png)
+    ![(A sample of the namespace page)](static/sample-namespace.png)
 
 3. A global index of all the documented variables, their namespace,
 and a snippet of their documentation. 
 
-(add a snippet)
+    ![(A sample of the index page)](static/sample-index.png)
 
 By default, Autodoc produces documentation that looks a lot like
 Clojure's own API documentation. However, it is possible to customize
