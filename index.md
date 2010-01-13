@@ -305,6 +305,31 @@ map attached to the `:autodoc` key:
  
 ### Building with Ant ### 
 
+Building with ant is straightforward. Just add an autodoc target to
+your `build.xml` file that looks like this:
+
+{% highlight XML %}
+    <!-- Adjust the pathname of the jar to wherever you've stored it and set the version appropriately -->
+    <property name="autodoc-standalone-jar" location="${user.home}/.clojure/autodoc-standalone.jar"/>
+  
+    <!-- Adjust the depends as appropriate -->
+    <target name="autodoc" depends="build"
+            description="Build the HTML documentation">
+  		<java classname="autodoc.autodoc" fork="true" failonerror="true">
+        <classpath>
+          <pathelement location="${autodoc-standalone-jar}"/>
+          <!-- other pathelements as required by the project -->
+        </classpath>
+        <arg value="--name=Bugs"/>
+        <arg value="--description=Statistical routines for thinking about a bugzilla DB"/>
+        <arg value="--page-title=Bugs API Documentation"/>
+  		</java>
+    </target>
+{% endhighlight %}
+
+The comments refer to the parts that will have to change depending on
+the configuration of your build system.
+
 ### Maven ###
 
 Autodoc currently does not support Maven. It is planned, though. Patches welcome.
