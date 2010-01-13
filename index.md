@@ -308,7 +308,6 @@ map attached to the `:autodoc` key:
 Building with ant is straightforward. Just add an autodoc target to
 your `build.xml` file that looks like this:
 
-{% highlight XML %}
     <!-- Adjust the pathname of the jar to wherever you've stored it and set the version appropriately -->
     <property name="autodoc-standalone-jar" location="${user.home}/.clojure/autodoc-standalone.jar"/>
   
@@ -323,9 +322,8 @@ your `build.xml` file that looks like this:
         <arg value="--name=Bugs"/>
         <arg value="--description=Statistical routines for thinking about a bugzilla DB"/>
         <arg value="--page-title=Bugs API Documentation"/>
-  		</java>
+      </java>
     </target>
-{% endhighlight %}
 
 The comments refer to the parts that will have to change depending on
 the configuration of your build system.
