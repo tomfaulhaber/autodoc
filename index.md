@@ -26,12 +26,20 @@ When run over a project, Autodoc will generate:
 1. An overview page (called index.html) with a description of the
 project, and an overview of each namespace (from the namespace's
 metadata) with a list of documented, public variables and functions in
-that namespace. <put an image>
+that namespace. 
+
+<put an image>
+
 2. A page for each namespace in the project which has the detailed
 documentation for each variable, function and macro. This includes
-name, type, usage and documentation. <add a snippet>
+name, type, usage and documentation. 
+
+![(A sample of the namespace page)](static/sample-namespace.png)
+
 3. A global index of all the documented variables, their namespace,
-and a snippet of their documentation. <add a snippet>
+and a snippet of their documentation. 
+
+<add a snippet>
 
 By default, Autodoc produces documentation that looks a lot like
 Clojure's own API documentation. However, it is possible to customize
