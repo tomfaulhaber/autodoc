@@ -8,6 +8,7 @@
      ["clojure.css",
       "internal.css",
       "wiki.css",
+      "clojure-icon.gif"
       "space/content-background.gif",
       "space/left-nav-background.gif",
       "space/left-nav-bottom.gif",
