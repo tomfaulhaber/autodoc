@@ -1,4 +1,4 @@
-(defproject autodoc "0.7.0-SNAPSHOT"
+(defproject autodoc "0.7.0"
   :description "A tool to build HTML documentation from your Clojure source"
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
