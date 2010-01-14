@@ -12,7 +12,7 @@
                               ~(merge (select-keys project
                                                    [:name :description :source-path :root])
                                        (:autodoc project))
-                              ~args)
+                              '~args)
                              (catch Exception e#
                                (println e#)
                                (println "Make sure autodoc is added as"
