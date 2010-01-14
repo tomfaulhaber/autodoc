@@ -45,16 +45,16 @@
 ;;; Leiningen likes to make the source path include the absolute path to this directory
 ;;; for whatever reason, so we clean it up on the way in.
 (defn clean-params [params]
-  (when (and (params :root) (params :source-path))
+  (if (and (params :root) (params :source-path))
     (update-in params [:source-path]
                #(if (.startsWith % (params :root)) 
                   (.substring % (inc (count (params :root))))
-                  %))))
+                  %))
+    params))
 
 (defn autodoc
   ([myparams] (autodoc myparams nil))
   ([myparams cmd & cmd-args]
-     (prlabel autodoc myparams)
      (merge-params (clean-params myparams))
      (if (nil? (params :namespaces-to-document))
        (merge-params {:namespaces-to-document

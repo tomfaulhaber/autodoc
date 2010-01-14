@@ -10,6 +10,7 @@
 (def available-params
      ;; name, default val, description (for help)
      [[:name nil "The name of this project"],
+      [:description nil "A description of this project"],
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
       
       [:file-prefix nil nil], ;; only used with ant-wrapper

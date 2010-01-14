@@ -176,7 +176,10 @@ looks in the base template directory."
 
 (deffragment make-overview-content *overview-file* [ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
-  [:div#project-description] (content (make-project-description))
+  [:div#project-description] (content (or 
+                                       (make-project-description)
+                                       (params :description)))
+
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (deffragment make-master-toc *master-toc-file* [ns-info]
