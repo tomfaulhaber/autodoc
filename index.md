@@ -370,7 +370,7 @@ Other SCMs support similar mechanisms.
 When the project is using GitHub for sharing source, GitHub pages
 provide a great way to share documentation. This is how the Clojure
 core API documentation is hosted at
-http://richhickey.github.com/clojure, for instance.
+<http://richhickey.github.com/clojure>, for instance.
 
 See <http://pages.github.com/> for a complete description of GitHub
 pages and how they work.
