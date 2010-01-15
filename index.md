@@ -387,8 +387,7 @@ private github repository into the autodoc directory:
 
         git clone git@github.com:<user name>/<project name>.git autodoc
 
-4. Create a new root branch in autodoc with the name `gh-pages` (see
-http://pages.github.com/ for more information on github pages):
+4. Create a new root branch in autodoc with the name `gh-pages`:
 
         $ cd autodoc
         $ git symbolic-ref HEAD refs/heads/gh-pages
