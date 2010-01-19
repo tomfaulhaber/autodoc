@@ -17,9 +17,9 @@ statistics package, [Incanter](http://liebke.github.com/incanter).
 
 Autodoc leverages two aspects of Clojure in particular:
 
-* Clojure supports documentation strings on all variables (including functions
-  and macros)
 * Clojure projects are organized into namespaces.
+* Clojure supports documentation strings on all variables (including functions
+  and macros) and namespaces.
 
 When run over a project, Autodoc will generate:
 
@@ -396,7 +396,7 @@ private github repository into the autodoc directory:
         $ cd ..
 
 5. Now build the autodoc using the command line, Leiningen, ant or
-your preferred build tool.
+your preferred build tool).
 
 6. Commit the documentation to GitHub with this set of commands:
 
