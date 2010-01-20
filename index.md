@@ -552,7 +552,7 @@ private github repository into the autodoc directory:
         $ cd ..
 
 5. Now build the autodoc using the command line, Leiningen, ant or
-your preferred build tool).
+your preferred build tool.
 
 6. Commit the documentation to GitHub with this set of commands:
 
