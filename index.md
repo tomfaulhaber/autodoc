@@ -50,6 +50,153 @@ Autodoc can be run directly from the command line or can be used from
 build tools like ant or
 [leiningen](http://github.com/technomancy/leiningen).
 
+Adding Documentation to your Project
+------------------------------------
+
+Autodoc uses Clojure's metadata mechanism to find documentation that
+you've built into your Clojure programs. Autodoc uses the same doc
+strings that the regular Clojure documentation system uses and adds
+some extra functionality as well.
+
+Autodoc reads metadata attached to namespaces and vars. Since defined
+functions are a type of var, their doc strings and other metadata are
+included automatically.
+
+Every Clojure namespace and var has a Clojure map for it's
+metadata. Metadata is generally added when you use the `ns` macro or
+the `def` macro (or one of its relatives such as `defn`).
+
+Autodoc uses the following keys in these maps:
+
+<table>
+<thead>
+<tr>
+<td>
+Metadata key
+</td>
+<td>
+Use
+</td>
+<td>
+Namespace or Def
+</td>
+</tr>
+</thead>
+
+<tr>
+<td>
+:arglists
+</td>
+<td>
+A list of the allowed argument lists for a function. The `defn` and
+`defmacro` macros will add this automatically. You may want to add
+this manually to `defmulti` to get the same effect.
+</td>
+<td>
+Def
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:author
+</td>
+<td>
+A string with the author of this namespace. Used to attribute the
+namespace when muliple authors have worked on a project.
+</td>
+<td>
+Namespace
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:file
+</td>
+<td>
+Used to create the source link when autodoc has a defined source
+repository to link to. This key is generated automatically by `def` and
+its related macros.
+</td>
+<td>
+Def
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:line
+</td>
+<td>
+Used to create the source link. See `:file`.
+</td>
+<td>
+Def
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:macro 
+</td>
+<td>
+Used to determine the type of the symbol. If the var has a `:macro`
+key, it is assumed to be a macro. This key is added automatically by `defmacro`. 
+</td>
+<td>
+Def
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:see-also
+</td>
+<td>
+A list of titles and URLs for related documents. These can either be
+documents built as part of the Autodoc process or links to external
+references on the web.
+</td>
+<td>
+Namespace
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:skip-wiki
+</td>
+<td>
+If non-nil, skip this namespace or var.
+</td>
+<td>
+Both
+</td>
+</tr>
+<tr>
+
+<tr>
+<td>
+:tag
+</td>
+<td>
+Determines whether the var is a multimethod. `defmulti` sets this
+automatically (though there are plans to change this to a different key).
+</td>
+<td>
+Def
+</td>
+</tr>
+<tr>
+
+
 Running Autodoc
 ---------------
 
@@ -99,7 +246,7 @@ and the class `autodoc.autodoc` as follows:
 Parameter
 </td>
 <td>
-Descriptiion
+Description
 </td>
 <td>
 Default Value
