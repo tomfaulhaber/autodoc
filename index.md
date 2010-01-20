@@ -96,7 +96,6 @@ this manually to `defmulti` to get the same effect.
 Def
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -110,7 +109,6 @@ namespace when muliple authors have worked on a project.
 Namespace
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -125,7 +123,6 @@ its related macros.
 Def
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -138,7 +135,6 @@ Used to create the source link. See `:file`.
 Def
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -152,7 +148,6 @@ key, it is assumed to be a macro. This key is added automatically by `defmacro`.
 Def
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -167,7 +162,6 @@ references on the web.
 Namespace
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -180,7 +174,6 @@ If non-nil, skip this namespace or var.
 Both
 </td>
 </tr>
-<tr>
 
 <tr>
 <td>
@@ -194,7 +187,7 @@ automatically (though there are plans to change this to a different key).
 Def
 </td>
 </tr>
-<tr>
+</table>
 
 
 Running Autodoc
