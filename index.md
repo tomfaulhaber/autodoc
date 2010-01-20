@@ -15,6 +15,8 @@ the [Clojure-contrib
 library](http://richhickey.github.com/clojure-contrib), and the
 statistics package, [Incanter](http://liebke.github.com/incanter).
 
+Autodoc has been created by Tom Faulhaber.
+
 Autodoc leverages two aspects of Clojure in particular:
 
 * Clojure projects are organized into namespaces.
@@ -49,6 +51,20 @@ tastes.
 Autodoc can be run directly from the command line or can be used from
 build tools like ant or
 [leiningen](http://github.com/technomancy/leiningen).
+
+### Things not yet implemented ###
+
+Most of the features of the Autodoc service have been implemented in
+the Autodoc command. A couple of features are not set up yet, however:
+
+* Building and linking supporting documentation from Markdown source. 
+* Automatically updating a GitHub pages repository as part of the
+* build. (See below for a more manual solution to this, however.)
+
+Stay tuned. These features are coming.
+
+Autodoc continues to evolve. If there are features you'd like to see,
+let me know.
 
 Adding Documentation to your Project
 ------------------------------------
@@ -88,9 +104,9 @@ Namespace or Def
 :arglists
 </td>
 <td>
-A list of the allowed argument lists for a function. The `defn` and
-`defmacro` macros will add this automatically. You may want to add
-this manually to `defmulti` to get the same effect.
+A list of the allowed argument lists for a function. The <code>defn</code> and
+<code>defmacro</code> macros will add this automatically. You may want to add
+this manually to <code>defmulti</code> to get the same effect.
 </td>
 <td>
 Def
@@ -116,7 +132,7 @@ Namespace
 </td>
 <td>
 Used to create the source link when autodoc has a defined source
-repository to link to. This key is generated automatically by `def` and
+repository to link to. This key is generated automatically by <code>def</code> and
 its related macros.
 </td>
 <td>
@@ -129,7 +145,7 @@ Def
 :line
 </td>
 <td>
-Used to create the source link. See `:file`.
+Used to create the source link. See <code>:file</code>.
 </td>
 <td>
 Def
@@ -141,8 +157,8 @@ Def
 :macro 
 </td>
 <td>
-Used to determine the type of the symbol. If the var has a `:macro`
-key, it is assumed to be a macro. This key is added automatically by `defmacro`. 
+Used to determine the type of the symbol. If the var has a <code>:macro</code>
+key, it is assumed to be a macro. This key is added automatically by <code>defmacro</code>. 
 </td>
 <td>
 Def
@@ -180,7 +196,7 @@ Both
 :tag
 </td>
 <td>
-Determines whether the var is a multimethod. `defmulti` sets this
+Determines whether the var is a multimethod. <code>defmulti</code> sets this
 automatically (though there are plans to change this to a different key).
 </td>
 <td>
@@ -207,14 +223,14 @@ automatically from its home on clojars.org.
 The simplest way to use autodoc is to launch it from the command line
 in the root directory of your project:
 
-    java -jar autodoc-<version>.jar 
+    java -jar autodoc-<version>-standalone.jar 
 
 This will scan the source in the `src/` directory and produce an
 HTML tree in `autodoc/` directory.
 
 To modify the behavior of autodoc, use parameters. For example:
 
-    java -jar autodoc-<version>.jar --source-directory=master
+    java -jar autodoc-<version>-standalone.jar --source-directory=master
 
 will use the sub-directory `master/` as the location of the source
 files.
@@ -438,7 +454,7 @@ to integrate Autodoc into a build process.
 
 Simply add a dev-dependency to your project.clj file:
 
-    :dev-dependencies [[autodoc "0.3.0-SNAPSHOT"]]
+    :dev-dependencies [[autodoc "0.7.0-SNAPSHOT"]]
 
 Leiningen will automatically pull the code for the autodoc plug-in
 from Clojars, so you don't need to worry about installing or anything.
@@ -457,7 +473,7 @@ map attached to the `:autodoc` key:
       :dependencies [[incanter "1.0-master-SNAPSHOT"]
                      [org.clojure/clojure "1.1.0-alpha-SNAPSHOT"]
                      [org.clojure/clojure-contrib "1.0-SNAPSHOT"]]
-      :dev-dependencies [[autodoc "0.3.0-SNAPSHOT"]]
+      :dev-dependencies [[autodoc "0.7.0-SNAPSHOT"]]
       :autodoc { :name "Bugs", :page-title "Bugs API Documentation"})
 {% endhighlight %}
 
@@ -468,7 +484,7 @@ Building with ant is straightforward. Just add an autodoc target to
 your `build.xml` file that looks like this:
 
     <!-- Adjust the pathname of the jar to wherever you've stored it and set the version appropriately -->
-    <property name="autodoc-standalone-jar" location="${user.home}/.clojure/autodoc-standalone.jar"/>
+    <property name="autodoc-standalone-jar" location="${user.home}/.clojure/autodoc-<version>-standalone.jar"/>
   
     <!-- Adjust the depends as appropriate -->
     <target name="autodoc" depends="build"
@@ -564,4 +580,10 @@ straightforward:
 Customizing Autodoc
 -------------------
 
+Autodoc supports customization of page layout, styles and graphical
+elements.
 
+You can add customized layout templates and styles in the
+`autodoc-params` directory of your project.
+
+More documentation about customizing will be coming soon.
