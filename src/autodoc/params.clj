@@ -1,6 +1,4 @@
-(ns autodoc.params
-  (:use [clojure.contrib.pprint :only (cl-format)]
-        [clojure.contrib.pprint.utilities :only (consume)]))
+(ns autodoc.params)
 
 ;;; 
 ;;; Description and default values for settable parameters. These are overridden in the
@@ -30,6 +28,7 @@
       [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
       [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
       
+      [:branches [[nil {}]] nil] ;; only used with ant-wrapper
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
       [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
       
@@ -43,8 +42,10 @@
 
 (defn params-help 
   ([writer]
-     (cl-format writer "Parameters:~%~:{   --~a: ~a~%~}"
-                (for [[kw _ desc] available-params :when desc] [(name kw) desc]))))
+     (binding [*out* writer]
+       (println "Parameters:")
+       (doseq [[kw _ desc] available-params :when desc]
+         (println (str "   --" (name kw) ": " desc))))))
 
 (defn merge-params 
   "Merge the param map supplied into the params defined in the params var"
@@ -69,6 +70,14 @@
           [[param val] remainder]
           (throw (RuntimeException. (str "No such parameter --" (name param))))))
       [nil arglist])))
+
+(defn consume [func initial-context]
+  (loop [context initial-context
+         acc []]
+    (let [[result new-context] (apply func [context])]
+      (if (not result)
+        [acc new-context]
+      (recur new-context (conj acc result))))))
 
 (defn process-command-line 
   "Process the command line arguments returning [ map-of-params [ remaining-args ]]"

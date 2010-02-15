@@ -1,6 +1,5 @@
 (ns autodoc.collect-info
-  (:use [clojure.contrib.pprint.utilities :only [prlabel]]
-        [autodoc.load-files :only (load-namespaces)]
+  (:use [autodoc.load-files :only (load-namespaces)]
         [autodoc.params :only (params params-from-dir)]))
 
 ;; Build a single structure representing all the info we care about concerning
@@ -109,12 +108,21 @@ have the same prefix followed by a . and then more components"
 
 (defn add-base-ns-info [ns]
   (assoc ns
-    :base-ns ns
-    :subspaces (map #(assoc % :base-ns ns) (:subspaces ns))))
+    :base-ns (:short-name ns)
+    :subspaces (map #(assoc % :base-ns (:short-name ns)) (:subspaces ns))))
+
+(defn clean-ns-info 
+  "Remove the back pointers to the namespace from the ns-info"
+  [ns-info]
+  (map (fn [ns] (assoc (dissoc ns :ns)
+                  :subspaces (map #(dissoc % :ns) (:subspaces ns))))
+       ns-info))
 
 (defn contrib-info []
-  (map add-base-ns-info (map add-subspaces
-                             (build-ns-list (base-relevant-namespaces)))))
+  (clean-ns-info
+   (map add-base-ns-info
+        (map add-subspaces
+             (build-ns-list (base-relevant-namespaces))))))
 
 (defn writer 
   "A version of duck-streams/writer that only handles file strings. Moved here for 
@@ -126,6 +134,7 @@ versioning reasons"
      (java.io.FileOutputStream. (java.io.File. s) false)
      "UTF-8"))))
 
+
 (defn collect-info-to-file
   "build the file out-file with all the namespace info for the project described in param-dir"
   [param-dir out-file]
@@ -133,4 +142,5 @@ versioning reasons"
   (load-namespaces)
   (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                 ; here so we don't have clojure version issues
-    (.print w (contrib-info))))
+    (binding [*out* w]
+      (pr (contrib-info)))))

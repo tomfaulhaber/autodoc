@@ -21,6 +21,8 @@
                             "clojure.test" "clojure.walk" "clojure.xml"
                             "clojure.zip"],
 
+  :branches [["master" {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure.jar"}],
+             ["1.1.x" {}]]
   :load-except-list 
   [ 
    #"clojure/core.clj"

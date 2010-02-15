@@ -1,10 +1,19 @@
 (ns autodoc.gen-docs
-  (:use [autodoc.load-files :only (load-namespaces)]
+  (:use [clojure.contrib.pprint :only (pprint)]
+        [autodoc.load-files :only (load-namespaces)]
         [autodoc.build-html :only (make-all-pages)]
-        [autodoc.params :only (params params-from-dir)]))
+        [autodoc.params :only (params params-from-dir)]
+        [autodoc.branches :only (load-branch-data)]))
+
+;; Old
+;; (defn gen-docs 
+;;   ([param-dir]
+;;      (params-from-dir param-dir)
+;;      (load-namespaces)
+;;      (make-all-pages)))
 
 (defn gen-docs 
   ([param-dir]
      (params-from-dir param-dir)
-     (load-namespaces)
-     (make-all-pages)))
+     (let [branch-spec (params :branches)]
+       (pprint (load-branch-data branch-spec)))))
