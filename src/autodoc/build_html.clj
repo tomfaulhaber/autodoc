@@ -182,8 +182,9 @@ looks in the base template directory."
 
 (deffragment make-project-description *description-file* [])
 
-(deffragment make-overview-content *overview-file* [ns-info]
+(deffragment make-overview-content *overview-file* [branch ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
+  [:#branch-name] (when branch (content (str "(" branch " branch)")))
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
@@ -229,7 +230,7 @@ looks in the base template directory."
                nil
                master-toc
                (make-local-toc (overview-toc-data ns-info))
-               (make-overview-content ns-info)))
+               (make-overview-content branch ns-info)))
 
 ;;; TODO: redo this so the usage parts can be styled
 (defn var-usage [v]
@@ -295,19 +296,20 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
  [ns external-docs]
-  (common-namespace-api ns external-docs))
+  (common-namespace-api ns nil external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
- [ns external-docs]
-  (common-namespace-api ns external-docs))
+ [ns branch external-docs]
+  (common-namespace-api ns branch external-docs))
 
-(defn make-ns-content [ns external-docs]
-  (render-namespace-api ns external-docs))
+(defn make-ns-content [ns branch external-docs]
+  (render-namespace-api ns branch external-docs))
 
-(defn common-namespace-api [ns external-docs]
+(defn common-namespace-api [ns branch external-docs]
   (fn [node]
     (at node
       [:#namespace-name] (content (:short-name ns))
+      [:#branch-name] (when branch (content (str "(" branch " branch)")))
       [:span#author] (content (or (:author ns) "Unknown"))
       [:span#long-name] (content (:full-name ns))
       [:pre#namespace-docstr] (content (expand-links (:doc ns)))
@@ -324,7 +326,7 @@ actually changed). This reduces the amount of random doc file changes that happe
                nil
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns external-docs)))
+               (make-ns-content ns branch external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -367,8 +369,9 @@ vars in ns-info that begin with that letter"
                                       (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
-(deffragment make-index-content *index-html-file* [vars-by-letter]
+(deffragment make-index-content *index-html-file* [branch vars-by-letter]
   [:span.project-name-span] (content (params :name))
+  [:#branch-name] (when branch (content (str "(" branch " branch)")))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -383,7 +386,7 @@ vars in ns-info that begin with that letter"
                nil
                master-toc
                nil
-               (make-index-content (vars-by-letter ns-info))))
+               (make-index-content branch (vars-by-letter ns-info))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
