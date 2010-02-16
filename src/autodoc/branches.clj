@@ -63,13 +63,18 @@
     (with-sh-dir dir
       (system "ant" (str "-Dsrc-dir=" (params :root))))))
 
+(defn with-first [s]
+  (map #(vector %1 %2) s (conj (repeat false) true)))
+
 (defn load-branch-data 
-  "Loads the data from all the branches specified in the params. Takes a spec of 
- [[branch-name parameter-overides] ... ] and returns the same spec with the ns-info 
-tacked on at the end of each branch vector"
-  [branch-spec]
-  (for [[branch-name param-overrides] branch-spec]
+  "Collects the doc data from all the branches specified in the params and
+ executes the function f for each branch with the collected data. When f is executed, 
+ the correct branch will be checked out and any branch-specific parameters 
+ will be bound. Takes a spec of [[branch-name parameter-overides] ... ] and 
+ calls f as (f branch-name first? ns-info)."
+  [branch-spec f]
+  (doseq [[[branch-name param-overrides] first?] (with-first branch-spec)]
     (binding [params (merge params param-overrides)]
       (when branch-name (switch-branches branch-name))
       (do-build (params :param-dir))
-      [branch-name param-overrides (doall (do-collect))])))
+      (f branch-name first? (map first branch-spec) (doall (do-collect))))))

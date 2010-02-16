@@ -14,7 +14,7 @@
   :external-doc-tmpdir "/tmp/autodoc/doc",
   :jar-file (str root "clojure-slim.jar"),
 
-  :built-clojure-jar (str root "/clojure-slim.jar"),
+  :built-clojure-jar nil,
 
   :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" 
                             "clojure.set" "clojure.stacktrace" "clojure.template"

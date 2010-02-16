@@ -452,13 +452,15 @@ vars in ns-info that begin with that letter"
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn make-all-pages []
-  (let [ns-info (contrib-info)
-        master-toc (make-master-toc ns-info)
-        external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
-    (make-overview ns-info master-toc)
-    (doseq [ns ns-info]
-      (make-ns-page ns master-toc external-docs))
-    (make-index-html ns-info master-toc)
-    (make-index-json ns-info)))
+(defn make-all-pages 
+  ([] (make-all-pages [[nil true nil (contrib-info)]]))
+  ([branch-name first? all-branches ns-info]
+     (prlabel make-all-pages branch-name first? all-branches)
+     (let [master-toc (make-master-toc ns-info)
+           external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
+       (make-overview ns-info master-toc)
+       (doseq [ns ns-info]
+         (make-ns-page ns master-toc external-docs))
+       (make-index-html ns-info master-toc)
+       (make-index-json ns-info))))
 
