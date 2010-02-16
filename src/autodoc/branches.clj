@@ -77,4 +77,5 @@
     (binding [params (merge params param-overrides)]
       (when branch-name (switch-branches branch-name))
       (do-build (params :param-dir))
-      (f branch-name first? (map first branch-spec) (doall (do-collect))))))
+      (let [all-branch-names (seq (filter identity (map first branch-spec)))] 
+        (f branch-name first? all-branch-names (doall (do-collect)))))))

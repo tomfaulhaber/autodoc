@@ -66,7 +66,7 @@ looks in the base template directory."
                 (if-let [nodes# (memo-html-resource ~source)]
                   (flatmap (transformation ~@forms) nodes#))))))
 
-;;; Thanks to Chouser for this regex
+;;; Thanks to Chouser for this regex TODO: except it doesn't work!
 (defn expand-links 
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
@@ -86,10 +86,18 @@ looks in the base template directory."
   [:div#content-tag] (content page-content)
   [:div#copyright] (content (params :copyright)))
 
-(defn create-page [output-file title prefix master-toc local-toc page-content]
-  (with-out-writer (file (params :output-path) output-file) 
-    (print
-     (apply str (page title prefix master-toc local-toc page-content)))))
+(defn branch-subdir [branch-name] 
+  (when branch-name (str "branch-" branch-name)))
+
+(defn create-page [output-file branch title prefix master-toc local-toc page-content]
+  (let [dir (if branch 
+              (file (params :output-path) (branch-subdir branch))
+              (file (params :output-path)))] 
+    (when (not (.exists dir))
+      (.mkdirs dir))
+    (with-out-writer (file dir output-file) 
+      (print
+       (apply str (page title prefix master-toc local-toc page-content))))))
 
 (defn ns-html-file [ns-info]
   (str (:short-name ns-info) "-api.html"))
@@ -182,12 +190,24 @@ looks in the base template directory."
 
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
-(deffragment make-master-toc *master-toc-file* [ns-info]
+(deffragment make-master-toc *master-toc-file* [ns-info branch-names prefix]
   [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
                                 #(at %
                                    [:a] (do->
                                          (set-attr :href (ns-html-file ns))
-                                         (content (:short-name ns))))))
+                                         (content (:short-name ns)))))
+  [:div.BranchTOC] (when branch-names
+                     #(at %
+                          [:ul#left-sidebar-branch-list :li]
+                          (clone-for [branch branch-names]
+                            (let [subdir (if (= branch (first branch-names))
+                                           nil
+                                           (str (branch-subdir branch) "/"))]
+                             (fn [n] 
+                               (at n 
+                                   [:a] (do->
+                                         (set-attr :href (str prefix subdir "index.html"))
+                                         (content branch)))))))))
 
 (deffragment make-local-toc *local-toc-file* [toc-data]
   [:.toc-section] (clone-for [[text tag entries] toc-data]
@@ -202,8 +222,9 @@ looks in the base template directory."
                                                  (set-attr :href (str "#" subtag))
                                                  (content subtext))))))))
 
-(defn make-overview [ns-info master-toc]
+(defn make-overview [ns-info master-toc branch first-branch?]
   (create-page "index.html"
+               (when (not first-branch?) branch)
                (str (params :name) " - Overview")
                nil
                master-toc
@@ -296,8 +317,9 @@ actually changed). This reduces the amount of random doc file changes that happe
       [:div#sub-namespaces]
         (substitute (map #(render-sub-namespace-api % external-docs) (:subspaces ns))))))
 
-(defn make-ns-page [ns master-toc external-docs]
+(defn make-ns-page [ns master-toc external-docs branch first-branch?]
   (create-page (ns-html-file ns)
+               (when (not first-branch?) branch)
                (str (:short-name ns) " API reference (" (params :name) ")")
                nil
                master-toc
@@ -354,8 +376,9 @@ vars in ns-info that begin with that letter"
                          [:span#section-content] (clone-for [[v ns] vars]
                                                    (gen-index-line v ns)))))
 
-(defn make-index-html [ns-info master-toc]
+(defn make-index-html [ns-info master-toc branch first-branch?]
   (create-page *index-html-file*
+               (when (not first-branch?) branch)
                (str (params :name) " - Index")
                nil
                master-toc
@@ -443,7 +466,7 @@ vars in ns-info that begin with that letter"
               page-content (first (html-resource (java.io.File. source-path)))
               title (get-title page-content)
               prefix (apply str (repeat (count (.split offset "/")) "../"))]
-          (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
+          (create-page target-path nil title prefix (add-href-prefix master-toc prefix) nil page-content)
           [offset title]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -456,11 +479,11 @@ vars in ns-info that begin with that letter"
   ([] (make-all-pages [[nil true nil (contrib-info)]]))
   ([branch-name first? all-branches ns-info]
      (prlabel make-all-pages branch-name first? all-branches)
-     (let [master-toc (make-master-toc ns-info)
+     (let [master-toc (make-master-toc ns-info all-branches (if first? nil "../"))
            external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
-       (make-overview ns-info master-toc)
+       (make-overview ns-info master-toc branch-name first?)
        (doseq [ns ns-info]
-         (make-ns-page ns master-toc external-docs))
-       (make-index-html ns-info master-toc)
+         (make-ns-page ns master-toc external-docs branch-name first?))
+       (make-index-html ns-info master-toc branch-name first?)
        (make-index-json ns-info))))
 
