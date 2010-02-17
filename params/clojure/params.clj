@@ -24,7 +24,9 @@
    :branches [["master" 
                {:built-clojure-jar
                 "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}],
-              ["1.1.x" {}]]
+              ["1.1.x" 
+               {:built-clojure-jar
+                "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}]]
    :load-except-list 
    [ 
     #"clojure/core.clj"
