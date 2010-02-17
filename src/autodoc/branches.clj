@@ -23,8 +23,8 @@
   "Switch to the specified branch"
   [branch]
   (with-sh-dir (params :root)
-    (system (str "git checkout " branch))
-    (system "git pull")))
+    (system "git fetch")
+    (system (str "git checkout " branch))))
 
 (defn path-str [path-seq] 
   (apply str (interpose (System/getProperty "path.separator")
