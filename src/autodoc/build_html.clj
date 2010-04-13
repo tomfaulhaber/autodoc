@@ -257,7 +257,6 @@ actually changed). This reduces the amount of random doc file changes that happe
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
                        :dir (params :root)))]
        (when (not (.startsWith hash "fatal"))
-         (prlabel glch file branch hash)
          hash)))))
 
 (defn web-src-file [file branch]
@@ -415,11 +414,11 @@ vars in ns-info that begin with that letter"
     :wiki-url (str (params :web-home) (ns-html-file ns))
     :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
 
-(defn var-index-info [v ns]
+(defn var-index-info [v ns branch]
   (assoc (select-keys v [:name :doc :author :arglists])
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
-    :source-url (var-src-link v)))
+    :source-url (var-src-link v branch)))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
@@ -427,7 +426,7 @@ vars in ns-info that begin with that letter"
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
         all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
      {:namespaces (map #(namespace-index-info % branch) namespaces)
-      :vars (map #(apply var-index-info %) all-vars)}))
+      :vars (map (fn [[v ns]] apply var-index-info v ns branch []) all-vars)}))
 
 
 (defn make-index-json

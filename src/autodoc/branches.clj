@@ -39,10 +39,13 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   []
-  (let [class-path [(or (params :built-clojure-jar)
-                        (str (env :HOME) "/src/clj/clojure/clojure.jar"))
-                    "src"
-                    "."]
+  (let [class-path (filter 
+                    identity
+                    [(or (params :built-clojure-jar)
+                         (str (env :HOME) "/src/clj/clojure/clojure.jar"))
+                     "src"
+                     (params :clojure-contrib-jar)
+                     "."])
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
                   (cl-format 
@@ -58,10 +61,16 @@
 
 (defn do-build 
   "Execute an ant build in the given directory, if there's a build.xml"
-  [dir]
-  (when (.exists (file dir "build.xml"))
+  [dir branch]
+  (when-let [build-file (first
+                         (filter
+                          #(.exists (file dir %))
+                          [(str "build-" branch "-xml") "build.xml"]))]
     (with-sh-dir dir
-      (system "ant" (str "-Dsrc-dir=" (params :root))))))
+      (system "ant"
+              (str "-Dsrc-dir=" (params :root))
+              (str "-Dclojure-jar=" (params :built-clojure-jar))
+              "-buildfile" build-file))))
 
 (defn with-first [s]
   (map #(vector %1 %2) s (conj (repeat false) true)))
@@ -76,6 +85,6 @@
   (doseq [[[branch-name param-overrides] first?] (with-first branch-spec)]
     (binding [params (merge params param-overrides)]
       (when branch-name (switch-branches branch-name))
-      (do-build (params :param-dir))
+      (do-build (params :param-dir) branch-name)
       (let [all-branch-names (seq (filter identity (map first branch-spec)))] 
         (f branch-name first? all-branch-names (doall (do-collect)))))))
