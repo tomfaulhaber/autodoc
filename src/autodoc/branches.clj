@@ -24,7 +24,8 @@
   [branch]
   (with-sh-dir (params :root)
     (system "git fetch")
-    (system (str "git checkout " branch))))
+    (system (str "git checkout " branch))
+    (system (str "git merge origin/" branch))))
 
 (defn path-str [path-seq] 
   (apply str (interpose (System/getProperty "path.separator")
