@@ -18,7 +18,8 @@
    :trim-prefix "clojure.contrib.",
 
    :branches [["master"
-               {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"}],
+               {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
+                :source-path "src/main/clojure"}],
               ["1.1.x" {}]]
 
    :load-except-list 

@@ -45,7 +45,7 @@
                     [(or (params :built-clojure-jar)
                          (str (env :HOME) "/src/clj/clojure/clojure.jar"))
                      "src"
-                     (params :clojure-contrib-jar)
+                     (.getPath (File. (params :root) (params :source-path)))
                      "."])
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
