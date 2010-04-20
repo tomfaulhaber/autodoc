@@ -40,13 +40,15 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   []
-  (let [class-path (filter 
-                    identity
-                    [(or (params :built-clojure-jar)
-                         (str (env :HOME) "/src/clj/clojure/clojure.jar"))
-                     "src"
-                     (.getPath (File. (params :root) (params :source-path)))
-                     "."])
+  (let [class-path (concat 
+                    (filter 
+                     identity
+                     [(or (params :built-clojure-jar)
+                          (str (env :HOME) "/src/clj/clojure/clojure.jar"))
+                      "src"
+                      (.getPath (File. (params :root) (params :source-path)))
+                      "."])
+                    (params :load-classpath))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
                   (cl-format 
@@ -66,7 +68,7 @@
   (when-let [build-file (first
                          (filter
                           #(.exists (file dir %))
-                          [(str "build-" branch "-xml") "build.xml"]))]
+                          [(str "build-" branch ".xml") "build.xml"]))]
     (with-sh-dir dir
       (system "ant"
               (str "-Dsrc-dir=" (params :root))

@@ -19,8 +19,11 @@
 
    :branches [["master"
                {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
-                :source-path "src/main/clojure"}],
-              ["1.1.x" {}]]
+                :source-path "src/main/clojure"
+                :load-classpath [(str root "/target/classes")]}],
+              ["1.1.x"
+               {:built-clojure-jar "/home/tom/src/clj/clojure/clojure-slim.jar"
+                :load-classpath [(str root "/classes")]}]]
 
    :load-except-list 
    [ 
