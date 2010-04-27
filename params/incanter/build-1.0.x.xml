@@ -1,0 +1,25 @@
+<project name="incanter" default="all">
+
+  <description>
+    The subsidiary autodoc build file for building incanter
+  </description>
+
+  <target name="all">
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="package"/>
+      <arg value="-Dmaven.test.skip=true"/>
+    </exec>
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="dependency:copy-dependencies"/>
+      <arg value="-DoutputDirectory=lib"/>
+    </exec>
+    <copy todir="${src-dir}/lib/">
+      <fileset dir="${src-dir}/">
+        <include name="modules/**/lib/*.jar"/>
+      </fileset>
+    </copy>
+  </target>
+
+</project>
+
+

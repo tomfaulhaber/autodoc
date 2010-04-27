@@ -37,6 +37,11 @@
                         ["clojure.main" "-e"]
                         args)))
 
+(defn expand-jar-path [jar-dirs]
+  (apply concat 
+         (for [jar-dir jar-dirs]
+           (filter #(.endsWith (.getName %) ".jar")
+                   (file-seq (java.io.File. jar-dir))))))
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   []
@@ -48,7 +53,8 @@
                       "src"
                       (.getPath (File. (params :root) (params :source-path)))
                       "."])
-                    (params :load-classpath))
+                    (params :load-classpath)
+                    (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
                   (cl-format 

@@ -20,6 +20,7 @@
       [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
       [:load-classpath nil "Extra items on the classpath needed to load (e.g., gen-classed items)."]
+      [:load-jar-dirs nil "Directories with jars to add to classpath when doing loads"]
       [:ext-dir nil nil], ;; only used with ant-wrapper
       
       [:clojure-contrib-jar nil nil], ;; only used with ant-wrapper

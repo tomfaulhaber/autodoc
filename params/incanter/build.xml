@@ -5,19 +5,12 @@
   </description>
 
   <target name="all">
-    <exec executable="mvn" dir="${src-dir}">
-      <arg value="package"/>
-      <arg value="-Dmaven.test.skip=true"/>
+    <exec executable="/home/tom/bin/lein" dir="${src-dir}">
+      <arg value="deps"/>
     </exec>
-    <exec executable="mvn" dir="${src-dir}">
-      <arg value="dependency:copy-dependencies"/>
-      <arg value="-DoutputDirectory=lib"/>
+    <exec executable="/home/tom/bin/lein" dir="${src-dir}">
+      <arg value="jar"/>
     </exec>
-    <copy todir="${src-dir}/lib/">
-      <fileset dir="${src-dir}/">
-        <include name="modules/**/lib/*.jar"/>
-      </fileset>
-    </copy>
   </target>
 
 </project>
