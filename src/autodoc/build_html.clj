@@ -318,8 +318,8 @@ actually changed). This reduces the amount of random doc file changes that happe
 (declare common-namespace-api)
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
- [ns external-docs]
-  (common-namespace-api ns nil external-docs))
+ [ns branch external-docs]
+  (common-namespace-api ns branch external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
  [ns branch external-docs]
@@ -347,7 +347,7 @@ actually changed). This reduces the amount of random doc file changes that happe
         [:span#external-doc] (external-doc-links ns external-docs)
         [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch))
         [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % external-docs) (:subspaces ns))))))
+        (substitute (map #(render-sub-namespace-api % branch external-docs) (:subspaces ns))))))
 
 (defn make-ns-page [ns master-toc external-docs branch first-branch? prefix]
   (create-page (ns-html-file ns)
