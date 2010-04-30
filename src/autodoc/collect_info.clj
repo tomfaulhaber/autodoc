@@ -44,7 +44,7 @@ return it as a string."
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
-    (merge (select-keys (meta v) [:arglists :file :line])
+    (merge (select-keys (meta v) [:arglists :file :line :added :deprecated])
            {:name (name (:name (meta v)))
             :doc (remove-leading-whitespace (:doc (meta v))),
             :var-type (var-type v)})))
@@ -94,9 +94,9 @@ have the same prefix followed by a . and then more components"
   (trim-ns-name (name (ns-name ns))))
 
 (defn build-ns-entry [ns]
-  {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
-   :doc (remove-leading-whitespace (:doc (meta ns))) :author (:author (meta ns))
-   :see-also (:see-also (meta ns)) :ns ns})
+  (merge (select-keys (meta ns) [:author :see-also :added :deprecated])
+         {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
+          :doc (remove-leading-whitespace (:doc (meta ns))) :ns ns}))
 
 (defn build-ns-list [nss]
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))

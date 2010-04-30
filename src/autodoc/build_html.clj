@@ -184,7 +184,15 @@ looks in the base template directory."
                          #(at % 
                             [:span#name] (content (:short-name s))
                             [:span#sub-var-link] (add-ns-vars s))))
-    [:span#see-also] (see-also-links ns)))
+    [:span#see-also] (see-also-links ns)
+    [:.ns-added] (when (:added ns)
+                   #(at % [:#content]
+                        (content (str "Added in " (params :name)
+                                      " version " (:added ns)))))
+    [:.ns-deprecated] (when (:deprecated ns)
+                        #(at % [:#content]
+                             (content (str "Deprecated since " (params :name)
+                                           " version " (:deprecated ns)))))))
 
 (deffragment make-project-description *description-file* [])
 
@@ -297,7 +305,15 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v branch)]
-                              (apply (set-attr :href link) [n])))))
+                              (apply (set-attr :href link) [n])))
+    [:.var-added] (when (:added v)
+                   #(at % [:#content]
+                        (content (str "Added in " (params :name)
+                                      " version " (:added v)))))
+    [:.var-deprecated] (when (:deprecated v)
+                        #(at % [:#content]
+                             (content (str "Deprecated since " (params :name)
+                                           " version " (:deprecated v)))))))
 
 (declare common-namespace-api)
 
@@ -315,15 +331,22 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn common-namespace-api [ns branch external-docs]
   (fn [node]
     (at node
-      [:#namespace-name] (content (:short-name ns))
-      [:#branch-name] (when branch (content (str "(" branch " branch)")))
-      [:span#author] (content (or (:author ns) "Unknown"))
-      [:span#long-name] (content (:full-name ns))
-      [:pre#namespace-docstr] (content (expand-links (:doc ns)))
-      [:span#see-also] (see-also-links ns)
-      [:span#external-doc] (external-doc-links ns external-docs)
-      [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch))
-      [:div#sub-namespaces]
+        [:#namespace-name] (content (:short-name ns))
+        [:#branch-name] (when branch (content (str "(" branch " branch)")))
+        [:span#author] (content (or (:author ns) "Unknown"))
+        [:span#long-name] (content (:full-name ns))
+        [:pre#namespace-docstr] (content (expand-links (:doc ns)))
+        [:span#see-also] (see-also-links ns)
+        [:.ns-added] (when (:added ns)
+                       #(at % [:#content]
+                            (content (str "Added in " (params :name) " version " (:added ns)))))
+        [:.ns-deprecated] (when (:deprecated ns)
+                            #(at % [:#content]
+                                 (content (str "Deprecated since " (params :name)
+                                               " version " (:deprecated ns)))))
+        [:span#external-doc] (external-doc-links ns external-docs)
+        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch))
+        [:div#sub-namespaces]
         (substitute (map #(render-sub-namespace-api % external-docs) (:subspaces ns))))))
 
 (defn make-ns-page [ns master-toc external-docs branch first-branch? prefix]
@@ -426,7 +449,7 @@ vars in ns-info that begin with that letter"
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
         all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
      {:namespaces (map #(namespace-index-info % branch) namespaces)
-      :vars (map (fn [[v ns]] apply var-index-info v ns branch []) all-vars)}))
+      :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
 
 
 (defn make-index-json
