@@ -16,7 +16,8 @@
 
    :built-clojure-jar nil,
 
-   :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" 
+   :namespaces-to-document ["clojure.core" "clojure.core.protocols"
+                            "clojure.inspector" "clojure.main" "clojure.pprint"
                             "clojure.set" "clojure.stacktrace" "clojure.template"
                             "clojure.test" "clojure.walk" "clojure.xml"
                             "clojure.zip"],
