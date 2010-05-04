@@ -454,7 +454,7 @@ to integrate Autodoc into a build process.
 
 Simply add a dev-dependency to your project.clj file:
 
-    :dev-dependencies [[autodoc "0.7.0"]]
+    :dev-dependencies [[autodoc "0.7.1"]]
 
 Leiningen will automatically pull the code for the autodoc plug-in
 from Clojars, so you don't need to worry about installing or anything.
@@ -473,7 +473,7 @@ map attached to the `:autodoc` key:
       :dependencies [[incanter "1.0-master-SNAPSHOT"]
                      [org.clojure/clojure "1.1.0-alpha-SNAPSHOT"]
                      [org.clojure/clojure-contrib "1.0-SNAPSHOT"]]
-      :dev-dependencies [[autodoc "0.7.0"]]
+      :dev-dependencies [[autodoc "0.7.1"]]
       :autodoc { :name "Bugs", :page-title "Bugs API Documentation"})
 {% endhighlight %}
 
