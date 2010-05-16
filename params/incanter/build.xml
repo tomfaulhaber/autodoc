@@ -5,11 +5,13 @@
   </description>
 
   <target name="all">
-    <exec executable="/home/tom/bin/lein" dir="${src-dir}">
-      <arg value="deps"/>
-    </exec>
-    <exec executable="/home/tom/bin/lein" dir="${src-dir}">
-      <arg value="jar"/>
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete dir="${src-dir}/lib"/>
+    <mkdir dir="${src-dir}/lib"/>
+
+    <!-- now execute incanter's build/install script -->
+    <exec executable="/bin/sh" dir="${src-dir}">
+      <arg value="script/install"/>
     </exec>
   </target>
 

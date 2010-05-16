@@ -5,6 +5,11 @@
   </description>
 
   <target name="all">
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete dir="${src-dir}/lib"/>
+    <mkdir dir="${src-dir}/lib"/>
+
+    <!-- Now do all the Maven craziness -->
     <exec executable="mvn" dir="${src-dir}">
       <arg value="package"/>
       <arg value="-Dmaven.test.skip=true"/>
@@ -13,6 +18,8 @@
       <arg value="dependency:copy-dependencies"/>
       <arg value="-DoutputDirectory=lib"/>
     </exec>
+
+    <!-- Now put all the module jars into lib so collect-info gets them -->
     <copy todir="${src-dir}/lib/">
       <fileset dir="${src-dir}/">
         <include name="modules/**/lib/*.jar"/>

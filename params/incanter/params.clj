@@ -11,7 +11,7 @@
    :web-home "http://liebke.github.com/incanter/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
-   :clojure-contrib-classes (str root "build"),
+;;   :clojure-contrib-classes (str root "build"),
 
    :load-jar-dirs [(str root "lib")],
 
@@ -23,6 +23,6 @@
               ["1.0.x"
                {:built-clojure-jar (str root "lib/clojure-slim.jar")}]]
 
-   :load-except-list [#"/test/" #"/classes/"],
+   :load-except-list [#"/test/" #"/classes/" #"project.clj$"],
    })
 
