@@ -469,6 +469,7 @@ vars in ns-info that begin with that letter"
 (defn add-href-prefix [node prefix]
   (at node
     [:a] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])))
+
 (defmacro select-content-text [node selectr]
   `(first (:content (first (select [~node] ~selectr)))))
 
@@ -488,19 +489,25 @@ vars in ns-info that begin with that letter"
           [package [elem]]
           [nm [elem]]))))))
 
-(defn wrap-external-doc [staging-dir target-dir master-toc]
-  (when staging-dir
+(defn wrap-external-doc [target-dir master-toc]
+  (prlabel wed target-dir)
+  (when target-dir
     (external-doc-map
-     (doall          ; force the side effect (generating the xml files
-      (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
-        (let [source-path (.getAbsolutePath file)
-              offset (.substring source-path (inc (.length staging-dir)))
-              target-path (str target-dir "/" offset)
-              page-content (first (html-resource (java.io.File. source-path)))
+     (doall          ; force the side effect (wrapping html files)
+      (for [file (filter #(and (.isFile %) (.endsWith (.getPath %) ".html"))
+                         (file-seq (java.io.File.
+                                    (java.io.File. (params :output-path))
+                                    target-dir)))]
+        (let [path (.getAbsolutePath file)
+              offset (.substring path (.length (params :output-path)))
+              page-content (first (html-resource (java.io.File. path)))
               title (get-title page-content)
               prefix (apply str (repeat (count (.split offset "/")) "../"))]
-          (create-page target-path nil title prefix (add-href-prefix master-toc prefix) nil page-content)
-          [offset title]))))))
+          (prlabel wed path offset)
+          (create-page offset nil title prefix
+                       (add-href-prefix master-toc prefix) nil page-content)
+          (prlabel wed [offset title])
+          [(.substring offset (inc (.length target-dir))) title]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -512,12 +519,16 @@ vars in ns-info that begin with that letter"
   ([] (make-all-pages [[nil true nil (contrib-info)]]))
   ([branch-name first? all-branches ns-info]
      (prlabel make-all-pages branch-name first? all-branches)
-     (let [prefix (if first? nil "../")
-           master-toc (make-master-toc ns-info all-branches prefix)
-           external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
-       (make-overview ns-info master-toc branch-name first? prefix)
-       (doseq [ns ns-info]
-         (make-ns-page ns master-toc external-docs branch-name first? prefix))
-       (make-index-html ns-info master-toc branch-name first? prefix)
-       (make-index-json ns-info branch-name))))
+     (let [doc-dir (str (when-not first? 
+                          (str (branch-subdir branch-name) "/")) 
+                        "doc")]
+       (let [prefix (if first? nil "../")
+             master-toc (make-master-toc ns-info all-branches prefix)
+             external-docs (wrap-external-doc doc-dir master-toc)]
+         (prlabel make-all-pages external-docs)
+         (make-overview ns-info master-toc branch-name first? prefix)
+         (doseq [ns ns-info]
+           (make-ns-page ns master-toc external-docs branch-name first? prefix))
+         (make-index-html ns-info master-toc branch-name first? prefix)
+         (make-index-json ns-info branch-name)))))
 

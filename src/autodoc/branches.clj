@@ -5,7 +5,10 @@
         [clojure.contrib.pprint.utilities :only [prlabel]]
         [clojure.contrib.str-utils :only (re-split)]
         [clojure.contrib.shell-out :only [with-sh-dir sh]]
-        [autodoc.params :only (params)])
+        [autodoc.params :only (params)]
+        [autodoc.build-html :only (branch-subdir)]
+        [autodoc.doc-files :only (xform-tree)])
+  
   (import [java.io File]))
 
 ;;; stolen from lancet
@@ -95,5 +98,9 @@
     (binding [params (merge params param-overrides)]
       (when branch-name (switch-branches branch-name))
       (do-build (params :param-dir) branch-name)
+      (xform-tree (str (params :root) "/doc")
+                  (str (params :output-path) "/"
+                       (when-not first? (str (branch-subdir branch-name) "/"))
+                       "doc"))
       (let [all-branch-names (seq (filter identity (map first branch-spec)))] 
         (f branch-name first? all-branch-names (doall (do-collect)))))))
