@@ -490,7 +490,6 @@ vars in ns-info that begin with that letter"
           [nm [elem]]))))))
 
 (defn wrap-external-doc [target-dir master-toc]
-  (prlabel wed target-dir)
   (when target-dir
     (external-doc-map
      (doall          ; force the side effect (wrapping html files)
@@ -502,11 +501,9 @@ vars in ns-info that begin with that letter"
               offset (.substring path (.length (params :output-path)))
               page-content (first (html-resource (java.io.File. path)))
               title (get-title page-content)
-              prefix (apply str (repeat (count (.split offset "/")) "../"))]
-          (prlabel wed path offset)
+              prefix (apply str (repeat (dec (count (.split offset "/"))) "../"))]
           (create-page offset nil title prefix
                        (add-href-prefix master-toc prefix) nil page-content)
-          (prlabel wed [offset title])
           [(.substring offset (inc (.length target-dir))) title]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

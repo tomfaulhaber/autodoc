@@ -2,10 +2,21 @@
 ;  "Add any files in the projects doc/ directory to the output directory, transforming
 ;as necessary."
   (:use [autodoc.params :only [params]]
-        [clojure.contrib.shell-out :only [with-sh-dir sh]]
+        [clojure.contrib.shell-out :only [sh]]
+        [clojure.contrib.java-utils :only [delete-file]]
         [clojure.contrib.pprint.utilities :only [prlabel]])
   (:require [clojure.contrib.duck-streams :as io])
   (:import [java.io File]))
+
+;; Brought in from clojure.contrib.java-utils since it's not making the migration to 1.2
+(defn delete-file-recursively
+  "Delete file f. If it's a directory, recursively delete all its contents.
+Raise an exception if any deletion fails unless silently is true."
+  [f & [silently]]
+  (if (.isDirectory f)
+    (doseq [child (.listFiles f)]
+      (delete-file-recursively child silently)))
+  (delete-file f silently))
 
 (defn- get-extension
   "Return the string extension for a file, nil if none and :dir for a directory"
@@ -38,9 +49,12 @@ transformations along the way."
   "Takes source and destination directories and copies the source to the destination,
 transforming files as appropriate."
   [src dst]
-  (let [path-offset (+ (.length src) (if (.endsWith src "/") 1 0))]
-    (prlabel x-t src path-offset)
-    (doseq [src-file (next (file-seq (java.io.File. src)))]
-      (let [relative-path (.substring (.getPath src-file) path-offset)]
-        (prlabel x-t1 (.getPath src-file) relative-path)
-        (xform-file src-file dst relative-path)))))
+  ;; first delete any previous version
+  (delete-file-recursively (File. dst) true)
+  ;; Now walk the source tree copying/transforming each file
+  (when (.exists (File. src))
+    (.mkdir (File. dst))
+    (let [path-offset (+ (.length src) (if (.endsWith src "/") 1 0))]
+      (doseq [src-file (next (file-seq (java.io.File. src)))]
+        (let [relative-path (.substring (.getPath src-file) path-offset)]
+          (xform-file src-file dst relative-path))))))
