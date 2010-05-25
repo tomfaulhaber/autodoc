@@ -1,0 +1,95 @@
+(ns autodoc.git-tools
+  (:use [clojure.contrib.pprint :only [cl-format]]
+        [clojure.contrib.shell-out :only [sh with-sh-dir]]
+        [autodoc.build-html :only [branch-subdir]])
+  (:import [java.io File]))
+
+(defn offset-path 
+  "Returns a new file that is specified as an offset from root (assumes that
+root is an ancestor of file)"
+  [root file]
+  (let [root-path (.getCanonicalPath root)
+        file-path (.getCanonicalPath file)]
+    (if (= root-path file-path)
+      (File. ".")
+      (File. (.substring file-path (inc (.length root-path)))))))
+
+(defn git-dir? [dir]
+  "Return true if dir (a java.io.File) has a .git subdirectory (i.e. it's the 
+root of a git repo)"
+  (.exists (File. dir ".git")))
+
+(defn current-branch 
+  "Return the name of currently checked out branch in dir"
+  [dir]
+  (with-sh-dir dir
+    (when-let [branch-str (first 
+                           (filter #(.startsWith % "*")
+                                   (.split (sh "git" "branch") "\n")))]
+      (.substring branch-str 2))))
+
+(defn has-remote? 
+  "return true if there is a remote called origin that we could push back to"
+  [dir]
+  (with-sh-dir dir
+    (some #(= % "origin") (.split (sh "git" "remote") "\n"))))
+
+(defn stage-new-doc-files 
+  "Add any new supplementary documents to the git staging area"
+  [dir branches]
+  (let [dirs (filter #(.exists (File. dir %))
+                     (map #(.getPath (File. (File. %) "doc"))
+                          (cons "." (map branch-subdir (next branches)))))]
+    (with-sh-dir dir
+      (println (apply sh "git" "add" "-v" dirs)))))
+
+(defn stage-new-api-files 
+  "Add any new API namespace files to the git staging area"
+  [dir]
+  (when-let [files (map (comp #(.getPath %) (partial offset-path dir))
+                        (filter #(.endsWith (.getPath %) "-api.html")
+                                (file-seq dir)))]
+    (with-sh-dir dir
+      (println (apply sh "git" "add" "-v" files)))))
+
+(defn stage-modified-files 
+  "Add any changed files to the git staging area"
+  [dir]
+  (with-sh-dir dir
+    (println (sh "git" "add" "-u" "-v" "."))))
+
+(defn git-hash 
+  "Get the git hash for the head of the given branch (or tag)"
+  [dir head len]
+  (with-sh-dir dir
+    (.substring (.trim (sh "git" "rev-parse" head)) 0 len)))
+
+(defn comment-for 
+  "Construct a git comment for all the appropriate branches"
+  [dir branches]
+  (cl-format nil "Autodoc commit for ~{~{~@[~a/~]~a~}~^, ~}" 
+             (if branches
+               (for [b branches] [b (git-hash dir b 8)])
+               [[nil (git-hash dir "HEAD" 8)]])))
+
+(defn git-commit
+  "Commit the staged files in dir (a java.io.File)."
+  [dir comment]
+  (with-sh-dir dir
+    (println (sh "git" "commit" "-m" comment))))
+
+(defn git-push 
+  "Push the commit to a remote, if defined"
+  [dir]
+  (with-sh-dir dir
+    (println (sh "git" "push" "origin" (current-branch dir)))))
+
+(defn autodoc-commit [src-dir doc-dir branches commit?]
+  "Stage and commit all new and changed files in the autodoc tree"
+  (stage-new-doc-files doc-dir branches)
+  (stage-new-api-files doc-dir)
+  (stage-modified-files doc-dir)
+  (when commit?
+    (git-commit doc-dir (comment-for src-dir branches))
+    (when (has-remote? doc-dir)
+      (git-push doc-dir))))
