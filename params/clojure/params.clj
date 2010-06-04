@@ -18,9 +18,12 @@
 
    :namespaces-to-document ["clojure.core" "clojure.core.protocols"
                             "clojure.inspector" "clojure.main" "clojure.pprint"
+                            "clojure.repl" 
                             "clojure.set" "clojure.stacktrace" "clojure.template"
                             "clojure.test" "clojure.walk" "clojure.xml"
-                            "clojure.zip"],
+                            "clojure.zip"
+                            "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
+                            "clojure.java.shell"],
 
    :branches [["master" 
                {:built-clojure-jar
