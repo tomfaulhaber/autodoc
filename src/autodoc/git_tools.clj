@@ -84,12 +84,11 @@ root of a git repo)"
   (with-sh-dir dir
     (println (sh "git" "push" "origin" (current-branch dir)))))
 
-(defn autodoc-commit [src-dir doc-dir branches commit?]
+(defn autodoc-commit [src-dir doc-dir branches]
   "Stage and commit all new and changed files in the autodoc tree"
   (stage-new-doc-files doc-dir branches)
   (stage-new-api-files doc-dir)
   (stage-modified-files doc-dir)
-  (when commit?
-    (git-commit doc-dir (comment-for src-dir branches))
-    (when (has-remote? doc-dir)
-      (git-push doc-dir))))
+  (git-commit doc-dir (comment-for src-dir branches))
+  (when (has-remote? doc-dir)
+    (git-push doc-dir)))

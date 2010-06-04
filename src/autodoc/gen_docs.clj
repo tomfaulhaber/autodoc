@@ -21,7 +21,6 @@
      (clean-html-files (params :output-path))
      (let [branch-spec (params :branches)]
        (load-branch-data branch-spec make-all-pages))
-     (when (git-dir? (File. (params :output-path)))
+     (when (and commit? (git-dir? (File. (params :output-path))))
        (autodoc-commit (File. (params :root)) (File. (params :output-path))
-                       (map first (params :branches))
-                       commit?))))
+                       (map first (params :branches))))))
