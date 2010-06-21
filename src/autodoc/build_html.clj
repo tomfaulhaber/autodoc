@@ -66,7 +66,7 @@ looks in the base template directory."
                 (if-let [nodes# (memo-html-resource ~source)]
                   (flatmap (transformation ~@forms) nodes#))))))
 
-;;; Thanks to Chouser for this regex
+;;; Thanks to Chouser for this regex TODO: except it doesn't work!
 (defn expand-links 
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
@@ -80,19 +80,33 @@ looks in the base template directory."
   [title prefix master-toc local-toc page-content]
   [:html :head :title] (content title)
   [:link] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])
+  [:img] #(apply (set-attr :src (str prefix (:src (:attrs %)))) [%])
   [:a#page-header] (content (or (params :page-title) (params :name)))
   [:div#leftcolumn] (content master-toc)
   [:div#right-sidebar] (content local-toc)
   [:div#content-tag] (content page-content)
   [:div#copyright] (content (params :copyright)))
 
-(defn create-page [output-file title prefix master-toc local-toc page-content]
-  (with-out-writer (file (params :output-path) output-file) 
-    (print
-     (apply str (page title prefix master-toc local-toc page-content)))))
+(defn branch-subdir [branch-name] 
+  (when branch-name (str "branch-" branch-name)))
 
-(defn ns-html-file [ns-info]
+(defn create-page [output-file branch title prefix master-toc local-toc page-content]
+  (let [dir (if branch 
+              (file (params :output-path) (branch-subdir branch))
+              (file (params :output-path)))] 
+    (when (not (.exists dir))
+      (.mkdirs dir))
+    (with-out-writer (file dir output-file) 
+      (print
+       (apply str (page title prefix master-toc local-toc page-content))))))
+
+(defmulti ns-html-file class)
+
+(defmethod ns-html-file clojure.lang.IPersistentMap [ns-info]
   (str (:short-name ns-info) "-api.html"))
+
+(defmethod ns-html-file String [ns-name]
+  (str ns-name "-api.html"))
 
 (defn overview-toc-data 
   [ns-info]
@@ -170,24 +184,45 @@ looks in the base template directory."
                          #(at % 
                             [:span#name] (content (:short-name s))
                             [:span#sub-var-link] (add-ns-vars s))))
-    [:span#see-also] (see-also-links ns)))
+    [:span#see-also] (see-also-links ns)
+    [:.ns-added] (when (:added ns)
+                   #(at % [:#content]
+                        (content (str "Added in " (params :name)
+                                      " version " (:added ns)))))
+    [:.ns-deprecated] (when (:deprecated ns)
+                        #(at % [:#content]
+                             (content (str "Deprecated since " (params :name)
+                                           " version " (:deprecated ns)))))))
 
 (deffragment make-project-description *description-file* [])
 
-(deffragment make-overview-content *overview-file* [ns-info]
+(deffragment make-overview-content *overview-file* [branch ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
+  [:#branch-name] (when branch (content (str "(" branch " branch)")))
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
 
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
-(deffragment make-master-toc *master-toc-file* [ns-info]
+(deffragment make-master-toc *master-toc-file* [ns-info branch-names prefix]
   [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
                                 #(at %
                                    [:a] (do->
                                          (set-attr :href (ns-html-file ns))
-                                         (content (:short-name ns))))))
+                                         (content (:short-name ns)))))
+  [:div.BranchTOC] (when branch-names
+                     #(at %
+                          [:ul#left-sidebar-branch-list :li]
+                          (clone-for [branch branch-names]
+                            (let [subdir (if (= branch (first branch-names))
+                                           nil
+                                           (str (branch-subdir branch) "/"))]
+                             (fn [n] 
+                               (at n 
+                                   [:a] (do->
+                                         (set-attr :href (str prefix subdir "index.html"))
+                                         (content branch)))))))))
 
 (deffragment make-local-toc *local-toc-file* [toc-data]
   [:.toc-section] (clone-for [[text tag entries] toc-data]
@@ -202,13 +237,14 @@ looks in the base template directory."
                                                  (set-attr :href (str "#" subtag))
                                                  (content subtext))))))))
 
-(defn make-overview [ns-info master-toc]
+(defn make-overview [ns-info master-toc branch first-branch? prefix]
   (create-page "index.html"
+               (when (not first-branch?) branch)
                (str (params :name) " - Overview")
-               nil
+               prefix
                master-toc
                (make-local-toc (overview-toc-data ns-info))
-               (make-overview-content ns-info)))
+               (make-overview-content branch ns-info)))
 
 ;;; TODO: redo this so the usage parts can be styled
 (defn var-usage [v]
@@ -225,15 +261,15 @@ do this for source links so that we don't change them with every commit (unless 
 actually changed). This reduces the amount of random doc file changes that happen."}
   get-last-commit-hash
   (memoize
-   (fn [file]
+   (fn [file branch]
      (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
                        :dir (params :root)))]
        (when (not (.startsWith hash "fatal"))
          hash)))))
 
-(defn web-src-file [file]
+(defn web-src-file [file branch]
   (when-let [web-src-dir (params :web-src-dir)]
-    (when-let [hash (get-last-commit-hash file)]
+    (when-let [hash (get-last-commit-hash file branch)]
       (cl-format nil "~a~a/~a" web-src-dir hash file))))
 
 (def src-prefix-length
@@ -253,13 +289,13 @@ actually changed). This reduces the amount of random doc file changes that happe
    (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
    true (.getPath (file (params :source-path) f))))
 
-(defn var-src-link [v]
+(defn var-src-link [v branch]
   (when (and (:file v) (:line v))
-    (when-let [web-file (web-src-file (var-base-file (:file v)))]
+    (when-let [web-file (web-src-file (var-base-file (:file v)) branch)]
       (cl-format nil "~a#L~d" web-file (:line v)))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
-(defn var-details [ns v template]
+(defn var-details [ns v template branch]
   (at template 
     [:#var-tag] 
     (do->
@@ -268,41 +304,59 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
-    [:a#var-source] (fn [n] (when-let [link (var-src-link v)] (apply (set-attr :href link) [n])))))
+    [:a#var-source] (fn [n] (when-let [link (var-src-link v branch)]
+                              (apply (set-attr :href link) [n])))
+    [:.var-added] (when (:added v)
+                   #(at % [:#content]
+                        (content (str "Added in " (params :name)
+                                      " version " (:added v)))))
+    [:.var-deprecated] (when (:deprecated v)
+                        #(at % [:#content]
+                             (content (str "Deprecated since " (params :name)
+                                           " version " (:deprecated v)))))))
 
 (declare common-namespace-api)
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
- [ns external-docs]
-  (common-namespace-api ns external-docs))
+ [ns branch external-docs]
+  (common-namespace-api ns branch external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
- [ns external-docs]
-  (common-namespace-api ns external-docs))
+ [ns branch external-docs]
+  (common-namespace-api ns branch external-docs))
 
-(defn make-ns-content [ns external-docs]
-  (render-namespace-api ns external-docs))
+(defn make-ns-content [ns branch external-docs]
+  (render-namespace-api ns branch external-docs))
 
-(defn common-namespace-api [ns external-docs]
+(defn common-namespace-api [ns branch external-docs]
   (fn [node]
     (at node
-      [:#namespace-name] (content (:short-name ns))
-      [:span#author] (content (or (:author ns) "Unknown"))
-      [:span#long-name] (content (:full-name ns))
-      [:pre#namespace-docstr] (content (expand-links (:doc ns)))
-      [:span#see-also] (see-also-links ns)
-      [:span#external-doc] (external-doc-links ns external-docs)
-      [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v %))
-      [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % external-docs) (:subspaces ns))))))
+        [:#namespace-name] (content (:short-name ns))
+        [:#branch-name] (when branch (content (str "(" branch " branch)")))
+        [:span#author] (content (or (:author ns) "Unknown"))
+        [:span#long-name] (content (:full-name ns))
+        [:pre#namespace-docstr] (content (expand-links (:doc ns)))
+        [:span#see-also] (see-also-links ns)
+        [:.ns-added] (when (:added ns)
+                       #(at % [:#content]
+                            (content (str "Added in " (params :name) " version " (:added ns)))))
+        [:.ns-deprecated] (when (:deprecated ns)
+                            #(at % [:#content]
+                                 (content (str "Deprecated since " (params :name)
+                                               " version " (:deprecated ns)))))
+        [:span#external-doc] (external-doc-links ns external-docs)
+        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch))
+        [:div#sub-namespaces]
+        (substitute (map #(render-sub-namespace-api % branch external-docs) (:subspaces ns))))))
 
-(defn make-ns-page [ns master-toc external-docs]
+(defn make-ns-page [ns master-toc external-docs branch first-branch? prefix]
   (create-page (ns-html-file ns)
+               (when (not first-branch?) branch)
                (str (:short-name ns) " API reference (" (params :name) ")")
-               nil
+               prefix
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns external-docs)))
+               (make-ns-content ns branch external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -345,8 +399,9 @@ vars in ns-info that begin with that letter"
                                       (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
-(deffragment make-index-content *index-html-file* [vars-by-letter]
+(deffragment make-index-content *index-html-file* [branch vars-by-letter]
   [:span.project-name-span] (content (params :name))
+  [:#branch-name] (when branch (content (str "(" branch " branch)")))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -354,13 +409,14 @@ vars in ns-info that begin with that letter"
                          [:span#section-content] (clone-for [[v ns] vars]
                                                    (gen-index-line v ns)))))
 
-(defn make-index-html [ns-info master-toc]
+(defn make-index-html [ns-info master-toc branch first-branch? prefix]
   (create-page *index-html-file*
+               (when (not first-branch?) branch)
                (str (params :name) " - Index")
-               nil
+               prefix
                master-toc
                nil
-               (make-index-content (vars-by-letter ns-info))))
+               (make-index-content branch (vars-by-letter ns-info))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -375,34 +431,34 @@ vars in ns-info that begin with that letter"
         ns-file (.replaceAll ns-name "\\." "/")]
     (str ns-file ".clj")))
 
-(defn namespace-index-info [ns]
+(defn namespace-index-info [ns branch]
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
     :wiki-url (str (params :web-home) (ns-html-file ns))
-    :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))))))
+    :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
 
-(defn var-index-info [v ns]
+(defn var-index-info [v ns branch]
   (assoc (select-keys v [:name :doc :author :arglists])
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
-    :source-url (var-src-link v)))
+    :source-url (var-src-link v branch)))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
-  [ns-info]
+  [ns-info branch]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
         all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
-     {:namespaces (map namespace-index-info namespaces)
-      :vars (map #(apply var-index-info %) all-vars)}))
+     {:namespaces (map #(namespace-index-info % branch) namespaces)
+      :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
 
 
 (defn make-index-json
   "Generate a json formatted index file that can be consumed by other tools"
-  [ns-info]
+  [ns-info branch]
   (when (params :build-json-index)
     (with-out-writer (BufferedWriter.
                       (FileWriter. (file (params :output-path) *index-json-file*)))
-                     (print-json (structured-index ns-info)))))
+      (print-json (structured-index ns-info branch)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -413,6 +469,7 @@ vars in ns-info that begin with that letter"
 (defn add-href-prefix [node prefix]
   (at node
     [:a] #(apply (set-attr :href (str prefix (:href (:attrs %)))) [%])))
+
 (defmacro select-content-text [node selectr]
   `(first (:content (first (select [~node] ~selectr)))))
 
@@ -432,19 +489,22 @@ vars in ns-info that begin with that letter"
           [package [elem]]
           [nm [elem]]))))))
 
-(defn wrap-external-doc [staging-dir target-dir master-toc]
-  (when staging-dir
+(defn wrap-external-doc [target-dir master-toc]
+  (when target-dir
     (external-doc-map
-     (doall          ; force the side effect (generating the xml files
-      (for [file (filter #(.isFile %) (file-seq (java.io.File. staging-dir)))]
-        (let [source-path (.getAbsolutePath file)
-              offset (.substring source-path (inc (.length staging-dir)))
-              target-path (str target-dir "/" offset)
-              page-content (first (html-resource (java.io.File. source-path)))
+     (doall          ; force the side effect (wrapping html files)
+      (for [file (filter #(and (.isFile %) (.endsWith (.getPath %) ".html"))
+                         (file-seq (java.io.File.
+                                    (java.io.File. (params :output-path))
+                                    target-dir)))]
+        (let [path (.getAbsolutePath file)
+              offset (.substring path (.length (params :output-path)))
+              page-content (first (html-resource (java.io.File. path)))
               title (get-title page-content)
-              prefix (apply str (repeat (count (.split offset "/")) "../"))]
-          (create-page target-path title prefix (add-href-prefix master-toc prefix) nil page-content)
-          [offset title]))))))
+              prefix (apply str (repeat (dec (count (.split offset "/"))) "../"))]
+          (create-page offset nil title prefix
+                       (add-href-prefix master-toc prefix) nil page-content)
+          [(.substring offset (inc (.length target-dir))) title]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -452,13 +512,20 @@ vars in ns-info that begin with that letter"
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn make-all-pages []
-  (let [ns-info (contrib-info)
-        master-toc (make-master-toc ns-info)
-        external-docs (wrap-external-doc (params :external-doc-tmpdir) "doc" master-toc)]
-    (make-overview ns-info master-toc)
-    (doseq [ns ns-info]
-      (make-ns-page ns master-toc external-docs))
-    (make-index-html ns-info master-toc)
-    (make-index-json ns-info)))
+(defn make-all-pages 
+  ([] (make-all-pages [[nil true nil (contrib-info)]]))
+  ([branch-name first? all-branches ns-info]
+     (prlabel make-all-pages branch-name first? all-branches)
+     (let [doc-dir (str (when-not first? 
+                          (str (branch-subdir branch-name) "/")) 
+                        "doc")]
+       (let [prefix (if first? nil "../")
+             master-toc (make-master-toc ns-info all-branches prefix)
+             external-docs (wrap-external-doc doc-dir master-toc)]
+         (prlabel make-all-pages external-docs)
+         (make-overview ns-info master-toc branch-name first? prefix)
+         (doseq [ns ns-info]
+           (make-ns-page ns master-toc external-docs branch-name first? prefix))
+         (make-index-html ns-info master-toc branch-name first? prefix)
+         (make-index-json ns-info branch-name)))))
 

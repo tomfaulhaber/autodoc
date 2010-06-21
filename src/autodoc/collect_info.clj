@@ -1,6 +1,6 @@
 (ns autodoc.collect-info
-  (:use [clojure.contrib.pprint.utilities :only [prlabel]]
-        [autodoc.params :only (params)]))
+  (:use [autodoc.load-files :only (load-namespaces)]
+        [autodoc.params :only (params params-from-dir)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -44,7 +44,7 @@ return it as a string."
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
-    (merge (select-keys (meta v) [:arglists :file :line])
+    (merge (select-keys (meta v) [:arglists :file :line :added :deprecated])
            {:name (name (:name (meta v)))
             :doc (remove-leading-whitespace (:doc (meta v))),
             :var-type (var-type v)})))
@@ -94,9 +94,9 @@ have the same prefix followed by a . and then more components"
   (trim-ns-name (name (ns-name ns))))
 
 (defn build-ns-entry [ns]
-  {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
-   :doc (remove-leading-whitespace (:doc (meta ns))) :author (:author (meta ns))
-   :see-also (:see-also (meta ns)) :ns ns})
+  (merge (select-keys (meta ns) [:author :see-also :added :deprecated])
+         {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
+          :doc (remove-leading-whitespace (:doc (meta ns))) :ns ns}))
 
 (defn build-ns-list [nss]
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))
@@ -108,9 +108,39 @@ have the same prefix followed by a . and then more components"
 
 (defn add-base-ns-info [ns]
   (assoc ns
-    :base-ns ns
-    :subspaces (map #(assoc % :base-ns ns) (:subspaces ns))))
+    :base-ns (:short-name ns)
+    :subspaces (map #(assoc % :base-ns (:short-name ns)) (:subspaces ns))))
+
+(defn clean-ns-info 
+  "Remove the back pointers to the namespace from the ns-info"
+  [ns-info]
+  (map (fn [ns] (assoc (dissoc ns :ns)
+                  :subspaces (map #(dissoc % :ns) (:subspaces ns))))
+       ns-info))
 
 (defn contrib-info []
-  (map add-base-ns-info (map add-subspaces
-                             (build-ns-list (base-relevant-namespaces)))))
+  (clean-ns-info
+   (map add-base-ns-info
+        (map add-subspaces
+             (build-ns-list (base-relevant-namespaces))))))
+
+(defn writer 
+  "A version of duck-streams/writer that only handles file strings. Moved here for 
+versioning reasons"
+  [s]
+  (java.io.PrintWriter.
+   (java.io.BufferedWriter.
+    (java.io.OutputStreamWriter. 
+     (java.io.FileOutputStream. (java.io.File. s) false)
+     "UTF-8"))))
+
+
+(defn collect-info-to-file
+  "build the file out-file with all the namespace info for the project described in param-dir"
+  [param-dir out-file]
+  (params-from-dir param-dir)
+  (load-namespaces)
+  (with-open [w (writer out-file)] ; this is basically spit, but we do it
+                                ; here so we don't have clojure version issues
+    (binding [*out* w]
+      (pr (contrib-info)))))

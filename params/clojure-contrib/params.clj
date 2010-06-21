@@ -11,11 +11,19 @@
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
 
-   :clojure-contrib-jar (str root "clojure-contrib-slim.jar"),
-   :clojure-contrib-classes (str root "classes/"),
+   :clojure-contrib-jar (str root "target/clojure-contrib-1.2.0-SNAPSHOT.jar"),
+   :clojure-contrib-classes (str root "target/classes/"),
 
    :namespaces-to-document ["clojure.contrib"],
    :trim-prefix "clojure.contrib.",
+
+   :branches [["master"
+               {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
+                :source-path "src/main/clojure"
+                :load-classpath [(str root "/target/classes")]}],
+              ["1.1.x"
+               {:built-clojure-jar "/home/tom/src/clj/clojure/clojure-slim.jar"
+                :load-classpath [(str root "/classes")]}]]
 
    :load-except-list 
    [ 
@@ -26,6 +34,7 @@
     #"/datalog/example"
     #"/javadoc"
     #"/jmx/Bean"
+    #"/test/clojure/clojure/contrib/"
     ],
 
    :build-json-index true,

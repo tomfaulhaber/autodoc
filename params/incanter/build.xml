@@ -5,19 +5,16 @@
   </description>
 
   <target name="all">
-    <exec executable="mvn" dir="${src-dir}">
-      <arg value="package"/>
-      <arg value="-Dmaven.test.skip=true"/>
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete>
+      <fileset dir="${src-dir}" includes="**/lib/**"/>
+    </delete>
+    <mkdir dir="${src-dir}/lib"/>
+
+    <!-- now execute incanter's build/install script -->
+    <exec executable="/bin/sh" dir="${src-dir}">
+      <arg value="script/install"/>
     </exec>
-    <exec executable="mvn" dir="${src-dir}">
-      <arg value="dependency:copy-dependencies"/>
-      <arg value="-DoutputDirectory=lib"/>
-    </exec>
-    <copy todir="${src-dir}/lib/">
-      <fileset dir="${src-dir}/">
-        <include name="modules/**/lib/*.jar"/>
-      </fileset>
-    </copy>
   </target>
 
 </project>

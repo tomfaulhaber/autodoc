@@ -1,6 +1,4 @@
-(ns autodoc.params
-  (:use [clojure.contrib.pprint :only (cl-format)]
-        [clojure.contrib.pprint.utilities :only (consume)]))
+(ns autodoc.params)
 
 ;;; 
 ;;; Description and default values for settable parameters. These are overridden in the
@@ -21,6 +19,8 @@
       [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
       [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
+      [:load-classpath nil "Extra items on the classpath needed to load (e.g., gen-classed items)."]
+      [:load-jar-dirs nil "Directories with jars to add to classpath when doing loads"]
       [:ext-dir nil nil], ;; only used with ant-wrapper
       
       [:clojure-contrib-jar nil nil], ;; only used with ant-wrapper
@@ -30,6 +30,7 @@
       [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
       [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
       
+      [:branches [[nil {}]] nil] ;; only used with ant-wrapper
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
       [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
       
@@ -43,8 +44,10 @@
 
 (defn params-help 
   ([writer]
-     (cl-format writer "Parameters:~%~:{   --~a: ~a~%~}"
-                (for [[kw _ desc] available-params :when desc] [(name kw) desc]))))
+     (binding [*out* writer]
+       (println "Parameters:")
+       (doseq [[kw _ desc] available-params :when desc]
+         (println (str "   --" (name kw) ": " desc))))))
 
 (defn merge-params 
   "Merge the param map supplied into the params defined in the params var"
@@ -69,6 +72,14 @@
           [[param val] remainder]
           (throw (RuntimeException. (str "No such parameter --" (name param))))))
       [nil arglist])))
+
+(defn consume [func initial-context]
+  (loop [context initial-context
+         acc []]
+    (let [[result new-context] (apply func [context])]
+      (if (not result)
+        [acc new-context]
+      (recur new-context (conj acc result))))))
 
 (defn process-command-line 
   "Process the command line arguments returning [ map-of-params [ remaining-args ]]"

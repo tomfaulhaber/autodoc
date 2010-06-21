@@ -1,27 +1,16 @@
 <project name="clojure-contrib" default="all">
 
   <description>
-    The subsidiary autodoc build file for building the clojure contrib library
+    The subsidiary autodoc build file for building the clojure contrib library, maven version
   </description>
 
   <target name="all">
-    <ant dir="${src-dir}" inheritAll="false">
-      <property name="clojure.jar" value="${clojure-jar}"/>
-      <target name="clean"/>
-      <target name="jar"/>
-    </ant>
-    <delete dir="${src-dir}/classes"/>
-    <ant dir="${src-dir}" inheritAll="false">
-      <property name="clojure.jar" value="${clojure-jar}"/>
-      <target name="compile_classes"/>
-    </ant>
-    <!-- the following deletes are to hack around clojure issue 130 -->
-    <delete>
-      <fileset dir="${src-dir}/classes" includes="**/jmx*.class"/>
-    </delete>
-    <delete dir="${src-dir}/classes/clojure/contrib/jmx"/>
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="package"/>
+      <arg value="-Dclojure.jar=${clojure-jar}"/>
+      <arg value="-Dmaven.test.skip=true"/>
+    </exec>
   </target>
-
 </project>
 
 

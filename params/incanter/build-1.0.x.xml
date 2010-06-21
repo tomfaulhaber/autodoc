@@ -1,0 +1,32 @@
+<project name="incanter" default="all">
+
+  <description>
+    The subsidiary autodoc build file for building incanter
+  </description>
+
+  <target name="all">
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete>
+      <fileset dir="${src-dir}" includes="**/lib/**"/>
+    </delete>
+    <!-- Now do all the Maven craziness -->
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="package"/>
+      <arg value="-Dmaven.test.skip=true"/>
+    </exec>
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="dependency:copy-dependencies"/>
+      <arg value="-DoutputDirectory=lib"/>
+    </exec>
+
+    <!-- Now put all the module jars into lib so collect-info gets them -->
+    <copy todir="${src-dir}/lib/">
+      <fileset dir="${src-dir}/">
+        <include name="modules/**/lib/*.jar"/>
+      </fileset>
+    </copy>
+  </target>
+
+</project>
+
+

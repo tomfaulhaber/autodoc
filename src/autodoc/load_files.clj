@@ -1,17 +1,12 @@
 (ns autodoc.load-files
-  (:import [java.util.jar JarFile])
-  (:use [clojure.contrib.java-utils :only [file]]
-        [clojure.contrib.find-namespaces :only [find-clojure-sources-in-dir]]
-        [clojure.contrib.pprint.utilities :only [prlabel]]
+  (:import [java.util.jar JarFile]
+           [java.io File])
+  (:use [autodoc.find-namespaces :only [find-clojure-sources-in-dir]]
         [autodoc.params :only (params)]))
 
-;;; Load all the files from contrib. This is a little hacked up 
+;;; Load all the files from the source. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
 ;;; to load the files because of bug in namespace metadata
-
-(use 'clojure.contrib.pprint.utilities)
-(use 'clojure.contrib.pprint)
-
 
 (defn not-in [str regex-seq] 
   (loop [regex-seq regex-seq]
@@ -39,15 +34,15 @@
 
 (defn load-files [filelist]
   (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
-    (cl-format true "~a: " filename)
+    (print (str filename ": "))
     (try 
      (load-file filename)
-     (cl-format true "done.~%")
+     (println "done.")
      (catch Exception e 
-       (cl-format true "failed (ex = ~a).~%" (.getMessage e))))))
+       (println  (str "failed (ex = " (.getMessage e) ")"))))))
 
 (defn load-namespaces []
   (load-files
    (map #(.getPath %)
         (find-clojure-sources-in-dir
-         (file (params :root) (params :source-path))))))
+         (File. (params :root) (params :source-path))))))
