@@ -1,16 +1,18 @@
-* Back to level
-** TODO Standalone autodoc working again
-** TODO Webhook operational 
-** Leiningen support
-*** TODO develop strategy for working with Leinigen 1.2
+* Autodoc tasks
+** Back to level
+*** TODO Merge back to master
+*** TODO Standalone autodoc working again
+*** TODO Webhook operational 
+*** Leiningen support
+**** TODO develop strategy for working with Leinigen 1.2
 No clojure dependency allowed in plugin
-**** Option 1: Just port to 1.2 and drop 1.1 support
+***** Option 1: Just port to 1.2 and drop 1.1 support
 I don't thinks this works because standalone requires a clojure dependency 
-**** Option 2: Make a lighweight plug-in module separate from autodoc itself
-**** Option 3: Don't run as a plugin, but support parsing a project.clj file
-* Improved HTML presentation
-* Improved 1.2 Support
-** TODO Document protocols and figure out how to link their methods back to them
-* Bugs
-** TODO Supplementary docs master TOC doesn't work
+***** Option 2: Make a lighweight plug-in module separate from autodoc itself
+***** Option 3: Don't run as a plugin, but support parsing a project.clj file
+** Improved HTML presentation
+** Improved 1.2 Support
+*** TODO Document protocols and figure out how to link their methods back to them
+** Bugs
+*** TODO Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
