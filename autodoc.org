@@ -1,7 +1,8 @@
 * Autodoc tasks
 ** Back to level
-*** TODO Merge back to master
-*** TODO Standalone autodoc working again
+*** DONE Merge back to master
+*** DONE Standalone autodoc working again
+*** TODO Command line option for param-file-driven autodoc building
 *** TODO Webhook operational 
 *** Leiningen support
 **** TODO develop strategy for working with Leinigen 1.2

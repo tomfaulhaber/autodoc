@@ -513,7 +513,7 @@ vars in ns-info that begin with that letter"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-all-pages 
-  ([] (make-all-pages [[nil true nil (contrib-info)]]))
+  ([] (make-all-pages nil true nil (contrib-info)))
   ([branch-name first? all-branches ns-info]
      (prlabel make-all-pages branch-name first? all-branches)
      (let [doc-dir (str (when-not first? 
