@@ -3,7 +3,10 @@
 *** DONE Merge back to master
 *** DONE Standalone autodoc working again
 *** TODO Command line option for param-file-driven autodoc building
-*** TODO Webhook operational 
+*** TODO Webhook operational
+*** TODO Make sure we can standalone autodoc for 1.1 or 1.2 programs
+We should probably use recursive invocation?
+*** TODO Update autodoc to a 1.2 base
 *** Leiningen support
 **** TODO develop strategy for working with Leinigen 1.2
 No clojure dependency allowed in plugin
@@ -17,3 +20,5 @@ I don't thinks this works because standalone requires a clojure dependency
 ** Bugs
 *** TODO Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
+*** TODO Autodoc doesn't work on windows
+This appears to be a pathname thing / vs. \
