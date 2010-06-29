@@ -15,12 +15,14 @@
                     (file-seq (java.io.File. dir)))]
     (delete-file f)))
 
+(defn gen-branch-docs []
+  (clean-html-files (params :output-path))
+  (let [branch-spec (params :branches)]
+    (load-branch-data branch-spec make-all-pages))
+  (when (and (params :commit?) (git-dir? (File. (params :output-path))))
+    (autodoc-commit (File. (params :root)) (File. (params :output-path))
+                    (map first (params :branches)))))
 (defn gen-docs 
-  ([param-dir commit?]
-     (params-from-dir param-dir)
-     (clean-html-files (params :output-path))
-     (let [branch-spec (params :branches)]
-       (load-branch-data branch-spec make-all-pages))
-     (when (and commit? (git-dir? (File. (params :output-path))))
-       (autodoc-commit (File. (params :root)) (File. (params :output-path))
-                       (map first (params :branches))))))
+  [param-dir commit?]
+  (params-from-dir param-dir)
+  (gen-branch-docs))

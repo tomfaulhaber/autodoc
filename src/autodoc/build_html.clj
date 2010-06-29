@@ -207,22 +207,22 @@ looks in the base template directory."
 
 (deffragment make-master-toc *master-toc-file* [ns-info branch-names prefix]
   [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
-                                #(at %
-                                   [:a] (do->
-                                         (set-attr :href (ns-html-file ns))
-                                         (content (:short-name ns)))))
-  [:div.BranchTOC] (when branch-names
-                     #(at %
+                                         #(at %
+                                              [:a] (do->
+                                                    (set-attr :href (ns-html-file ns))
+                                                    (content (:short-name ns)))))
+  [:div.BranchTOC] #(when branch-names
+                      (at %
                           [:ul#left-sidebar-branch-list :li]
                           (clone-for [branch branch-names]
-                            (let [subdir (if (= branch (first branch-names))
-                                           nil
-                                           (str (branch-subdir branch) "/"))]
-                             (fn [n] 
-                               (at n 
-                                   [:a] (do->
-                                         (set-attr :href (str prefix subdir "index.html"))
-                                         (content branch)))))))))
+                                     (let [subdir (if (= branch (first branch-names))
+                                                    nil
+                                                    (str (branch-subdir branch) "/"))]
+                                       (fn [n] 
+                                         (at n 
+                                             [:a] (do->
+                                                   (set-attr :href (str prefix subdir "index.html"))
+                                                   (content branch)))))))))
 
 (deffragment make-local-toc *local-toc-file* [toc-data]
   [:.toc-section] (clone-for [[text tag entries] toc-data]

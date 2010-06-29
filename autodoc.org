@@ -2,7 +2,7 @@
 ** Back to level
 *** DONE Merge back to master
 *** DONE Standalone autodoc working again
-*** TODO Command line option for param-file-driven autodoc building
+*** DONE Command line option for param-file-driven autodoc building
 *** TODO Webhook operational
 *** TODO Make sure we can standalone autodoc for 1.1 or 1.2 programs
 We should probably use recursive invocation?
@@ -22,3 +22,5 @@ I don't thinks this works because standalone requires a clojure dependency
 We need to add the appropriate ../.. stuff to the links on the master TOC
 *** TODO Autodoc doesn't work on windows
 This appears to be a pathname thing / vs. \
+*** TODO Clean up "only used with ant-wrapper" params in params.clj
+*** TODO Make the param-dir option in autodoc.clj better integrated with the rest

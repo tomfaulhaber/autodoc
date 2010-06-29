@@ -5,10 +5,13 @@
    [clojure.contrib.duck-streams :only [make-parents]]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
-   [autodoc.params :only (merge-params params params-help process-command-line)]
+   [autodoc.params :only (merge-params params params-from-dir params-help process-command-line)]
    [autodoc.load-files :only (load-namespaces)]
+   [autodoc.gen-docs :only (gen-branch-docs)]
    [autodoc.build-html :only (make-all-pages)]
    [autodoc.copy-statics :only (copy-statics)])
+  (:import
+   [java.io File])
   (:gen-class))
 
 (defn make-doc-dir [] (make-parents (file (params :output-path) "foo")))
@@ -52,22 +55,37 @@
                   %))
     params))
 
+;;; We really shouldn't be special-casing this!
+(defn has-branches? []
+  (not (let [branches (params :branches)]
+         (and (== (count branches) 1) 
+              (nil? (ffirst branches))))))
+
 (defn autodoc
   ([myparams] (autodoc myparams nil))
   ([myparams cmd & cmd-args]
+     (merge-params {:name (directory-name)})
+     (when-let [dir (myparams :param-dir)]
+       (if (.exists (File. (File. dir) "params.clj"))
+         (params-from-dir dir)))
      (merge-params (clean-params myparams))
-     (if (nil? (params :namespaces-to-document))
-       (merge-params {:namespaces-to-document
-                      (map
-                       name
-                       (find-namespaces-in-dir
-                        (file (params :root)
-                              (params :source-path))))}))
-     (if-let [cmd-sym ((set commands) (symbol (or cmd 'build-html)))]
-       (apply (sym-to-var cmd-sym) cmd-args)
+     (if (has-branches?) 
        (do
-         (cl-format true "Unknown autodoc command: ~a~%" cmd)
-         (help)))))
+         (copy-statics)
+         (gen-branch-docs))
+       (do 
+         (if (nil? (params :namespaces-to-document))
+          (merge-params {:namespaces-to-document
+                         (map
+                          name
+                          (find-namespaces-in-dir
+                           (file (params :root)
+                                 (params :source-path))))}))
+         (if-let [cmd-sym ((set commands) (symbol (or cmd 'build-html)))]
+           (apply (sym-to-var cmd-sym) cmd-args)
+           (do
+             (cl-format true "Unknown autodoc command: ~a~%" cmd)
+             (help)))))))
 
 (defn -main [& args]
   (if-let [[params args] (try 
@@ -76,4 +94,4 @@
                             (println (.getMessage e))
                             (prn)
                             (help)))]
-    (apply autodoc (merge {:name (directory-name)} params) args)))
+    (apply autodoc params args)))
