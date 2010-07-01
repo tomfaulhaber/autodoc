@@ -2,6 +2,7 @@
   :description "A tool to build HTML documentation from your Clojure source"
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
+  :namespaces [autodoc.autodoc]
   :dependencies [[org.clojure/clojure "1.1.0"]
                  [org.clojure/clojure-contrib "1.1.0"]
                  [enlive "1.0.0-SNAPSHOT"]]

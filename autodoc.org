@@ -3,7 +3,7 @@
 *** DONE Merge back to master
 *** DONE Standalone autodoc working again
 *** DONE Command line option for param-file-driven autodoc building
-*** TODO Webhook operational
+*** DONE Webhook operational
 *** TODO Make sure we can standalone autodoc for 1.1 or 1.2 programs
 We should probably use recursive invocation?
 *** TODO Update autodoc to a 1.2 base
@@ -15,6 +15,7 @@ I don't thinks this works because standalone requires a clojure dependency
 ***** Option 2: Make a lighweight plug-in module separate from autodoc itself
 ***** Option 3: Don't run as a plugin, but support parsing a project.clj file
 ** Improved HTML presentation
+*** Make version separation clear
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
 ** Bugs
