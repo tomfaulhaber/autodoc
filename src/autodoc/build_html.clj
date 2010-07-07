@@ -66,14 +66,15 @@ looks in the base template directory."
                 (if-let [nodes# (memo-html-resource ~source)]
                   (flatmap (transformation ~@forms) nodes#))))))
 
-;;; Thanks to Chouser for this regex TODO: except it doesn't work!
+(def url-regex #"\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
+
 (defn expand-links 
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
   (when s
-    (for [x (str/re-partition #"(\w+://.*?)([.>]*(?: |$))" s)]
+    (for [x (str/re-partition url-regex s)]
       (if (vector? x)
-        [{:tag :a :attrs {:href (x 1)} :content [(x 1)]} (x 2)]
+        [{:tag :a :attrs {:href (x 0)} :content [(x 0)]}]
         x))))
 
 (deftemplate page *layout-file*
