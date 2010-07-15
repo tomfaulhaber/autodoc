@@ -16,12 +16,41 @@ I don't thinks this works because standalone requires a clojure dependency
 ***** Option 3: Don't run as a plugin, but support parsing a project.clj file
 ** Improved HTML presentation
 *** Make version separation clear
+**** TODO Define a new branch spec that has real version info in addition to branch name
+For instance "(latest stable release)" or "(active development branch)"
+**** TODO Fix left-hand TOC to be clearer
+**** TODO Add version info to page header and title
+See python docs for a good example
+
+*** Add categories to clojure.core functions
+*** Add pointer back into clojure.core
+**** TODO Add pointer back to clojure.org root from the top of the left-hand TOC
+**** TODO Add pointers to section overview pages for functions (e.g., the Sequences page for instance)
+*** TODO Investigate a better way of handling fixed-width fonts 
+(browser default, <pre><tt></tt></pre>, see #clojure discussion from 12/27/09)
+[[http://clojure-log.n01se.net/date/2009-12-27.html][IRC Log]]
+*** TODO Remove, improve namespace level usage message.
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
+** Complete the gh-pages doc
+*** TODO Figure out missing sections
+*** TODO add layout/style to gh-pages doc 
+(look at http://wiki.github.com/mojombo/jekyll/configuration  for examples)
+*** TODO include pygments style in gh-doc 
+(see http://github.com/mojombo/tpw/blob/master/css/syntax.css)
+** New features
+*** Image support
+**** TODO Figure out how to do image support for Incanter
+*** Maven task
+**** TODO Build a Maven taks for autodoc
 ** Bugs
-*** TODO Supplementary docs master TOC doesn't work
+*** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
 *** TODO Autodoc doesn't work on windows
 This appears to be a pathname thing / vs. \
 *** TODO Clean up "only used with ant-wrapper" params in params.clj
 *** TODO Make the param-dir option in autodoc.clj better integrated with the rest
+*** TODO Remove all refs to contrib
+*** TODO Figure out why Condition/-init doesn't seem to generate an index entry
+Is this still a bug?
+*** DONE Fix url detection so that it always works
