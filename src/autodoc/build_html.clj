@@ -176,7 +176,9 @@ looks in the base template directory."
     (do->
      (set-attr :id (:short-name ns))
      (content (:short-name ns)))
-    [:#author] (content (or (:author ns) "unknown author"))
+    [:#author-line] (when (:author ns)
+                 #(at % [:#author-name] 
+                      (content (:author ns))))
     [:a#api-link] (set-attr :href (ns-html-file ns))
     [:pre#namespace-docstr] (content (expand-links (:doc ns)))
     [:span#var-link] (add-ns-vars ns)
@@ -334,7 +336,9 @@ actually changed). This reduces the amount of random doc file changes that happe
     (at node
         [:#namespace-name] (content (:short-name ns))
         [:#branch-name] (when branch (content (str "(" branch " branch)")))
-        [:span#author] (content (or (:author ns) "Unknown"))
+        [:span#author-line] (when (:author ns)
+                              #(at % [:#author-name] 
+                                   (content (:author ns))))
         [:span#long-name] (content (:full-name ns))
         [:pre#namespace-docstr] (content (expand-links (:doc ns)))
         [:span#see-also] (see-also-links ns)
