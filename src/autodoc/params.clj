@@ -30,7 +30,7 @@
       [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
       [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
       
-      [:branches [[nil {}]] nil] ;; only used with ant-wrapper
+      [:branches [[nil {}]] nil]
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
       [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
       
@@ -82,8 +82,21 @@
         [acc new-context]
       (recur new-context (conj acc result))))))
 
+(defmulti convert-val (fn [x _] (class x)))
+(defmethod convert-val :default [default-val arg-str] arg-str)
+(defmethod convert-val java.lang.Integer [default-val arg-str] (java.lang.Integer/valueOf arg-str))
+(defmethod convert-val java.lang.Boolean [default-val arg-str] 
+  (condp = arg-str
+    "true" true
+    "false" false
+    (throw (IllegalArgumentException. "Boolean argument doesn't have boolean value (true or false)"))))
+
+(defn convert-arg [param arg-str]
+  (let [default-val (params param)] 
+    (convert-val default-val arg-str)))
+
 (defn process-command-line 
   "Process the command line arguments returning [ map-of-params [ remaining-args ]]"
   [args]
   (let [[params args] (consume extract-arg args)]
-    [(into {} params) (into [] args)]))
+    [(into {} (for [[p v] params] [p (convert-arg p v)])) (into [] args)]))

@@ -3,7 +3,7 @@
 file=$1
 
 if [ $# -lt 2 ]; then 
-    commit=1
+    commit=true
 else
     commit=$2
 fi

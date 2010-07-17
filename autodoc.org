@@ -54,3 +54,4 @@ This appears to be a pathname thing / vs. \
 *** TODO Figure out why Condition/-init doesn't seem to generate an index entry
 Is this still a bug?
 *** DONE Fix url detection so that it always works
+*** TODO Supress author tag when none provided
