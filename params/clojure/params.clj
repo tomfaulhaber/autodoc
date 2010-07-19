@@ -19,9 +19,9 @@
    :namespaces-to-document ["clojure.core" "clojure.core.protocols"
                             "clojure.inspector" "clojure.main" "clojure.pprint"
                             "clojure.repl" 
-                            "clojure.set" "clojure.stacktrace" "clojure.template"
-                            "clojure.test" "clojure.walk" "clojure.xml"
-                            "clojure.zip"
+                            "clojure.set" "clojure.stacktrace" "clojure.string"
+                            "clojure.template" "clojure.test" "clojure.walk" 
+                            "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell"],
 
