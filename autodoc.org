@@ -16,20 +16,28 @@ I don't thinks this works because standalone requires a clojure dependency
 ***** Option 3: Don't run as a plugin, but support parsing a project.clj file
 ** Improved HTML presentation
 *** Make version separation clear
-**** TODO Define a new branch spec that has real version info in addition to branch name
+**** DONE Define a new branch spec that has real version info in addition to branch name
 For instance "(latest stable release)" or "(active development branch)"
-**** TODO Fix left-hand TOC to be clearer
+**** Fix left-hand TOC to be clearer
+***** DONE Add "Other Versions" and move it to the bottom
+***** DONE Add a TOC Header that includes the current version
+***** TODO Add styling for toc_header class in master toc
+***** TODO Add version status
 **** TODO Add version info to page header and title
 See python docs for a good example
 
+**** TODO Add a blurb for each version to be inserted in the overview file and say what it's about
 *** Add categories to clojure.core functions
 *** Add pointer back into clojure.core
-**** TODO Add pointer back to clojure.org root from the top of the left-hand TOC
+**** DONE Add pointer back to clojure.org root from the top of the left-hand TOC
 **** TODO Add pointers to section overview pages for functions (e.g., the Sequences page for instance)
 *** TODO Investigate a better way of handling fixed-width fonts 
 (browser default, <pre><tt></tt></pre>, see #clojure discussion from 12/27/09)
 [[http://clojure-log.n01se.net/date/2009-12-27.html][IRC Log]]
 *** TODO Remove, improve namespace level usage message.
+*** TODO Add "last updated", git version info
+But figure out how to do this without gratuitous page changes
+*** TODO Make sub-namespace presentation better
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
 ** Complete the gh-pages doc

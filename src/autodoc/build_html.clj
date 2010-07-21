@@ -199,26 +199,29 @@ looks in the base template directory."
 
 (deffragment make-project-description *description-file* [])
 
-(deffragment make-overview-content *overview-file* [branch ns-info]
+(deffragment make-overview-content *overview-file* [branch-info ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
-  [:#branch-name] (when branch (content (str "(" branch " branch)")))
+  [:span#header-version] (content (:version branch-info))
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
 
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
-(deffragment make-master-toc *master-toc-file* [ns-info branch-names prefix]
+(deffragment make-master-toc *master-toc-file* [ns-info branch-info all-branch-info prefix]
+  [:#project-name] (content (:name params))
+  [:#version] (content (:version branch-info))
   [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
                                          #(at %
                                               [:a] (do->
                                                     (set-attr :href (ns-html-file ns))
                                                     (content (:short-name ns)))))
-  [:div.BranchTOC] #(when branch-names
+  [:div.BranchTOC] #(when all-branch-info
                       (at %
                           [:ul#left-sidebar-branch-list :li]
-                          (clone-for [branch branch-names]
-                                     (let [subdir (if (= branch (first branch-names))
+                          (clone-for [branch (filter #(not (= % (:version branch-info)))
+                                                     (map :version all-branch-info))]
+                                     (let [subdir (if (= branch (:version (first all-branch-info)))
                                                     nil
                                                     (str (branch-subdir branch) "/"))]
                                        (fn [n] 
@@ -240,10 +243,10 @@ looks in the base template directory."
                                                  (set-attr :href (str "#" subtag))
                                                  (content subtext))))))))
 
-(defn make-overview [ns-info master-toc branch first-branch? prefix]
+(defn make-overview [ns-info master-toc branch-info prefix]
   (create-page "index.html"
-               (when (not first-branch?) branch)
-               (str (params :name) " - Overview")
+               (when (not (:first? branch-info)) (:name branch-info))
+               (cl-format nil "Overview - ~a ~a API documentation" (params :name) (:version branch-info))
                prefix
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -518,19 +521,20 @@ vars in ns-info that begin with that letter"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-all-pages 
-  ([] (make-all-pages nil true nil (contrib-info)))
-  ([branch-name first? all-branches ns-info]
-     (prlabel make-all-pages branch-name first? all-branches)
-     (let [doc-dir (str (when-not first? 
-                          (str (branch-subdir branch-name) "/")) 
+  ([] (make-all-pages {:first? true} nil (contrib-info)))
+  ([branch-info all-branch-info ns-info]
+     (prlabel make-all-pages branch-info all-branch-info)
+     (let [doc-dir (str (when-not (:first? branch-info) 
+                          (str (branch-subdir (:name branch-info)) "/")) 
                         "doc")]
-       (let [prefix (if first? nil "../")
-             master-toc (make-master-toc ns-info all-branches prefix)
+       (let [prefix (if (:first? branch-info) nil "../")
+             master-toc (make-master-toc ns-info branch-info all-branch-info prefix)
              external-docs (wrap-external-doc doc-dir master-toc)]
          (prlabel make-all-pages external-docs)
-         (make-overview ns-info master-toc branch-name first? prefix)
+         (make-overview ns-info master-toc branch-info prefix)
+         ;;; TODO: from here up has been modified
          (doseq [ns ns-info]
-           (make-ns-page ns master-toc external-docs branch-name first? prefix))
-         (make-index-html ns-info master-toc branch-name first? prefix)
-         (make-index-json ns-info branch-name)))))
+           (make-ns-page ns master-toc external-docs branch-info prefix))
+         (make-index-html ns-info master-toc branch-info prefix)
+         (make-index-json ns-info (:name branch-info))))))
 

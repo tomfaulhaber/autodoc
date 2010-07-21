@@ -85,22 +85,24 @@
               "-buildfile" build-file))))
 
 (defn with-first [s]
-  (map #(vector %1 %2) s (conj (repeat false) true)))
+  (map #(assoc %1 :first? %2) s (conj (repeat false) true)))
 
 (defn load-branch-data 
   "Collects the doc data from all the branches specified in the params and
- executes the function f for each branch with the collected data. When f is executed, 
- the correct branch will be checked out and any branch-specific parameters 
- will be bound. Takes a spec of [[branch-name parameter-overides] ... ] and 
- calls f as (f branch-name first? ns-info)."
-  [branch-spec f]
-  (doseq [[[branch-name param-overrides] first?] (with-first branch-spec)]
-    (binding [params (merge params param-overrides)]
-      (when branch-name (switch-branches branch-name))
-      (do-build (params :param-dir) branch-name)
-      (xform-tree (str (params :root) "/doc")
-                  (str (params :output-path) "/"
-                       (when-not first? (str (branch-subdir branch-name) "/"))
-                       "doc"))
-      (let [all-branch-names (seq (filter identity (map first branch-spec)))] 
-        (f branch-name first? all-branch-names (doall (do-collect)))))))
+   executes the function f for each branch with the collected data. When f is executed, 
+   the correct branch will be checked out and any branch-specific parameters 
+   will be bound. Takes an array of maps, one for each branch that will be
+   documented. Each map has the keys :name, :version, :status and :params.
+   It calls f as (f branch-info all-branch-info ns-info).
+  [branch-spec f]"
+  (let [branch-spec (with-first branch-spec)]
+    (doseq [branch-info branch-spec]
+      (binding [params (merge params (:params branch-info))]
+        (when branch-name (switch-branches (:name branch-info)))
+        (do-build (params :param-dir) (:name branch-info))
+        (xform-tree (str (params :root) "/doc")
+                    (str (params :output-path) "/"
+                         (when-not (:first? branch-info)
+                           (str (branch-subdir (:name branch-info)) "/"))
+                         "doc"))
+        (f branch-info branch-spec (doall (do-collect)))))))
