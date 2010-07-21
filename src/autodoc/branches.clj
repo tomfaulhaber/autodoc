@@ -93,12 +93,12 @@
    the correct branch will be checked out and any branch-specific parameters 
    will be bound. Takes an array of maps, one for each branch that will be
    documented. Each map has the keys :name, :version, :status and :params.
-   It calls f as (f branch-info all-branch-info ns-info).
-  [branch-spec f]"
+   It calls f as (f branch-info all-branch-info ns-info)."
+  [branch-spec f]
   (let [branch-spec (with-first branch-spec)]
     (doseq [branch-info branch-spec]
       (binding [params (merge params (:params branch-info))]
-        (when branch-name (switch-branches (:name branch-info)))
+        (when (:name branch-info) (switch-branches (:name branch-info)))
         (do-build (params :param-dir) (:name branch-info))
         (xform-tree (str (params :root) "/doc")
                     (str (params :output-path) "/"

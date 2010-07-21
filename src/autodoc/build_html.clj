@@ -219,16 +219,17 @@ looks in the base template directory."
   [:div.BranchTOC] #(when all-branch-info
                       (at %
                           [:ul#left-sidebar-branch-list :li]
-                          (clone-for [branch (filter #(not (= % (:version branch-info)))
-                                                     (map :version all-branch-info))]
-                                     (let [subdir (if (= branch (:version (first all-branch-info)))
+                          (clone-for [[version branch] (filter (fn [[v _]] (not (= v (:version branch-info))))
+                                                               (map (fn [i] [(:version i) (:name i)])
+                                                                    all-branch-info))]
+                                     (let [subdir (if (= version (:version (first all-branch-info)))
                                                     nil
                                                     (str (branch-subdir branch) "/"))]
                                        (fn [n] 
                                          (at n 
                                              [:a] (do->
                                                    (set-attr :href (str prefix subdir "index.html"))
-                                                   (content branch)))))))))
+                                                   (content version)))))))))
 
 (deffragment make-local-toc *local-toc-file* [toc-data]
   [:.toc-section] (clone-for [[text tag entries] toc-data]
@@ -250,7 +251,7 @@ looks in the base template directory."
                prefix
                master-toc
                (make-local-toc (overview-toc-data ns-info))
-               (make-overview-content branch ns-info)))
+               (make-overview-content branch-info ns-info)))
 
 ;;; TODO: redo this so the usage parts can be styled
 (defn var-usage [v]
@@ -301,7 +302,7 @@ actually changed). This reduces the amount of random doc file changes that happe
       (cl-format nil "~a#L~d" web-file (:line v)))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
-(defn var-details [ns v template branch]
+(defn var-details [ns v template branch-info]
   (at template 
     [:#var-tag] 
     (do->
@@ -310,7 +311,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
-    [:a#var-source] (fn [n] (when-let [link (var-src-link v branch)]
+    [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
                               (apply (set-attr :href link) [n])))
     [:.var-added] (when (:added v)
                    #(at % [:#content]
@@ -324,21 +325,22 @@ actually changed). This reduces the amount of random doc file changes that happe
 (declare common-namespace-api)
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
- [ns branch external-docs]
-  (common-namespace-api ns branch external-docs))
+ [ns branch-info external-docs]
+  (common-namespace-api ns branch-info external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
- [ns branch external-docs]
-  (common-namespace-api ns branch external-docs))
+ [ns branch-info external-docs]
+  (common-namespace-api ns branch-info external-docs))
 
-(defn make-ns-content [ns branch external-docs]
-  (render-namespace-api ns branch external-docs))
+(defn make-ns-content [ns branch-info external-docs]
+  (render-namespace-api ns branch-info external-docs))
 
-(defn common-namespace-api [ns branch external-docs]
+(defn common-namespace-api [ns branch-info external-docs]
   (fn [node]
     (at node
         [:#namespace-name] (content (:short-name ns))
-        [:#branch-name] (when branch (content (str "(" branch " branch)")))
+        [:#header-project] (content (:name params))
+        [:#header-version] (content (:version branch-info))
         [:span#author-line] (when (:author ns)
                               #(at % [:#author-name] 
                                    (content (:author ns))))
@@ -353,18 +355,18 @@ actually changed). This reduces the amount of random doc file changes that happe
                                  (content (str "Deprecated since " (params :name)
                                                " version " (:deprecated ns)))))
         [:span#external-doc] (external-doc-links ns external-docs)
-        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch))
+        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch-info))
         [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % branch external-docs) (:subspaces ns))))))
+        (substitute (map #(render-sub-namespace-api % branch-info external-docs) (:subspaces ns))))))
 
-(defn make-ns-page [ns master-toc external-docs branch first-branch? prefix]
+(defn make-ns-page [ns master-toc external-docs branch-info prefix]
   (create-page (ns-html-file ns)
-               (when (not first-branch?) branch)
-               (str (:short-name ns) " API reference (" (params :name) ")")
+               (when (not (:first? branch-info)) (:name branch-info))
+               (cl-format nil "~a - ~a ~a API documentation" (:short-name ns) (params :name) (:version branch-info))
                prefix
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns branch external-docs)))
+               (make-ns-content ns branch-info external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -407,9 +409,9 @@ vars in ns-info that begin with that letter"
                                       (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
-(deffragment make-index-content *index-html-file* [branch vars-by-letter]
-  [:span.project-name-span] (content (params :name))
-  [:#branch-name] (when branch (content (str "(" branch " branch)")))
+(deffragment make-index-content *index-html-file* [branch-info vars-by-letter]
+  [:#header-project] (content (:name params))
+  [:#header-version] (content (:version branch-info))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
@@ -417,14 +419,14 @@ vars in ns-info that begin with that letter"
                          [:span#section-content] (clone-for [[v ns] vars]
                                                    (gen-index-line v ns)))))
 
-(defn make-index-html [ns-info master-toc branch first-branch? prefix]
+(defn make-index-html [ns-info master-toc branch-info prefix]
   (create-page *index-html-file*
-               (when (not first-branch?) branch)
-               (str (params :name) " - Index")
+               (when (not (:first? branch-info)) (:name branch-info))
+               (cl-format nil "Index - ~a ~a API documentation" (params :name) (:version branch-info))
                prefix
                master-toc
                nil
-               (make-index-content branch (vars-by-letter ns-info))))
+               (make-index-content branch-info (vars-by-letter ns-info))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -532,7 +534,6 @@ vars in ns-info that begin with that letter"
              external-docs (wrap-external-doc doc-dir master-toc)]
          (prlabel make-all-pages external-docs)
          (make-overview ns-info master-toc branch-info prefix)
-         ;;; TODO: from here up has been modified
          (doseq [ns ns-info]
            (make-ns-page ns master-toc external-docs branch-info prefix))
          (make-index-html ns-info master-toc branch-info prefix)

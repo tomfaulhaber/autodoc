@@ -21,9 +21,9 @@ For instance "(latest stable release)" or "(active development branch)"
 **** Fix left-hand TOC to be clearer
 ***** DONE Add "Other Versions" and move it to the bottom
 ***** DONE Add a TOC Header that includes the current version
-***** TODO Add styling for toc_header class in master toc
+***** DONE Add styling for toc_header class in master toc
 ***** TODO Add version status
-**** TODO Add version info to page header and title
+**** DONE Add version info to page header and title
 See python docs for a good example
 
 **** TODO Add a blurb for each version to be inserted in the overview file and say what it's about
@@ -62,4 +62,6 @@ This appears to be a pathname thing / vs. \
 *** TODO Figure out why Condition/-init doesn't seem to generate an index entry
 Is this still a bug?
 *** DONE Fix url detection so that it always works
-*** TODO Supress author tag when none provided
+*** DONE Supress author tag when none provided
+*** TODO Make &mdash; work in headers and titles
+Enlive seems to not escape this correctly (probably it's just tag soup underneath)
