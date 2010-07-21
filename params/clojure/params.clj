@@ -25,7 +25,12 @@
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell"],
 
-   :branches [{:name "master"
+   :branches [{:name "1.2.x"
+               :version "v1.2" 
+               :status "beta 1"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
+              {:name "master"
                :version "next" 
                :status "in development"
                :params {:built-clojure-jar

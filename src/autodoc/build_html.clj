@@ -202,6 +202,7 @@ looks in the base template directory."
 (deffragment make-overview-content *overview-file* [branch-info ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
   [:span#header-version] (content (:version branch-info))
+  [:span#header-status] (content (:status branch-info))
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
@@ -219,17 +220,18 @@ looks in the base template directory."
   [:div.BranchTOC] #(when all-branch-info
                       (at %
                           [:ul#left-sidebar-branch-list :li]
-                          (clone-for [[version branch] (filter (fn [[v _]] (not (= v (:version branch-info))))
-                                                               (map (fn [i] [(:version i) (:name i)])
-                                                                    all-branch-info))]
+                          (clone-for [{:keys [version name status]}
+                                      (filter (fn [{v :version}]
+                                                (not (= v (:version branch-info))))
+                                              all-branch-info)]
                                      (let [subdir (if (= version (:version (first all-branch-info)))
                                                     nil
-                                                    (str (branch-subdir branch) "/"))]
+                                                    (str (branch-subdir name) "/"))]
                                        (fn [n] 
                                          (at n 
                                              [:a] (do->
                                                    (set-attr :href (str prefix subdir "index.html"))
-                                                   (content version)))))))))
+                                                   (content (cl-format nil "~a (~a)" version status))))))))))
 
 (deffragment make-local-toc *local-toc-file* [toc-data]
   [:.toc-section] (clone-for [[text tag entries] toc-data]
@@ -341,6 +343,7 @@ actually changed). This reduces the amount of random doc file changes that happe
         [:#namespace-name] (content (:short-name ns))
         [:#header-project] (content (:name params))
         [:#header-version] (content (:version branch-info))
+        [:#header-status] (content (:status branch-info))
         [:span#author-line] (when (:author ns)
                               #(at % [:#author-name] 
                                    (content (:author ns))))
@@ -412,6 +415,7 @@ vars in ns-info that begin with that letter"
 (deffragment make-index-content *index-html-file* [branch-info vars-by-letter]
   [:#header-project] (content (:name params))
   [:#header-version] (content (:version branch-info))
+  [:#header-status] (content (:status branch-info))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)
