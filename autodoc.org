@@ -69,3 +69,4 @@ Is this still a bug?
 *** TODO Make &mdash; work in headers and titles
 Enlive seems to not escape this correctly (probably it's just tag soup underneath)
 *** TODO Fix "no project specified" at the top of the API index page!
+*** TODO Make the sub-namespace links on a namespace right hand TOC work
