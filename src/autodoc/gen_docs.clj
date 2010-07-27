@@ -21,7 +21,7 @@
     (load-branch-data branch-spec make-all-pages))
   (when (and (params :commit?) (git-dir? (File. (params :output-path))))
     (autodoc-commit (File. (params :root)) (File. (params :output-path))
-                    (map first (params :branches)))))
+                    (map :name (params :branches)))))
 (defn gen-docs 
   [param-dir commit?]
   (params-from-dir param-dir)

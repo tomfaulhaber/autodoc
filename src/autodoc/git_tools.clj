@@ -69,7 +69,7 @@ root of a git repo)"
   [dir branches]
   (cl-format nil "Autodoc commit for ~{~{~@[~a/~]~a~}~^, ~}" 
              (if branches
-               (for [{name :name} branches] [name (git-hash dir name 8)])
+               (for [name branches] [name (git-hash dir name 8)])
                [[nil (git-hash dir "HEAD" 8)]])))
 
 (defn git-commit
