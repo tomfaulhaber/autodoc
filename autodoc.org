@@ -22,14 +22,15 @@ For instance "(latest stable release)" or "(active development branch)"
 ***** DONE Add "Other Versions" and move it to the bottom
 ***** DONE Add a TOC Header that includes the current version
 ***** DONE Add styling for toc_header class in master toc
-***** TODO Add version status
+***** DONE Add version status
 **** DONE Add version info to page header and title
 See python docs for a good example
 
 **** TODO Add a blurb for each version to be inserted in the overview file and say what it's about
-*** Add categories to clojure.core functions
+*** TODO Add categories to clojure.core functions
 *** Add pointer back into clojure.core
 **** DONE Add pointer back to clojure.org root from the top of the left-hand TOC
+**** TODO Make back-pointer a per-project parameter
 **** TODO Add pointers to section overview pages for functions (e.g., the Sequences page for instance)
 *** TODO Investigate a better way of handling fixed-width fonts 
 (browser default, <pre><tt></tt></pre>, see #clojure discussion from 12/27/09)
@@ -38,6 +39,8 @@ See python docs for a good example
 *** TODO Add "last updated", git version info
 But figure out how to do this without gratuitous page changes
 *** TODO Make sub-namespace presentation better
+*** TODO Mark deprecated fns, namespaces wherever they are mentioned 
+by italics, maybe
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
 ** Complete the gh-pages doc

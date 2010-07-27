@@ -17,13 +17,23 @@
    :namespaces-to-document ["clojure.contrib"],
    :trim-prefix "clojure.contrib.",
 
-   :branches [["master"
-               {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
-                :source-path "src/main/clojure"
-                :load-classpath [(str root "/target/classes")]}],
-              ["1.1.x"
-               {:built-clojure-jar "/home/tom/src/clj/clojure/clojure-slim.jar"
-                :load-classpath [(str root "/classes")]}]]
+   :branches [{:name "1.2.x"
+               :version "v1.2"
+               :status "beta 1"
+               :params {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
+                        :source-path "src/main/clojure"
+                        :load-classpath [(str root "/target/classes")]}},
+              {:name "master"
+               :version "next"
+               :status "in development"
+               :params {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
+                        :source-path "src/main/clojure"
+                        :load-classpath [(str root "/target/classes")]}},
+              {:name "1.1.x"
+               :version "v1.1"
+               :status "stable"
+               :params {:built-clojure-jar "/home/tom/src/clj/clojure/clojure-slim.jar"
+                        :load-classpath [(str root "/classes")]}}]
 
    :load-except-list 
    [ 

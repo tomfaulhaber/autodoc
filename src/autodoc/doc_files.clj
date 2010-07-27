@@ -53,7 +53,7 @@ transforming files as appropriate."
   (delete-file-recursively (File. dst) true)
   ;; Now walk the source tree copying/transforming each file
   (when (.exists (File. src))
-    (.mkdir (File. dst))
+    (.mkdirs (File. dst))
     (let [path-offset (+ (.length src) (if (.endsWith src "/") 1 0))]
       (doseq [src-file (next (file-seq (java.io.File. src)))]
         (let [relative-path (.substring (.getPath src-file) path-offset)]

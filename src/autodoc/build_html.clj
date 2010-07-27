@@ -416,6 +416,7 @@ vars in ns-info that begin with that letter"
   [:#header-project] (content (:name params))
   [:#header-version] (content (:version branch-info))
   [:#header-status] (content (:status branch-info))
+  [:#.project-name-span] (content (:name params))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
                       #(at %
                          [:h2] (set-attr :id letter)

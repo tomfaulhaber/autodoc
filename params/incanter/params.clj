@@ -18,10 +18,14 @@
    :namespaces-to-document ["incanter"],
    :trim-prefix "incanter.",
 
-   :branches [["master"
-               {:built-clojure-jar (str root "lib/clojure-1.2.0-master-20100424.190113-45.jar")}],
-              ["1.0.x"
-               {:built-clojure-jar (str root "lib/clojure-slim.jar")}]]
+   :branches [{:name "master"
+               :version "next"
+               :status "in development"
+               :params {:built-clojure-jar (str root "lib/clojure-1.2.0-master-20100424.190113-45.jar")}},
+              {:name "1.0.x"
+               :version "1.0"
+               :status "stable"
+               :params {:built-clojure-jar (str root "lib/clojure-slim.jar")}}]
 
    :load-except-list [#"/test/" #"/classes/" #"project.clj$"],
    })

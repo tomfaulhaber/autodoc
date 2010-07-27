@@ -7,9 +7,9 @@
    :file-prefix file-prefix,
    :root root,
    :source-path "src/clj",
-   :web-src-dir "http://github.com/richhickey/clojure/blob/",
+   :web-src-dir "http://github.com/clojure/clojure/blob/",
 
-   :web-home "http://richhickey.github.com/clojure-contrib/",
+   :web-home "http://clojure.github.com/clojure/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
    :jar-file (str root "clojure-slim.jar"),
