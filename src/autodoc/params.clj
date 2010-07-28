@@ -11,22 +11,17 @@
       [:description nil "A description of this project"],
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
       
-      [:file-prefix nil nil], ;; only used with ant-wrapper
       [:root "." "The directory in which to find the project"],
       [:source-path "src" "The relative path within the project directory where we find the source"],
-      [:web-src-dir nil "The web address for source files (e.g., http://github.com/richhickey/clojure/blob/)"],
+      [:web-src-dir nil "The web address for source files (e.g., http://github.com/clojure/clojure/blob/)"],
       
       [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
       [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
       [:load-classpath nil "Extra items on the classpath needed to load (e.g., gen-classed items)."]
       [:load-jar-dirs nil "Directories with jars to add to classpath when doing loads"]
-      [:ext-dir nil nil], ;; only used with ant-wrapper
       
-      [:clojure-contrib-jar nil nil], ;; only used with ant-wrapper
-      [:clojure-contrib-classes nil nil], ;; only used with ant-wrapper
-      
-      [:built-clojure-jar nil nil],;; only used with ant-wrapper
+      [:built-clojure-jar nil nil],
       [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
       [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
       
