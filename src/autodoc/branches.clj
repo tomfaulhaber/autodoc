@@ -47,7 +47,7 @@
                    (file-seq (java.io.File. jar-dir))))))
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
-  []
+  [branch-name]
   (let [class-path (concat 
                     (filter 
                      identity
@@ -62,9 +62,10 @@
     (exec-clojure class-path 
                   (cl-format 
                    nil 
-                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\")"
+                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\")"
                    (params :param-dir)
-                   (.getAbsolutePath tmp-file)))
+                   (.getAbsolutePath tmp-file)
+                   branch-name))
     (try 
      (with-open [f (java.io.PushbackReader. (reader tmp-file))] 
        (binding [*in* f] (read)))
@@ -105,4 +106,4 @@
                          (when-not (:first? branch-info)
                            (str (branch-subdir (:name branch-info)) "/"))
                          "doc"))
-        (f branch-info branch-spec (doall (do-collect)))))))
+        (f branch-info branch-spec (doall (do-collect (:name branch-info))))))))

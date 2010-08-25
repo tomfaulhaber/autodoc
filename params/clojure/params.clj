@@ -27,19 +27,19 @@
 
    :branches [{:name "1.2.x"
                :version "v1.2" 
-               :status "beta 1"
-               :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
-              {:name "master"
-               :version "next" 
-               :status "in development"
+               :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
               {:name "1.1.x" 
                :version "v1.1"
                :status "stable"
                :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}]
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
+              {:name "master"
+               :version "next" 
+               :status "in development"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}],
    :load-except-list 
    [ 
     #"clojure/core.clj"

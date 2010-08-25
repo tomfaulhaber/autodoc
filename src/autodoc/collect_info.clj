@@ -137,10 +137,11 @@ versioning reasons"
 
 (defn collect-info-to-file
   "build the file out-file with all the namespace info for the project described in param-dir"
-  [param-dir out-file]
+  [param-dir out-file branch-name]
   (params-from-dir param-dir)
-  (load-namespaces)
-  (with-open [w (writer out-file)] ; this is basically spit, but we do it
-                                ; here so we don't have clojure version issues
-    (binding [*out* w]
-      (pr (contrib-info)))))
+  (binding [params (merge params (some #(when (= branch-name (:name %)) (:params %)) (params :branches)))]
+    (load-namespaces)
+    (with-open [w (writer out-file)] ; this is basically spit, but we do it
+                                        ; here so we don't have clojure version issues
+      (binding [*out* w]
+        (pr (contrib-info))))))
