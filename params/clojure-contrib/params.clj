@@ -47,7 +47,8 @@
     #"/javadoc"
     #"/jmx/Bean"
     #"/test/clojure/clojure/contrib/"
-    #"/target/classses/"
+    #"/target/classes/"
+    #"/target/test-classes/"
     ],
 
    :build-json-index true,
