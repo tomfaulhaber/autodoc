@@ -56,6 +56,7 @@ by italics, maybe
 **** TODO Build a Maven taks for autodoc
 *** Search support
 **** TODO Figure out how search support should work
+** TODO Deprecate pages at richhickey.github.com
 ** Bugs
 *** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
@@ -72,7 +73,8 @@ Is this still a bug?
 Enlive seems to not escape this correctly (probably it's just tag soup underneath)
 *** DONE Fix "no project specified" at the top of the API index page!
 *** TODO Make the sub-namespace links on a namespace right hand TOC work
-*** TODO Get source links working right again
+*** DONE Get source links working right again
 *** TODO Get non-master updates to trigger auto builds
 *** TODO Fix left-TOC on ie (ul styling on first category)
-*** TODO Fix modular contrib docs
+*** DONE Fix modular contrib docs
+*** TODO Add version number info to wrapped markdown files
