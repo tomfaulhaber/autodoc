@@ -25,7 +25,7 @@
                         :source-path "src/main/clojure"
                         :load-classpath [(str root "/target/classes")]}},
               {:name "master"
-               :version "next"
+               :version "v1.3"
                :status "in development"
                :params {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
                         :source-path "modules"

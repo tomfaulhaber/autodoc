@@ -30,14 +30,14 @@
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
+              {:name "master"
+               :version "v1.3" 
+               :status "in development"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}, 
               {:name "1.1.x" 
                :version "v1.1"
                :status "stable"
-               :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
-              {:name "master"
-               :version "next" 
-               :status "in development"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}],
    :load-except-list 
