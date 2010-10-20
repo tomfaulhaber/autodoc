@@ -21,7 +21,7 @@
    :branches [{:name "master"
                :version "next"
                :status "in development"
-               :params {:built-clojure-jar (str root "lib/clojure-1.2.0-master-20100424.190113-45.jar")}},
+               :params {:built-clojure-jar (str root "lib/clojure-1.2.0.jar")}},
               {:name "1.0.x"
                :version "1.0"
                :status "stable"
