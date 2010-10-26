@@ -36,7 +36,14 @@
 
 (def param-set (set (for [[kw _ _] available-params] kw)))
 
-(defonce params (into {} (for [[kw val _] available-params] [kw val])))
+
+(defmacro defdyn [& stuff]
+  `(if (and (= 1 (:major *clojure-version*))
+            (< 2 (:minor *clojure-version*))) 
+     (do (println "old style") (def ~@stuff))
+     (do (println "new style") (def ^:dynamic ~@stuff))))
+
+(defdyn params (into {} (for [[kw val _] available-params] [kw val])))
 
 (defn params-help 
   ([writer]
