@@ -37,11 +37,11 @@
 (def param-set (set (for [[kw _ _] available-params] kw)))
 
 
-(defmacro defdyn [& stuff]
+(defmacro defdyn [name & stuff]
   `(if (and (= 1 (:major *clojure-version*))
-            (< 2 (:minor *clojure-version*))) 
-     (do (println "old style") (def ~@stuff))
-     (do (println "new style") (def ^:dynamic ~@stuff))))
+            (> 2 (:minor *clojure-version*))) 
+     (def ~name ~@stuff)
+     (def ~(with-meta name {:dynamic true}) ~@stuff)))
 
 (defdyn params (into {} (for [[kw val _] available-params] [kw val])))
 
