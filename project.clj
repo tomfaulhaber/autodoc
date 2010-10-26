@@ -3,8 +3,7 @@
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
   :namespaces [autodoc.autodoc]
-  :dependencies [[org.clojure/clojure "1.1.0"]
-                 [org.clojure/clojure-contrib "1.1.0"]
+  :dependencies [[org.clojure/clojure "1.2.0"]
+                 [org.clojure/clojure-contrib "1.2.0"]
                  [enlive "1.0.0-SNAPSHOT"]]
-  :dev-dependencies [[leiningen/lein-swank "1.0.0-SNAPSHOT"]
-                     [lein-clojars "0.5.0-SNAPSHOT"]])
+  :dev-dependencies [[org.clojure/swank-clojure "1.2.0"]])
