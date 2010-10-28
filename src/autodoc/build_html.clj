@@ -4,9 +4,8 @@
            [java.io File FileWriter BufferedWriter StringReader])
   (:require [clojure.contrib.str-utils :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
-        [clojure.contrib.pprint :only (pprint cl-format)]
-        [clojure.contrib.pprint.examples.json :only (print-json)]
-        [clojure.contrib.pprint.utilities :only (prlabel)]
+        [clojure.pprint :only (pprint cl-format)]
+        [clojure.contrib.json :only (pprint-json)]
         [clojure.contrib.duck-streams :only (with-out-writer)]
         [clojure.contrib.java-utils :only (file)]
         [clojure.contrib.shell-out :only (sh)]
@@ -473,7 +472,7 @@ vars in ns-info that begin with that letter"
   (when (params :build-json-index)
     (with-out-writer (BufferedWriter.
                       (FileWriter. (file (params :output-path) *index-json-file*)))
-      (print-json (structured-index ns-info branch)))))
+      (pprint-json (structured-index ns-info branch)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -530,14 +529,12 @@ vars in ns-info that begin with that letter"
 (defn make-all-pages 
   ([] (make-all-pages {:first? true} nil (contrib-info)))
   ([branch-info all-branch-info ns-info]
-     (prlabel make-all-pages branch-info all-branch-info)
      (let [doc-dir (str (when-not (:first? branch-info) 
                           (str (branch-subdir (:name branch-info)) "/")) 
                         "doc")]
        (let [prefix (if (:first? branch-info) nil "../")
              master-toc (make-master-toc ns-info branch-info all-branch-info prefix)
              external-docs (wrap-external-doc doc-dir master-toc)]
-         (prlabel make-all-pages external-docs)
          (make-overview ns-info master-toc branch-info prefix)
          (doseq [ns ns-info]
            (make-ns-page ns master-toc external-docs branch-info prefix))

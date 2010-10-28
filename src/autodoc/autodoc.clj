@@ -1,7 +1,6 @@
 (ns autodoc.autodoc
   (:use 
-   [clojure.contrib.pprint :only (cl-format)]
-   [clojure.contrib.pprint.utilities :only (prlabel)]
+   [clojure.pprint :only (cl-format)]
    [clojure.contrib.duck-streams :only [make-parents]]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]

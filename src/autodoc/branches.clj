@@ -1,8 +1,7 @@
 (ns autodoc.branches
   (:use [clojure.contrib.duck-streams :only [reader]]
         [clojure.contrib.java-utils :only [file]]
-        [clojure.contrib.pprint :only [cl-format pprint]]
-        [clojure.contrib.pprint.utilities :only [prlabel]]
+        [clojure.pprint :only [cl-format pprint]]
         [clojure.contrib.str-utils :only (re-split)]
         [clojure.contrib.shell-out :only [with-sh-dir sh]]
         [autodoc.params :only (params)]

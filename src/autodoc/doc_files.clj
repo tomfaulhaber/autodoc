@@ -3,8 +3,7 @@
 ;as necessary."
   (:use [autodoc.params :only [params]]
         [clojure.contrib.shell-out :only [sh]]
-        [clojure.contrib.java-utils :only [delete-file]]
-        [clojure.contrib.pprint.utilities :only [prlabel]])
+        [clojure.contrib.java-utils :only [delete-file]])
   (:require [clojure.contrib.duck-streams :as io])
   (:import [java.io File]))
 

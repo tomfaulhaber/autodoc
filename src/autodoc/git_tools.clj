@@ -1,5 +1,5 @@
 (ns autodoc.git-tools
-  (:use [clojure.contrib.pprint :only [cl-format]]
+  (:use [clojure.pprint :only [cl-format]]
         [clojure.contrib.shell-out :only [sh with-sh-dir]]
         [autodoc.build-html :only [branch-subdir]])
   (:import [java.io File]))
