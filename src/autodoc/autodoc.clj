@@ -1,8 +1,7 @@
 (ns autodoc.autodoc
   (:use 
    [clojure.pprint :only (cl-format)]
-   [clojure.contrib.duck-streams :only [make-parents]]
-   [clojure.contrib.java-utils :only [file]]
+   [clojure.java.io :only [file make-parents]]
    [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
    [autodoc.params :only (merge-params params params-from-dir params-help process-command-line)]
    [autodoc.load-files :only (load-namespaces)]

@@ -1,5 +1,5 @@
 (ns autodoc.gen-docs
-  (:use [clojure.contrib.java-utils :only (delete-file)]
+  (:use [clojure.java.io :only (delete-file)]
         [clojure.pprint :only (pprint)]
         [autodoc.load-files :only (load-namespaces)]
         [autodoc.build-html :only (make-all-pages)]

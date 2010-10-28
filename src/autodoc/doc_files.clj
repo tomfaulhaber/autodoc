@@ -3,8 +3,7 @@
 ;as necessary."
   (:use [autodoc.params :only [params]]
         [clojure.contrib.shell-out :only [sh]]
-        [clojure.contrib.java-utils :only [delete-file]])
-  (:require [clojure.contrib.duck-streams :as io])
+        [clojure.java.io :only [delete-file copy]])
   (:import [java.io File]))
 
 ;; Brought in from clojure.contrib.java-utils since it's not making the migration to 1.2
@@ -32,7 +31,7 @@ transformations along the way."
 
 (defmethod xform-file :default 
   [src-file dst relative]
-  (io/copy src-file (File. (File. dst) relative)))
+  (copy src-file (File. (File. dst) relative)))
 
 (defmethod xform-file :dir
   [_ dst relative]
@@ -40,7 +39,7 @@ transformations along the way."
 
 (defmethod xform-file "markdown"
   [src-file dst relative]
-  (io/spit
+  (spit
    (File. (File. dst) (.replaceFirst relative "\\.markdown$" ".html"))
    (sh "markdown" (.getPath src-file))))
 

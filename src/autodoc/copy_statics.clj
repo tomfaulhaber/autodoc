@@ -1,7 +1,6 @@
 (ns autodoc.copy-statics
   (:import [java.io File])
-  (:use [clojure.contrib.java-utils :only (file)]
-        [clojure.contrib.duck-streams :only (copy)]
+  (:use [clojure.java.io :only (file copy)]
         [autodoc.params :only (params)]))
 
 (def static-file-list

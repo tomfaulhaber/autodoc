@@ -6,8 +6,7 @@
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.pprint :only (pprint cl-format)]
         [clojure.contrib.json :only (pprint-json)]
-        [clojure.contrib.duck-streams :only (with-out-writer)]
-        [clojure.contrib.java-utils :only (file)]
+        [clojure.java.io :only (file writer)]
         [clojure.contrib.shell-out :only (sh)]
         [autodoc.collect-info :only (contrib-info)]
         [autodoc.params :only (params)]))
@@ -96,9 +95,10 @@ looks in the base template directory."
               (file (params :output-path)))] 
     (when (not (.exists dir))
       (.mkdirs dir))
-    (with-out-writer (file dir output-file) 
-      (print
-       (apply str (page title prefix master-toc local-toc page-content))))))
+    (with-open [out  (writer (file dir output-file))] 
+      (binding [*out* out]
+        (print
+         (apply str (page title prefix master-toc local-toc page-content)))))))
 
 (defmulti ns-html-file class)
 
@@ -470,9 +470,9 @@ vars in ns-info that begin with that letter"
   "Generate a json formatted index file that can be consumed by other tools"
   [ns-info branch]
   (when (params :build-json-index)
-    (with-out-writer (BufferedWriter.
-                      (FileWriter. (file (params :output-path) *index-json-file*)))
-      (pprint-json (structured-index ns-info branch)))))
+    (with-open  [out (writer (file (params :output-path) *index-json-file*))]
+      (binding [*out* out]
+        (pprint-json (structured-index ns-info branch))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
