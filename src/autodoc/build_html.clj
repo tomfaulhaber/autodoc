@@ -4,10 +4,10 @@
            [java.io File FileWriter BufferedWriter StringReader])
   (:require [clojure.contrib.str-utils :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
+        [clojure.java.io :only (file writer)]
+        [clojure.java.shell :only (sh)]
         [clojure.pprint :only (pprint cl-format)]
         [clojure.contrib.json :only (pprint-json)]
-        [clojure.java.io :only (file writer)]
-        [clojure.contrib.shell-out :only (sh)]
         [autodoc.collect-info :only (contrib-info)]
         [autodoc.params :only (params)]))
 

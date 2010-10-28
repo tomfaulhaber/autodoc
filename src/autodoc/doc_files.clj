@@ -2,8 +2,8 @@
 ;  "Add any files in the projects doc/ directory to the output directory, transforming
 ;as necessary."
   (:use [autodoc.params :only [params]]
-        [clojure.contrib.shell-out :only [sh]]
-        [clojure.java.io :only [delete-file copy]])
+        [clojure.java.io :only [delete-file copy]]
+        [clojure.java.shell :only [sh]])
   (:import [java.io File]))
 
 ;; Brought in from clojure.contrib.java-utils since it's not making the migration to 1.2

@@ -1,8 +1,8 @@
 (ns autodoc.branches
   (:use [clojure.java.io :only [file reader]]
+        [clojure.java.shell :only [with-sh-dir sh]]
         [clojure.pprint :only [cl-format pprint]]
         [clojure.contrib.str-utils :only (re-split)]
-        [clojure.contrib.shell-out :only [with-sh-dir sh]]
         [autodoc.params :only (params)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)])
