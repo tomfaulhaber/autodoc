@@ -44,6 +44,7 @@
     #"/load_all"
     #"/datalog/tests/"
     #"/datalog/example"
+    #"/datalog/src/examples"
     #"/javadoc"
     #"/jmx/Bean"
     #"/test/clojure/clojure/contrib/"
