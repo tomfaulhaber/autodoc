@@ -264,16 +264,16 @@ looks in the base template directory."
       "No usage documentation available")))
 
 (def 
-  #^{:doc "Gets the commit hash for the last commit that included this file. We
+ #^{:doc "Gets the commit hash for the last commit that included this file. We
 do this for source links so that we don't change them with every commit (unless that file
 actually changed). This reduces the amount of random doc file changes that happen."}
-  get-last-commit-hash
-  (memoize
-   (fn [file branch]
-     (let [hash (.trim (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                       :dir (params :root)))]
-       (when (not (.startsWith hash "fatal"))
-         hash)))))
+ get-last-commit-hash
+ (memoize
+  (fn [file branch]
+    (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file 
+                                :dir (params :root))))]
+      (when (not (.startsWith hash "fatal"))
+        hash)))))
 
 (defn web-src-file [file branch]
   (when-let [web-src-dir (params :web-src-dir)]

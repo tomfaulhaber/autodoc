@@ -18,7 +18,7 @@
 
 (defn system [& args]
   (pprint args)
-  (println (apply sh (build-sh-args args))))
+  (println (:out (apply sh (build-sh-args args)))))
 
 (defn switch-branches 
   "Switch to the specified branch"

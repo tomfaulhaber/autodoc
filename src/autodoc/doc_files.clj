@@ -41,7 +41,7 @@ transformations along the way."
   [src-file dst relative]
   (spit
    (File. (File. dst) (.replaceFirst relative "\\.markdown$" ".html"))
-   (sh "markdown" (.getPath src-file))))
+   (:out (sh "markdown" (.getPath src-file)))))
 
 (defn xform-tree 
   "Takes source and destination directories and copies the source to the destination,

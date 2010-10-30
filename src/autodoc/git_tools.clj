@@ -25,14 +25,14 @@ root of a git repo)"
   (with-sh-dir dir
     (when-let [branch-str (first 
                            (filter #(.startsWith % "*")
-                                   (.split (sh "git" "branch") "\n")))]
+                                   (.split (:out (sh "git" "branch")) "\n")))]
       (.substring branch-str 2))))
 
 (defn has-remote? 
   "return true if there is a remote called origin that we could push back to"
   [dir]
   (with-sh-dir dir
-    (some #(= % "origin") (.split (sh "git" "remote") "\n"))))
+    (some #(= % "origin") (.split (:out (sh "git" "remote")) "\n"))))
 
 (defn stage-new-doc-files 
   "Add any new supplementary documents to the git staging area"
@@ -41,7 +41,7 @@ root of a git repo)"
                      (map #(.getPath (File. (File. %) "doc"))
                           (cons "." (map branch-subdir (next branches)))))]
     (with-sh-dir dir
-      (println (apply sh "git" "add" "-v" dirs)))))
+      (println (:out (apply sh "git" "add" "-v" dirs))))))
 
 (defn stage-new-api-files 
   "Add any new API namespace files to the git staging area"
@@ -50,19 +50,19 @@ root of a git repo)"
                         (filter #(.endsWith (.getPath %) "-api.html")
                                 (file-seq dir)))]
     (with-sh-dir dir
-      (println (apply sh "git" "add" "-v" files)))))
+      (println (:out (apply sh "git" "add" "-v" files))))))
 
 (defn stage-modified-files 
   "Add any changed files to the git staging area"
   [dir]
   (with-sh-dir dir
-    (println (sh "git" "add" "-u" "-v" "."))))
+    (println (:out (sh "git" "add" "-u" "-v" ".")))))
 
 (defn git-hash 
   "Get the git hash for the head of the given branch (or tag)"
   [dir head len]
   (with-sh-dir dir
-    (.substring (.trim (sh "git" "rev-parse" head)) 0 len)))
+    (.substring (.trim (:out (sh "git" "rev-parse" head))) 0 len)))
 
 (defn comment-for 
   "Construct a git comment for all the appropriate branches"
@@ -76,13 +76,13 @@ root of a git repo)"
   "Commit the staged files in dir (a java.io.File)."
   [dir comment]
   (with-sh-dir dir
-    (println (sh "git" "commit" "-m" comment))))
+    (println (:out (sh "git" "commit" "-m" comment)))))
 
 (defn git-push 
   "Push the commit to a remote, if defined"
   [dir]
   (with-sh-dir dir
-    (println (sh "git" "push" "origin" (current-branch dir)))))
+    (println (:out (sh "git" "push" "origin" (current-branch dir))))))
 
 (defn autodoc-commit [src-dir doc-dir branches]
   "Stage and commit all new and changed files in the autodoc tree"
