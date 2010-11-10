@@ -8,7 +8,7 @@
 ;; Assumes that all the relevant namespaces have already been loaded
 
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
-;; vars: {:name :doc :arglists :var-type :file :line}
+;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
 (defn remove-leading-whitespace 
   "Find out what the minimum leading whitespace is for a doc block and remove it.
@@ -44,7 +44,7 @@ return it as a string."
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
-    (merge (select-keys (meta v) [:arglists :file :line :added :deprecated])
+    (merge (select-keys (meta v) [:arglists :file :line :added :deprecated :dynamic])
            {:name (name (:name (meta v)))
             :doc (remove-leading-whitespace (:doc (meta v))),
             :var-type (var-type v)})))
