@@ -20,6 +20,7 @@
 (def *namespace-api-file* "namespace-api.html")
 (def *sub-namespace-api-file* "sub-namespace-api.html")
 (def *index-html-file* "api-index.html")
+(def *index-clj-file* "index~@[-~a~].clj")
 (def *index-json-file* "api-index.json")
 
 (defn template-for
@@ -466,13 +467,25 @@ vars in ns-info that begin with that letter"
       :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
 
 
+(defn make-index-clj
+  "Generate a Clojure formatted index file that can be consumed by other tools"
+  [ns-info branch-info]
+  (with-open  [out (writer (file (params :output-path) 
+                                 (cl-format nil *index-clj-file*
+                                            (:version branch-info))))]
+    (binding [*out* out]
+      (pprint (structured-index ns-info (:name branch-info))))))
+
 (defn make-index-json
   "Generate a json formatted index file that can be consumed by other tools"
-  [ns-info branch]
+  [ns-info branch-info]
   (when (params :build-json-index)
-    (with-open  [out (writer (file (params :output-path) *index-json-file*))]
+    (with-open  [out (writer (file (params :output-path)
+                                   (when (:first? branch-info)
+                                     (branch-subdir (:name branch-info))) 
+                                   *index-json-file*))]
       (binding [*out* out]
-        (pprint-json (structured-index ns-info branch))))))
+        (pprint-json (structured-index ns-info (:name branch-info)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -539,5 +552,6 @@ vars in ns-info that begin with that letter"
          (doseq [ns ns-info]
            (make-ns-page ns master-toc external-docs branch-info prefix))
          (make-index-html ns-info master-toc branch-info prefix)
-         (make-index-json ns-info (:name branch-info))))))
+         (make-index-clj ns-info branch-info)
+         (make-index-json ns-info branch-info)))))
 
