@@ -481,9 +481,9 @@ vars in ns-info that begin with that letter"
   [ns-info branch-info]
   (when (params :build-json-index)
     (with-open  [out (writer (file (params :output-path)
-                                   (when (:first? branch-info)
-                                     (branch-subdir (:name branch-info))) 
-                                   *index-json-file*))]
+                                   (str (when (not (:first? branch-info))
+                                          (str (branch-subdir (:name branch-info)) "/")) 
+                                        *index-json-file*)))]
       (binding [*out* out]
         (pprint-json (structured-index ns-info (:name branch-info)))))))
 
