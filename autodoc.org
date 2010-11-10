@@ -6,7 +6,7 @@
 *** DONE Webhook operational
 *** TODO Make sure we can standalone autodoc for 1.1 or 1.2 programs
 We should probably use recursive invocation?
-*** TODO Update autodoc to a 1.2 base
+*** DONE Update autodoc to a 1.2 base
 *** Leiningen support
 **** TODO develop strategy for working with Leinigen 1.2
 No clojure dependency allowed in plugin
@@ -43,6 +43,9 @@ But figure out how to do this without gratuitous page changes
 by italics, maybe
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
+** Improved 1.3 support
+*** TODO Add a notation for dynamic
+*** TODO Can we get type annotations?
 ** Complete the gh-pages doc
 *** TODO Figure out missing sections
 *** TODO add layout/style to gh-pages doc 
@@ -57,6 +60,9 @@ by italics, maybe
 *** Search support
 **** TODO Figure out how search support should work
 ** TODO Deprecate pages at richhickey.github.com
+** Support for clojuredocs
+*** TODO Add index.clj files to all projects
+*** TODO Extend index data to include all metadata information
 ** Bugs
 *** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
@@ -69,7 +75,7 @@ This appears to be a pathname thing / vs. \
 Is this still a bug?
 *** DONE Fix url detection so that it always works
 *** DONE Supress author tag when none provided
-*** TODO Make &mdash; work in headers and titles
+*** TODO Make &emdash; work in headers and titles
 Enlive seems to not escape this correctly (probably it's just tag soup underneath)
 *** DONE Fix "no project specified" at the top of the API index page!
 *** TODO Make the sub-namespace links on a namespace right hand TOC work
@@ -78,3 +84,4 @@ Enlive seems to not escape this correctly (probably it's just tag soup underneat
 *** TODO Fix left-TOC on ie (ul styling on first category)
 *** DONE Fix modular contrib docs
 *** TODO Add version number info to wrapped markdown files
+*** TODO Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
