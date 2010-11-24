@@ -55,7 +55,6 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
-  (println "cp-exp" (mapcat (partial expand-wildcards (params :root)) (params :load-classpath)))
   (let [class-path (concat 
                     (filter 
                      identity
