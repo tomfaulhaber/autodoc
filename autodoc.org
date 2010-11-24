@@ -53,6 +53,8 @@ by italics, maybe
 *** TODO include pygments style in gh-doc 
 (see http://github.com/mojombo/tpw/blob/master/css/syntax.css)
 ** New features
+*** TODO support maven style references to external jars
+This will eliminate the rickety suppport structure I now have
 *** Image support
 **** TODO Figure out how to do image support for Incanter
 *** Maven task
