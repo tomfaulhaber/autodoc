@@ -28,6 +28,14 @@
     (system (str "git checkout " branch))
     (system (str "git merge origin/" branch))))
 
+(defn expand-wildcards 
+  "Find all the files under root that match re. Not truly wildcard expansion, but..."
+  [root re]
+  (if (instance? java.util.regex.Pattern re)
+    (for [f (file-seq (File. root)) :when (re-find re (.getAbsolutePath f))] 
+      (.getAbsolutePath f))
+    (list re)))
+
 (defn path-str [path-seq] 
   (apply str (interpose (System/getProperty "path.separator")
                         (map #(.getAbsolutePath (file %)) path-seq))))
@@ -43,9 +51,11 @@
          (for [jar-dir jar-dirs]
            (filter #(.endsWith (.getName %) ".jar")
                    (file-seq (java.io.File. jar-dir))))))
+
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
+  (println "cp-exp" (mapcat (partial expand-wildcards (params :root)) (params :load-classpath)))
   (let [class-path (concat 
                     (filter 
                      identity
@@ -54,7 +64,7 @@
                       "src"
                       (.getPath (File. (params :root) (params :source-path)))
                       "."])
-                    (params :load-classpath)
+                    (mapcat (partial expand-wildcards (params :root)) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 

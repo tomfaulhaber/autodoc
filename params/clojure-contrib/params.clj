@@ -23,13 +23,13 @@
                :status "stable"
                :params {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
                         :source-path "src/main/clojure"
-                        :load-classpath [(str root "/target/classes")]}},
+                        :load-classpath [(str root "/src/main/clojure") (str root "/target/classes")]}},
               {:name "master"
                :version "v1.3"
                :status "in development"
                :params {:built-clojure-jar "/home/tom/src/clj/clojure-master/clojure-slim.jar"
                         :source-path "modules"
-                        :load-classpath [(str root "/target/classes")]}},
+                        :load-classpath [#"/modules/[^/]+/src/main/clojure$" (str root "/target/classes")]}},
               {:name "1.1.x"
                :version "v1.1"
                :status "stable"
