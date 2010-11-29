@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter StringReader])
-  (:require [clojure.contrib.str-utils :as str])
+  (:require [clojure.string :as str]
+            [clojure.contrib.str-utils :as cc-str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.java.io :only (file writer)]
         [clojure.java.shell :only (sh)]
@@ -71,7 +72,7 @@ looks in the base template directory."
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
   (when s
-    (for [x (str/re-partition url-regex s)]
+    (for [x (cc-str/re-partition url-regex s)]
       (if (vector? x)
         [{:tag :a :attrs {:href (x 0)} :content [(x 0)]}]
         x))))
@@ -281,6 +282,12 @@ actually changed). This reduces the amount of random doc file changes that happe
     (when-let [hash (get-last-commit-hash file branch)]
       (cl-format nil "~a~a/~a" web-src-dir hash file))))
 
+(defn web-raw-src-file [file branch]
+  (when-let [web-raw-src-dir (and (params :web-src-dir)
+                                  (str/replace (params :web-src-dir) #"/blob/$" "/raw/"))]
+    (when-let [hash (get-last-commit-hash file branch)]
+      (cl-format nil "~a~a/~a" web-raw-src-dir hash file))))
+
 (def src-prefix-length
   (memoize
    (fn []
@@ -456,7 +463,8 @@ vars in ns-info that begin with that letter"
   (assoc (select-keys v [:name :doc :author :arglists :var-type :file :line :added :deprecated :dynamic])
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
-    :source-url (var-src-link v branch)))
+    :source-url (var-src-link v branch)
+    :raw-source-url (web-raw-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
