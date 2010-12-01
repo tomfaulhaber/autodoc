@@ -464,7 +464,8 @@ vars in ns-info that begin with that letter"
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
     :source-url (var-src-link v branch)
-    :raw-source-url (web-raw-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
+    :raw-source-url (when (:file v)
+                      (web-raw-src-file (var-base-file (:file v)) branch))))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
