@@ -41,6 +41,10 @@ But figure out how to do this without gratuitous page changes
 *** TODO Make sub-namespace presentation better
 *** TODO Mark deprecated fns, namespaces wherever they are mentioned 
 by italics, maybe
+** Clean up HTML
+*** TODO Use Linkchecker and remove all dead links
+*** TODO Use "Dust Me selectors plugin" and clean up CSS based on results
+*** TODO Think through ids vs. classes
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
 ** Improved 1.3 support
@@ -65,7 +69,8 @@ This will eliminate the rickety suppport structure I now have
 ** Support for clojuredocs
 *** DONE Add index.clj files to all projects
 *** DONE Extend index data to include all metadata information
-*** TODO Add raw file pointers so Zack can pull the source/refs
+*** DONE Add raw file pointers so Zack can pull the source/refs
+*** TODO Build the code to pull source and symbols
 ** Bugs
 *** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
@@ -87,4 +92,5 @@ Enlive seems to not escape this correctly (probably it's just tag soup underneat
 *** TODO Fix left-TOC on ie (ul styling on first category)
 *** DONE Fix modular contrib docs
 *** TODO Add version number info to wrapped markdown files
-*** TODO Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
+*** DONE Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
+*** TODO Fix source links in incanter
