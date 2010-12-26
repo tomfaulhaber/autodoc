@@ -7,7 +7,7 @@
    :file-prefix file-prefix,
    :root root,
    :source-path "src/clj",
-   :web-src-dir "http://github.com/clojure/clojure/blob/",
+   :web-src-dir "https://github.com/clojure/clojure/blob/",
 
    :web-home "http://clojure.github.com/clojure/",
    :output-path (str file-prefix "/autodoc/"),
