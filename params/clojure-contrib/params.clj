@@ -5,7 +5,7 @@
   {:name "clojure-contrib",
    :file-prefix file-prefix,
    :root root,
-   :web-src-dir "http://github.com/clojure/clojure-contrib/blob/",
+   :web-src-dir "https://github.com/clojure/clojure-contrib/blob/",
 
    :web-home "http://clojure.github.com/clojure-contrib/",
    :output-path (str file-prefix "/autodoc/"),
@@ -34,7 +34,7 @@
                :version "v1.1"
                :status "stable"
                :params {:built-clojure-jar "/home/tom/src/clj/clojure/clojure-slim.jar"
-                        :load-classpath [(str root "/classes")]}}
+                        :load-classpath [(str root "/src") (str root "/classes")]}}
               ]
 
    :load-except-list 
@@ -48,6 +48,7 @@
     #"/javadoc"
     #"/jmx/Bean"
     #"/test/clojure/clojure/contrib/"
+    #"/src/main/clojure/clojure/contrib/test_base64"
     #"/target/classes/"
     #"/target/test-classes/"
     ],

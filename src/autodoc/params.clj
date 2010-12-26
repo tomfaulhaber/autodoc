@@ -1,4 +1,5 @@
-(ns autodoc.params)
+(ns autodoc.params
+  (import [java.io File]))
 
 ;;; 
 ;;; Description and default values for settable parameters. These are overridden in the
@@ -102,3 +103,22 @@
   [args]
   (let [[params args] (consume extract-arg args)]
     [(into {} (for [[p v] params] [p (convert-arg p v)])) (into [] args)]))
+
+(defn expand-wildcards 
+  "Find all the files under root that match re. Not truly wildcard expansion, but..."
+  [root re]
+  (if (instance? java.util.regex.Pattern re)
+    (for [f (file-seq (File. root)) :when (re-find re (.getAbsolutePath f))] 
+      (.getAbsolutePath f))
+    (list re)))
+
+;;; Expand any regexp patterns in the classpath to the set of 
+;;; available files. This function is memoized so the filesystem work will 
+;;; only be done of the first call. The classpath is expanded relative to 
+;;; the argument root, branch is included to force the memoization to a
+;;; single branch
+
+(def expand-classpath
+     (memoize
+      (fn [branch root cp]
+        (mapcat (partial expand-wildcards root) cp))))

@@ -3,7 +3,7 @@
         [clojure.java.shell :only [with-sh-dir sh]]
         [clojure.pprint :only [cl-format pprint]]
         [clojure.contrib.str-utils :only (re-split)]
-        [autodoc.params :only (params)]
+        [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)])
   
@@ -27,14 +27,6 @@
     (system "git fetch")
     (system (str "git checkout " branch))
     (system (str "git merge origin/" branch))))
-
-(defn expand-wildcards 
-  "Find all the files under root that match re. Not truly wildcard expansion, but..."
-  [root re]
-  (if (instance? java.util.regex.Pattern re)
-    (for [f (file-seq (File. root)) :when (re-find re (.getAbsolutePath f))] 
-      (.getAbsolutePath f))
-    (list re)))
 
 (defn path-str [path-seq] 
   (apply str (interpose (System/getProperty "path.separator")
@@ -63,7 +55,7 @@
                       "src"
                       (.getPath (File. (params :root) (params :source-path)))
                       "."])
-                    (mapcat (partial expand-wildcards (params :root)) (params :load-classpath))
+                    (expand-classpath branch-name (params :root) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 

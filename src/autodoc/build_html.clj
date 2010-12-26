@@ -5,12 +5,12 @@
   (:require [clojure.string :as str]
             [clojure.contrib.str-utils :as cc-str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
-        [clojure.java.io :only (file writer)]
+        [clojure.java.io :only (as-file file writer)]
         [clojure.java.shell :only (sh)]
         [clojure.pprint :only (pprint cl-format)]
         [clojure.contrib.json :only (pprint-json)]
         [autodoc.collect-info :only (contrib-info)]
-        [autodoc.params :only (params)]))
+        [autodoc.params :only (params expand-classpath)]))
 
 (def *layout-file* "layout.html")
 (def *master-toc-file* "master-toc.html")
@@ -297,17 +297,36 @@ actually changed). This reduces the amount of random doc file changes that happe
      (memoize 
       (fn [] (.getAbsolutePath (file ".")))))
 
+(def expand-src-file 
+     (memoize
+      (fn [f branch] 
+        (let [fl (as-file f)]
+          (if (.isAbsolute fl)
+            f
+            (if-let [result (first 
+                             (filter #(.exists %)
+                                     (map #(File. % f)
+                                          (expand-classpath 
+                                           branch
+                                           (params :root) 
+                                           (params :load-classpath)))))]
+              (.getAbsolutePath result)
+              (do 
+                (cl-format *err* "No absolute path for file metadata ~a~%" f)
+                nil)))))))
+
 (defn var-base-file
   "strip off the prepended path to the source directory from the filename"
-  [f]
-  (cond
-   (.startsWith f (params :root)) (.substring f (inc (src-prefix-length)))
-   (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
-   true (.getPath (file (params :source-path) f))))
+  [f branch]
+  (let [f (or (expand-src-file f branch) f)]
+    (cond
+     (.startsWith f (params :root)) (.substring f (inc (src-prefix-length)))
+     (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
+     true (.getPath (file (params :source-path) f)))))
 
 (defn var-src-link [v branch]
   (when (and (:file v) (:line v))
-    (when-let [web-file (web-src-file (var-base-file (:file v)) branch)]
+    (when-let [web-file (web-src-file (var-base-file (:file v) branch) branch)]
       (cl-format nil "~a#L~d" web-file (:line v)))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
@@ -465,7 +484,7 @@ vars in ns-info that begin with that letter"
     :wiki-url (str (params :web-home) "/" (var-url ns v))
     :source-url (var-src-link v branch)
     :raw-source-url (when (:file v)
-                      (web-raw-src-file (var-base-file (:file v)) branch))))
+                      (web-raw-src-file (var-base-file (:file v) branch) branch))))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
