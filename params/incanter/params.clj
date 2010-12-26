@@ -6,7 +6,7 @@
    :file-prefix file-prefix,
    :root root,
    :source-path "modules",
-   :web-src-dir "http://github.com/liebke/incanter/blob/",
+   :web-src-dir "https://github.com/liebke/incanter/blob/",
 
    :web-home "http://liebke.github.com/incanter/",
    :output-path (str file-prefix "/autodoc/"),
