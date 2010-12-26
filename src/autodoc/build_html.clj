@@ -274,7 +274,7 @@ actually changed). This reduces the amount of random doc file changes that happe
   (fn [file branch]
     (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file 
                                 :dir (params :root))))]
-      (when (not (.startsWith hash "fatal"))
+      (when (not (or (zero? (count hash)) (.startsWith hash "fatal")))
         hash)))))
 
 (defn web-src-file [file branch]
