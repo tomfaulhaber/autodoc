@@ -47,9 +47,11 @@ by italics, maybe
 *** TODO Think through ids vs. classes
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
+incanter.distribution.Distribution might be a good one to use for testing
 ** Improved 1.3 support
 *** TODO Add a notation for dynamic
 *** TODO Can we get type annotations?
+*** TODO Support docstrings for special forms
 ** Complete the gh-pages doc
 *** TODO Figure out missing sections
 *** TODO add layout/style to gh-pages doc 
@@ -94,3 +96,4 @@ Enlive seems to not escape this correctly (probably it's just tag soup underneat
 *** TODO Add version number info to wrapped markdown files
 *** DONE Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
 *** TODO Fix source links in incanter
+*** TODO Add a README in the target 
