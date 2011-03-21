@@ -73,6 +73,9 @@ This will eliminate the rickety suppport structure I now have
 *** DONE Extend index data to include all metadata information
 *** DONE Add raw file pointers so Zack can pull the source/refs
 *** TODO Build the code to pull source and symbols
+** Maven support
+*** TODO version from pom.xml
+*** TODO Figure out how to get dependencies from maven
 ** Bugs
 *** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC
