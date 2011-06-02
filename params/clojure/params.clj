@@ -34,7 +34,7 @@
                :version "v1.3" 
                :status "in development"
                :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}, 
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
               {:name "1.1.x" 
                :version "v1.1"
                :status "stable"

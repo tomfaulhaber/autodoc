@@ -21,11 +21,13 @@
    :branches [{:name "master"
                :version "next"
                :status "in development"
-               :params {:built-clojure-jar (str root "lib/clojure-1.2.0.jar")}},
+               :params {:built-clojure-jar (str root "lib/clojure-1.2.0.jar")
+                        :load-classpath [#"/modules/[^/]+/src$"]}},
               {:name "1.0.x"
                :version "1.0"
                :status "stable"
-               :params {:built-clojure-jar (str root "lib/clojure-slim.jar")}}]
+               :params {:built-clojure-jar (str root "lib/clojure-slim.jar")
+                        :load-classpath [#"/modules/[^/]+/src/main/clojure$"]}}]
 
    :load-except-list [#"/test/" #"/classes/" #"project.clj$"],
    })
