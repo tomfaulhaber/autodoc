@@ -213,12 +213,16 @@ looks in the base template directory."
 (deffragment make-master-toc *master-toc-file* [ns-info branch-info all-branch-info prefix]
   [:#project-name] (content (:name params))
   [:#version] (content (:version branch-info))
-  [:ul#left-sidebar-list :li] (clone-for [ns ns-info]
-                                         #(at %
+  [:div.NamespaceTOC] #(when (> (count ns-info) 1)
+                         (at %
+                             [:ul#left-sidebar-list :li]
+                             (clone-for [ns ns-info]
+                                        (fn [n]
+                                          (at n
                                               [:a] (do->
                                                     (set-attr :href (ns-html-file ns))
-                                                    (content (:short-name ns)))))
-  [:div.BranchTOC] #(when all-branch-info
+                                                    (content (:short-name ns))))))))
+  [:div.BranchTOC] #(when (> (count all-branch-info) 1)
                       (at %
                           [:ul#left-sidebar-branch-list :li]
                           (clone-for [{:keys [version name status]}
@@ -388,10 +392,11 @@ actually changed). This reduces the amount of random doc file changes that happe
         [:div#sub-namespaces]
         (substitute (map #(render-sub-namespace-api % branch-info external-docs) (:subspaces ns))))))
 
-(defn make-ns-page [ns master-toc external-docs branch-info prefix]
-  (create-page (ns-html-file ns)
+(defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix]
+  (create-page (if unique-ns? "index.html" (ns-html-file ns))
                (when (not (:first? branch-info)) (:name branch-info))
-               (cl-format nil "~a - ~a ~a API documentation" (:short-name ns) (params :name) (:version branch-info))
+               (cl-format nil "~a - ~a ~a API documentation"
+                          (:short-name ns) (params :name) (:version branch-info))
                prefix
                master-toc
                (make-local-toc (ns-toc-data ns))
@@ -420,7 +425,7 @@ vars in ns-info that begin with that letter"
           "\n *" " ")
          suffix)))
 
-(defn gen-index-line [v ns]
+(defn gen-index-line [v ns unique-ns?]
   (let [var-name (:name v)
         overhead (count var-name)
         short-name (:short-name ns)
@@ -428,7 +433,8 @@ vars in ns-info that begin with that letter"
     #(at %
          [:a] (do->
                (set-attr :href
-                         (str (ns-html-file ns) "#" (:full-name ns) "/" (:name v)))
+                         (str (if unique-ns? "index.html" (ns-html-file ns))
+                              "#" (:full-name ns) "/" (:name v)))
                (content (:name v)))
          [:#line-content] (content 
                            (cl-format nil "~vt~a~vt~a~vt~a~%"
@@ -438,7 +444,7 @@ vars in ns-info that begin with that letter"
                                       (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
-(deffragment make-index-content *index-html-file* [branch-info vars-by-letter]
+(deffragment make-index-content *index-html-file* [branch-info vars-by-letter unique-ns?]
   [:#header-project] (content (:name params))
   [:#header-version] (content (:version branch-info))
   [:#header-status] (content (:status branch-info))
@@ -448,16 +454,18 @@ vars in ns-info that begin with that letter"
                          [:h2] (set-attr :id letter)
                          [:span#section-head] (content letter)
                          [:span#section-content] (clone-for [[v ns] vars]
-                                                   (gen-index-line v ns)))))
+                                                   (gen-index-line v ns unique-ns?)))))
 
 (defn make-index-html [ns-info master-toc branch-info prefix]
   (create-page *index-html-file*
                (when (not (:first? branch-info)) (:name branch-info))
-               (cl-format nil "Index - ~a ~a API documentation" (params :name) (:version branch-info))
+               (cl-format nil "Index - ~a ~a API documentation"
+                          (params :name) (:version branch-info))
                prefix
                master-toc
                nil
-               (make-index-content branch-info (vars-by-letter ns-info))))
+               (make-index-content branch-info (vars-by-letter ns-info)
+                                   (<= (count ns-info) 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -576,9 +584,11 @@ vars in ns-info that begin with that letter"
        (let [prefix (if (:first? branch-info) nil "../")
              master-toc (make-master-toc ns-info branch-info all-branch-info prefix)
              external-docs (wrap-external-doc doc-dir master-toc)]
-         (make-overview ns-info master-toc branch-info prefix)
-         (doseq [ns ns-info]
-           (make-ns-page ns master-toc external-docs branch-info prefix))
+         (if (> (count ns-info) 1)
+           (do (make-overview ns-info master-toc branch-info prefix)
+               (doseq [ns ns-info]
+                 (make-ns-page false ns master-toc external-docs branch-info prefix)))
+           (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix))
          (make-index-html ns-info master-toc branch-info prefix)
          (make-index-clj ns-info branch-info)
          (make-index-json ns-info branch-info)))))

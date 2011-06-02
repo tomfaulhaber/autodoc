@@ -1,0 +1,22 @@
+<project name="data.json" default="all">
+
+  <description>
+    The subsidiary autodoc build file for building data.json
+  </description>
+
+  <target name="all">
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete>
+      <fileset dir="${src-dir}" includes="**/target/**"/>
+    </delete>
+    <mkdir dir="${src-dir}/lib"/>
+
+    <!-- now execute Maven in the home directory -->
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="test"/>
+    </exec>
+  </target>
+
+</project>
+
+
