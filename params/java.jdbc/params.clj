@@ -19,7 +19,7 @@
    :build-json-index nil,
 
    :branches [{:name "master"
-               :version "0.0.1"
+               :version "0.0.4"
                :status "in development"
                :params {:built-clojure-jar "/home/tom/src/clj/clojure-1.3/clojure.jar"}},
               ]
