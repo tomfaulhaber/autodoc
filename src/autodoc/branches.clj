@@ -2,12 +2,16 @@
   (:use [clojure.java.io :only [file reader]]
         [clojure.java.shell :only [with-sh-dir sh]]
         [clojure.pprint :only [cl-format pprint]]
-        [clojure.contrib.str-utils :only (re-split)]
         [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)])
   
-  (import [java.io File]))
+  (import [java.io File]
+          [java.util.regex Pattern]))
+
+;;; This was dropped from contrib in 1.3, I think
+(defn re-split [#^Pattern pattern string] 
+  (seq (.split pattern string)))
 
 ;;; stolen from lancet
 (defn env [val]

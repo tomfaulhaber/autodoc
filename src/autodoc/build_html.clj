@@ -1,28 +1,29 @@
 (ns autodoc.build-html
   (:refer-clojure :exclude [empty complement]) 
   (:import [java.util.jar JarFile]
-           [java.io File FileWriter BufferedWriter StringReader])
-  (:require [clojure.string :as str]
-            [clojure.contrib.str-utils :as cc-str])
+           [java.io File FileWriter BufferedWriter StringReader]
+           [java.util.regex Pattern])
+  (:require [clojure.string :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.java.io :only (as-file file writer)]
         [clojure.java.shell :only (sh)]
         [clojure.pprint :only (pprint cl-format)]
-        [clojure.contrib.json :only (pprint-json)]
+        [clojure.data.json :only (pprint-json)]
         [autodoc.collect-info :only (contrib-info)]
         [autodoc.params :only (params expand-classpath)]))
 
-(def *layout-file* "layout.html")
-(def *master-toc-file* "master-toc.html")
-(def *local-toc-file* "local-toc.html")
+;;; TODO should these really be dynamic? I don't think so
+(def ^:dynamic *layout-file* "layout.html")
+(def ^:dynamic *master-toc-file* "master-toc.html")
+(def ^:dynamic *local-toc-file* "local-toc.html")
 
-(def *overview-file* "overview.html")
-(def *description-file* "description.html")
-(def *namespace-api-file* "namespace-api.html")
-(def *sub-namespace-api-file* "sub-namespace-api.html")
-(def *index-html-file* "api-index.html")
-(def *index-clj-file* "index~@[-~a~].clj")
-(def *index-json-file* "api-index.json")
+(def ^:dynamic *overview-file* "overview.html")
+(def ^:dynamic *description-file* "description.html")
+(def ^:dynamic *namespace-api-file* "namespace-api.html")
+(def ^:dynamic *sub-namespace-api-file* "sub-namespace-api.html")
+(def ^:dynamic *index-html-file* "api-index.html")
+(def ^:dynamic *index-clj-file* "index~@[-~a~].clj")
+(def ^:dynamic *index-json-file* "api-index.json")
 
 (defn template-for
   "Get the actual filename corresponding to a template. We check in the project
@@ -68,11 +69,34 @@ looks in the base template directory."
 
 (def url-regex #"\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
 
+;;; Dropped in the 1.3 contrib architecture
+(defn re-partition
+  "Splits the string into a lazy sequence of substrings, alternating
+between substrings that match the patthern and the substrings
+between the matches. The sequence always starts with the substring
+before the first match, or an empty string if the beginning of the
+string matches.
+
+For example: (re-partition #\"[a-z]+\" \"abc123def\")
+
+Returns: (\"\" \"abc\" \"123\" \"def\")"
+  [#^Pattern re string]
+  (let [m (re-matcher re string)]
+    ((fn step [prevend]
+       (lazy-seq
+        (if (.find m)
+          (cons (.subSequence string prevend (.start m))
+                (cons (re-groups m)
+                      (step (+ (.start m) (count (.group m))))))
+          (when (< prevend (.length string))
+            (list (.subSequence string prevend (.length string)))))))
+     0)))
+
 (defn expand-links 
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
   (when s
-    (for [x (cc-str/re-partition url-regex s)]
+    (for [x (re-partition url-regex s)]
       (if (vector? x)
         [{:tag :a :attrs {:href (x 0)} :content [(x 0)]}]
         x))))

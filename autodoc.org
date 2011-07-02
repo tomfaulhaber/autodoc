@@ -59,8 +59,6 @@ incanter.distribution.Distribution might be a good one to use for testing
 *** TODO include pygments style in gh-doc 
 (see http://github.com/mojombo/tpw/blob/master/css/syntax.css)
 ** New features
-*** TODO support maven style references to external jars
-This will eliminate the rickety suppport structure I now have
 *** Image support
 **** TODO Figure out how to do image support for Incanter
 *** Maven task
@@ -76,6 +74,13 @@ This will eliminate the rickety suppport structure I now have
 ** Maven support
 *** TODO version from pom.xml
 *** TODO Figure out how to get dependencies from maven
+Current idea: 
+1. Depend on leiningen
+2. (:use [leiningen.deps :only [find-jars]])
+3. (find-jars {:local-repo-classpath true, :dependencies ...}) where the dependencies look like project.clj
+4. the answer should be a list of files to add to our classpath. Yay!
+
+Q: Do I need to do more setup to get maven to work right or will that be done for me implicitly?
 ** Bugs
 *** DONE Supplementary docs master TOC doesn't work
 We need to add the appropriate ../.. stuff to the links on the master TOC

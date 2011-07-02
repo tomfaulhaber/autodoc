@@ -2,7 +2,7 @@
   (:use 
    [clojure.pprint :only (cl-format)]
    [clojure.java.io :only [file make-parents]]
-   [clojure.contrib.find-namespaces :only [find-namespaces-in-dir]]
+   [clojure.tools.namespace :only [find-namespaces-in-dir]]
    [autodoc.params :only (merge-params params params-from-dir params-help process-command-line)]
    [autodoc.load-files :only (load-namespaces)]
    [autodoc.gen-docs :only (gen-branch-docs)]
