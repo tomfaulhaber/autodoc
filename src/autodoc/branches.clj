@@ -2,6 +2,7 @@
   (:use [clojure.java.io :only [file reader]]
         [clojure.java.shell :only [with-sh-dir sh]]
         [clojure.pprint :only [cl-format pprint]]
+        [leiningen.deps :only [find-jars]]
         [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)])
@@ -51,14 +52,20 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
-  (let [class-path (concat 
+  (cl-format *err* "deps: ~w~%" (params :dependencies))
+  (let [src-path (.getPath (File. (params :root) (params :source-path)))
+        class-path (concat 
                     (filter 
                      identity
-                     [(or (params :built-clojure-jar)
-                          (str (env :HOME) "/src/clj/clojure/clojure.jar"))
+                     [(params :built-clojure-jar)
                       "src"
-                      (.getPath (File. (params :root) (params :source-path)))
+                      src-path
                       "."])
+                    (when-let [deps (params :dependencies)]
+                      (find-jars {:local-repo-classpath true,
+                                  :dependencies deps,
+                                  :root src-path
+                                  :name (str "Autodoc for " (params :name))}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
