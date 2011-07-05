@@ -52,7 +52,6 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
-  (cl-format *err* "deps: ~w~%" (params :dependencies))
   (let [src-path (.getPath (File. (params :root) (params :source-path)))
         class-path (concat 
                     (filter 

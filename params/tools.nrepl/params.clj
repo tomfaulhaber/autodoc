@@ -16,12 +16,12 @@
    :load-jar-dirs [(str root "lib")],
 
    :namespaces-to-document ["clojure.tools.nrepl"],
-   :trim-prefix "clojure.data.",
+   :trim-prefix "clojure.tools.",
 
    :branches [{:name "master"
-               :version "0.0.5"
+               :version "0.0.6"
                :status "in development"
-               :params {:built-clojure-jar "/home/tom/src/clj/clojure-1.2/clojure.jar"}},
+               :params {:dependencies [['org.clojure/clojure "1.3.0-beta1"]]}},
               ]
 
    :load-except-list [#"/classes/"],
