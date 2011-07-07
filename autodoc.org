@@ -48,6 +48,7 @@ by italics, maybe
 ** Improved 1.2 Support
 *** TODO Document protocols and figure out how to link their methods back to them
 incanter.distribution.Distribution might be a good one to use for testing
+& clojure.data.finger-tree
 ** Improved 1.3 support
 *** TODO Add a notation for dynamic
 *** TODO Can we get type annotations?
@@ -73,7 +74,7 @@ incanter.distribution.Distribution might be a good one to use for testing
 *** TODO Build the code to pull source and symbols
 ** Maven support
 *** TODO version from pom.xml
-*** TODO Figure out how to get dependencies from maven
+*** DONE Figure out how to get dependencies from maven
 Current idea: 
 1. Depend on leiningen
 2. (:use [leiningen.deps :only [find-jars]])
