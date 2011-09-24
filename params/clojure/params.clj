@@ -25,16 +25,21 @@
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell"],
 
-   :branches [{:name "1.2.x"
+   :branches [{:name "1.3.x"
+               :version "v1.3" 
+               :status "stable"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
+              {:name "master"
+               :version "v1.4" 
+               :status "in development"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
+              {:name "1.2.x"
                :version "v1.2" 
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
-              {:name "master"
-               :version "v1.3" 
-               :status "in development"
-               :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
               {:name "1.1.x" 
                :version "v1.1"
                :status "stable"
@@ -47,5 +52,5 @@
     ],
 
    :page-title "Clojure Core API Reference",
-   :copyright "Copyright 2007-2010 by Rich Hickey",
+   :copyright "Copyright 2007-2011 by Rich Hickey",
    })
