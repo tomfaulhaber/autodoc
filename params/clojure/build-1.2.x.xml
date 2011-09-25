@@ -7,7 +7,7 @@
   <target name="all">
     <ant dir="${src-dir}" inheritAll="false">
       <target name="clean"/>
-      <target name="jar"/>
+      <target name="clojure-jar-slim"/>
     </ant>
   </target>
 
