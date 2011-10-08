@@ -23,7 +23,7 @@
                             "clojure.template" "clojure.test" "clojure.walk" 
                             "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
-                            "clojure.java.shell"],
+                            "clojure.java.shell", "clojure.data", "clojure.reflect"],
 
    :branches [{:name "1.3.x"
                :version "v1.3" 
