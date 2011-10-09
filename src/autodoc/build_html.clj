@@ -511,12 +511,14 @@ vars in ns-info that begin with that letter"
     :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
 
 (defn var-index-info [v ns branch]
-  (assoc (select-keys v [:name :doc :author :arglists :var-type :file :line :added :deprecated :dynamic])
+  (assoc (select-keys v [:name :doc :author :arglists :var-type :line :added :deprecated :dynamic])
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
     :source-url (var-src-link v branch)
     :raw-source-url (when (:file v)
-                      (web-raw-src-file (var-base-file (:file v) branch) branch))))
+                      (web-raw-src-file (var-base-file (:file v) branch) branch))
+    :file (when (:file v)
+            (var-base-file (:file v) branch))))
 
 (defn structured-index 
   "Create a structured index of all the reference information about contrib"
