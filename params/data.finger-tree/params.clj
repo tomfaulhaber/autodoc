@@ -19,9 +19,9 @@
    :trim-prefix "clojure.data.",
 
    :branches [{:name "master"
-               :version "0.0.2"
+               :version :from-pom
                :status "in development"
-               :params {:built-clojure-jar "/home/tom/src/clj/clojure-1.3/clojure.jar"}},
+               :params {:dependencies [['org.clojure/clojure "1.3.0"]]}},
               ]
 
    :load-except-list [#"/classes/"],

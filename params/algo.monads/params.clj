@@ -19,9 +19,9 @@
    :build-json-index nil,
 
    :branches [{:name "master"
-               :version "0.1.1"
+               :version :from-pom
                :status "in development"
-               :params {:dependencies [['org.clojure/clojure "1.3.0-beta1"]
+               :params {:dependencies [['org.clojure/clojure "1.3.0"]
                                        ['org.clojure/tools.macro "0.1.1"]]}},
               ]
 
