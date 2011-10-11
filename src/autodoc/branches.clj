@@ -5,7 +5,8 @@
         [leiningen.deps :only [find-jars]]
         [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
-        [autodoc.doc-files :only (xform-tree)])
+        [autodoc.doc-files :only (xform-tree)]
+        [autodoc.pom-tools :only (get-version)])
   
   (import [java.io File]
           [java.util.regex Pattern]))
@@ -115,4 +116,7 @@
                          (when-not (:first? branch-info)
                            (str (branch-subdir (:name branch-info)) "/"))
                          "doc"))
-        (f branch-info branch-spec (doall (do-collect (:name branch-info))))))))
+        (let [branch-info (if (= (:version branch-info) :from-pom)
+                            (assoc branch-info :version (first (get-version)))
+                            branch-info)]
+          (f branch-info branch-spec (doall (do-collect (:name branch-info)))))))))
