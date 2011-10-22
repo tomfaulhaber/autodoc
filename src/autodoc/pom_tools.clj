@@ -1,5 +1,5 @@
 (ns autodoc.pom-tools
-  (import [java.io File FileInputStream])
+  (:import [java.io File FileInputStream])
   (:require [clojure.zip :as zip]
 	    [clojure.data.zip :as zf]
 	    [clojure.xml :as xml])
