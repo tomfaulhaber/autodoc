@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Do the raw setup for a new clojure-contirb library in the 1.3 world
+# Do the raw setup for a new clojure-contrib library in the 1.3 world
 
 if [ $# -ne 1 ]
 then
