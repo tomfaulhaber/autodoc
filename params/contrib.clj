@@ -44,6 +44,7 @@
                                               ['org.clojure/tools.macro "0.1.1"]]}},
                      ]
           )
+       (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.json" :name "JSON Utilities")
        (! :project "java.classpath" :name "Classpath Utilities")
        (! :project "java.jdbc" :name "JDBC-based SQL Interface")
