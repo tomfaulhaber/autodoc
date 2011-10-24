@@ -72,7 +72,9 @@
     (exec-clojure class-path 
                   (cl-format 
                    nil 
-                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\")"
+                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
+                   (params :param-file)
+                   (params :param-key)
                    (params :param-dir)
                    (.getAbsolutePath tmp-file)
                    branch-name))

@@ -1,6 +1,6 @@
 (ns autodoc.collect-info
   (:use [autodoc.load-files :only (load-namespaces)]
-        [autodoc.params :only (params params-from-dir)]))
+        [autodoc.params :only (params params-from-dir params-from-file)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -137,8 +137,10 @@ versioning reasons"
 
 (defn collect-info-to-file
   "build the file out-file with all the namespace info for the project described in param-dir"
-  [param-dir out-file branch-name]
-  (params-from-dir param-dir)
+  [param-file param-key param-dir out-file branch-name]
+  (if (= param-file "nil")
+    (params-from-dir param-dir)
+    (params-from-file param-file param-key))
   (binding [params (merge params (some #(when (= branch-name (:name %)) (:params %)) (params :branches)))]
     (load-namespaces)
     (with-open [w (writer out-file)] ; this is basically spit, but we do it

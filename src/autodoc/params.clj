@@ -11,6 +11,8 @@
      [[:name nil "The name of this project"],
       [:description nil "A description of this project"],
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
+      [:param-file nil "A multi-project file from which to load custom project data"],
+      [:param-key nil "The project in a multi-project file that should be built (only used\n     when param-file is specified.)"],
       
       [:root "." "The directory in which to find the project"],
       [:source-path "src" "The relative path within the project directory where we find the source"],
@@ -62,6 +64,12 @@
   "Read param.clj from the specified directory and set the params accordingly"
   [param-dir]
   (merge-params (merge {:param-dir param-dir} (load-file (str param-dir "/params.clj")))))
+
+(defn params-from-file
+  "Read the specified file which should return a map of parameter entries, dereference 
+the supplied key and set params accordingly"
+  [param-file key]
+  (merge-params (get (load-file param-file) key)))
 
 (defn extract-arg [arglist]
   (let [param (first arglist)]

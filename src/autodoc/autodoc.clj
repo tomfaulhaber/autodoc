@@ -3,13 +3,14 @@
    [clojure.pprint :only (cl-format)]
    [clojure.java.io :only [file make-parents]]
    [clojure.tools.namespace :only [find-namespaces-in-dir]]
-   [autodoc.params :only (merge-params params params-from-dir params-help process-command-line)]
+   [autodoc.params :only [merge-params params params-from-dir params-from-file
+                          params-help process-command-line]]
    [autodoc.load-files :only (load-namespaces)]
    [autodoc.gen-docs :only (gen-branch-docs)]
    [autodoc.build-html :only (make-all-pages)]
    [autodoc.copy-statics :only (copy-statics)])
   (:import
-   [java.io File])
+   [java.io File FileNotFoundException])
   (:gen-class))
 
 (defn make-doc-dir [] (make-parents (file (params :output-path) "foo")))
@@ -66,6 +67,10 @@
      (when-let [dir (myparams :param-dir)]
        (if (.exists (File. (File. dir) "params.clj"))
          (params-from-dir dir)))
+     (when-let [f (myparams :param-file)]
+       (when-not (.exists (File. f))
+         (throw (FileNotFoundException. (str "Parameter file \"" f "\" doesn't exist."))))
+       (params-from-file f (myparams :param-key)))
      (merge-params (clean-params myparams))
      (if (has-branches?) 
        (do
