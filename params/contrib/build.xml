@@ -1,0 +1,21 @@
+<project name="new contrib" default="all">
+
+  <description>
+    The subsidiary autodoc build file for building the contrib libs
+  </description>
+
+  <target name="all">
+    <!-- First clean out the lib directory so we don't get cross branch pollution -->
+    <delete>
+      <fileset dir="${src-dir}" includes="**/target/**"/>
+    </delete>
+    <mkdir dir="${src-dir}/lib"/>
+
+    <exec executable="mvn" dir="${src-dir}">
+      <arg value="test"/>
+    </exec>
+  </target>
+
+</project>
+
+
