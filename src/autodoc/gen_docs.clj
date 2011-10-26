@@ -15,8 +15,16 @@
                     (file-seq (java.io.File. dir)))]
     (delete-file f)))
 
+(defn clean-index-files
+  "Remove all the index-XXX.clj files before starting a build cycle"
+  [dir]
+  (doseq [f (filter #(re-matches #"index-.*\.clj" (.getName %))
+                    (file-seq (java.io.File. dir)))]
+    (delete-file f)))
+
 (defn gen-branch-docs []
   (clean-html-files (params :output-path))
+  (clean-index-files (params :output-path))
   (let [branch-spec (params :branches)]
     (load-branch-data branch-spec make-all-pages))
   (when (and (params :commit?) (git-dir? (File. (params :output-path))))

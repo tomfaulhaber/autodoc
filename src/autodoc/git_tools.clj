@@ -52,6 +52,15 @@ root of a git repo)"
     (with-sh-dir dir
       (println (:out (apply sh "git" "add" "-v" files))))))
 
+(defn stage-new-index-files 
+  "Add any new index-XXX.clj files to the git staging area"
+  [dir]
+  (when-let [files (map (comp #(.getPath %) (partial offset-path dir))
+                        (filter #(re-matches #"index-.*\.clj" (.getName %))
+                                (file-seq dir)))]
+    (with-sh-dir dir
+      (println (:out (apply sh "git" "add" "-v" files))))))
+
 (defn stage-modified-files 
   "Add any changed files to the git staging area"
   [dir]
@@ -88,6 +97,7 @@ root of a git repo)"
   "Stage and commit all new and changed files in the autodoc tree"
   (stage-new-doc-files doc-dir branches)
   (stage-new-api-files doc-dir)
+  (stage-new-index-files doc-dir)
   (stage-modified-files doc-dir)
   (git-commit doc-dir (comment-for src-dir branches))
   (when (has-remote? doc-dir)
