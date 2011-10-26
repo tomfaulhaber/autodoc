@@ -71,7 +71,7 @@ incanter.distribution.Distribution might be a good one to use for testing
 *** DONE Add index.clj files to all projects
 *** DONE Extend index data to include all metadata information
 *** DONE Add raw file pointers so Zack can pull the source/refs
-*** TODO Build the code to pull source and symbols
+*** DONE Build the code to pull source and symbols
 ** Maven support
 *** DONE version from pom.xml
 *** DONE Figure out how to get dependencies from maven
