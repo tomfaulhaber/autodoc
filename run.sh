@@ -8,4 +8,11 @@ else
     commit=$2
 fi
 
-java -jar autodoc-standalone.jar --param-dir=params/$file --commit?=$commit
+jar=`ls -t autodoc*-standalone.jar |head -1`
+
+if [ -d params/$file ]
+then
+    java -jar $jar --param-dir=params/$file --commit?=$commit
+else
+    java -jar $jar --param-file=params/contrib.clj --param-key=$file --commit?=$commit
+fi

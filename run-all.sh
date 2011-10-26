@@ -16,5 +16,5 @@ done
 
 for contrib in $contribs
 do
-    ./run-contrib.sh $contrib $commit
+    ./run.sh $contrib $commit
 done
