@@ -11,7 +11,7 @@ We should probably use recursive invocation?
 **** TODO develop strategy for working with Leinigen 1.2
 No clojure dependency allowed in plugin
 ***** Option 1: Just port to 1.2 and drop 1.1 support
-I don't thinks this works because standalone requires a clojure dependency 
+I don't thinks this works because standalone requires a clojure dependency
 ***** Option 2: Make a lighweight plug-in module separate from autodoc itself
 ***** Option 3: Don't run as a plugin, but support parsing a project.clj file
 ** Improved HTML presentation
@@ -32,14 +32,14 @@ See python docs for a good example
 **** DONE Add pointer back to clojure.org root from the top of the left-hand TOC
 **** TODO Make back-pointer a per-project parameter
 **** TODO Add pointers to section overview pages for functions (e.g., the Sequences page for instance)
-*** TODO Investigate a better way of handling fixed-width fonts 
+*** TODO Investigate a better way of handling fixed-width fonts
 (browser default, <pre><tt></tt></pre>, see #clojure discussion from 12/27/09)
 [[http://clojure-log.n01se.net/date/2009-12-27.html][IRC Log]]
 *** DONE Remove, improve namespace level usage message.
 *** TODO Add "last updated", git version info
 But figure out how to do this without gratuitous page changes
 *** TODO Make sub-namespace presentation better
-*** TODO Mark deprecated fns, namespaces wherever they are mentioned 
+*** TODO Mark deprecated fns, namespaces wherever they are mentioned
 by italics, maybe
 ** Clean up HTML
 *** TODO Use Linkchecker and remove all dead links
@@ -55,9 +55,9 @@ incanter.distribution.Distribution might be a good one to use for testing
 *** TODO Support docstrings for special forms
 ** Complete the gh-pages doc
 *** TODO Figure out missing sections
-*** TODO add layout/style to gh-pages doc 
+*** TODO add layout/style to gh-pages doc
 (look at http://wiki.github.com/mojombo/jekyll/configuration  for examples)
-*** TODO include pygments style in gh-doc 
+*** TODO include pygments style in gh-doc
 (see http://github.com/mojombo/tpw/blob/master/css/syntax.css)
 ** New features
 *** Image support
@@ -76,7 +76,7 @@ incanter.distribution.Distribution might be a good one to use for testing
 *** DONE version from pom.xml
 *** DONE Figure out how to get dependencies from maven
 *** TODO Get dependencies and versions from the pom.xml
-Current idea: 
+Current idea:
 1. Depend on leiningen
 2. (:use [leiningen.deps :only [find-jars]])
 3. (find-jars {:local-repo-classpath true, :dependencies ...}) where the dependencies look like project.clj
@@ -106,4 +106,4 @@ Enlive seems to not escape this correctly (probably it's just tag soup underneat
 *** TODO Add version number info to wrapped markdown files
 *** DONE Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
 *** TODO Fix source links in incanter
-*** TODO Add a README in the target 
+*** TODO Add a README in the target

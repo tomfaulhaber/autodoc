@@ -11,14 +11,14 @@
 ;; agreeing to be bound by the terms of this license.  You must not
 ;; remove this notice, or any other, from this software.
 
-;; I lifted this from clojure.contrib and stripped it down for autodoc, so that 
+;; I lifted this from clojure.contrib and stripped it down for autodoc, so that
 ;; autodoc wouldn't have to use clojure.contrib during it's first phase
 ;; (which is problematic owing to version variations in the case of clojure core
 ;; and contrib)
 
-(ns 
+(ns
   #^{:author "Stuart Sierra",
-     :doc "Search for ns declarations in dirs, JARs, or CLASSPATH (stolen from clojure.contrib"} 
+     :doc "Search for ns declarations in dirs, JARs, or CLASSPATH (stolen from clojure.contrib"}
   autodoc.find-namespaces
   (import (java.io File FileReader BufferedReader PushbackReader
                    InputStreamReader)

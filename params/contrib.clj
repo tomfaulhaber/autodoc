@@ -25,7 +25,7 @@
              :page-title (str project " API Reference"),
 
              :param-dir "params/contrib",
-             
+
              :branches [{:name "master"
                          :version :from-pom
                          :status "in development"

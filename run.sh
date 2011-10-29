@@ -2,7 +2,7 @@
 
 file=$1
 
-if [ $# -lt 2 ]; then 
+if [ $# -lt 2 ]; then
     commit=true
 else
     commit=$2

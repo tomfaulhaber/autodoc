@@ -30,7 +30,7 @@
   (when (and (params :commit?) (git-dir? (File. (params :output-path))))
     (autodoc-commit (File. (params :root)) (File. (params :output-path))
                     (map :name (params :branches)))))
-(defn gen-docs 
+(defn gen-docs
   [param-dir commit?]
   (params-from-dir param-dir)
   (gen-branch-docs))

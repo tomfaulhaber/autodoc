@@ -18,35 +18,35 @@
 
    :namespaces-to-document ["clojure.core" "clojure.core.protocols"
                             "clojure.inspector" "clojure.main" "clojure.pprint"
-                            "clojure.repl" 
+                            "clojure.repl"
                             "clojure.set" "clojure.stacktrace" "clojure.string"
-                            "clojure.template" "clojure.test" "clojure.walk" 
+                            "clojure.template" "clojure.test" "clojure.walk"
                             "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell", "clojure.data", "clojure.reflect"],
 
    :branches [{:name "1.3.x"
-               :version "v1.3" 
+               :version "v1.3"
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "master"
-               :version "v1.4" 
+               :version "v1.4"
                :status "in development"
                :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "1.2.x"
-               :version "v1.2" 
+               :version "v1.2"
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
-              {:name "1.1.x" 
+              {:name "1.1.x"
                :version "v1.1"
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}],
-   :load-except-list 
-   [ 
+   :load-except-list
+   [
     #"clojure/core.clj"
     #"clojure/parallel.clj"
     ],

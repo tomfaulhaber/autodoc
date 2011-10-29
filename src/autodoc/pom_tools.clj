@@ -17,8 +17,8 @@
   (zip/xml-zip (xml/parse (FileInputStream. (get-pom-file)))))
 
 (defn get-version
-  "Returns the 2-vector [version is-snapshot?] where version is a string representing 
-the version (with -SNAPSHOT removed) and is-snapshot? is true if we 
+  "Returns the 2-vector [version is-snapshot?] where version is a string representing
+the version (with -SNAPSHOT removed) and is-snapshot? is true if we
 removed that suffix and false otherwise"
   []
   (let [full-version (first (:content (first (xml-> (get-pom-xml) :version zip/node))))]

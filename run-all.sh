@@ -10,7 +10,7 @@ if [ $# -ge 1 ]; then
     fi
 fi
 
-if [ $# -lt 1 ]; then 
+if [ $# -lt 1 ]; then
     commit=true
 else
     commit=$1

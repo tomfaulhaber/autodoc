@@ -4,11 +4,11 @@
   (:use [autodoc.find-namespaces :only [find-clojure-sources-in-dir]]
         [autodoc.params :only (params)]))
 
-;;; Load all the files from the source. This is a little hacked up 
-;;; because we can't just grab them out of the jar, but rather need 
+;;; Load all the files from the source. This is a little hacked up
+;;; because we can't just grab them out of the jar, but rather need
 ;;; to load the files because of bug in namespace metadata
 
-(defn not-in [str regex-seq] 
+(defn not-in [str regex-seq]
   (loop [regex-seq regex-seq]
     (cond
       (nil? (seq regex-seq)) true
@@ -35,10 +35,10 @@
 (defn load-files [filelist]
   (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
     (print (str filename ": "))
-    (try 
+    (try
      (load-file filename)
      (println "done.")
-     (catch Exception e 
+     (catch Exception e
        (println  (str "failed (ex = " (.getMessage e) ")"))))))
 
 (defn load-namespaces []

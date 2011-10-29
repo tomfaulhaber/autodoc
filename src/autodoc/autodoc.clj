@@ -1,5 +1,5 @@
 (ns autodoc.autodoc
-  (:use 
+  (:use
    [clojure.pprint :only (cl-format)]
    [clojure.java.io :only [file make-parents]]
    [clojure.tools.namespace :only [find-namespaces-in-dir]]
@@ -15,7 +15,7 @@
 
 (defn make-doc-dir [] (make-parents (file (params :output-path) "foo")))
 
-(defn build-html 
+(defn build-html
   "Build the documentation (default command)"
   [& _]
   (load-namespaces)
@@ -23,7 +23,7 @@
   (copy-statics)
   (make-all-pages))
 
-(defn sym-to-var [sym] 
+(defn sym-to-var [sym]
   (find-var (symbol "autodoc.autodoc" (name sym))))
 
 (declare commands)
@@ -31,8 +31,8 @@
 (defn help
   "Print this help message"
   [& _]
-  (cl-format true 
-             "Usage: autodoc [params] cmd args~%~%") 
+  (cl-format true
+             "Usage: autodoc [params] cmd args~%~%")
   ;; TODO: We should have a fixed width tab (~20t) between the terms below, but something's funky
   (cl-format true "Available commands:~%~:{   ~a: ~a~%~}~%"
              (for [cmd commands]
@@ -49,7 +49,7 @@
 (defn clean-params [params]
   (if (and (params :root) (params :source-path))
     (update-in params [:source-path]
-               #(if (.startsWith % (params :root)) 
+               #(if (.startsWith % (params :root))
                   (.substring % (inc (count (params :root))))
                   %))
     params))
@@ -57,7 +57,7 @@
 ;;; We really shouldn't be special-casing this!
 (defn has-branches? []
   (not (let [branches (params :branches)]
-         (and (== (count branches) 1) 
+         (and (== (count branches) 1)
               (nil? (ffirst branches))))))
 
 (defn autodoc
@@ -72,11 +72,11 @@
          (throw (FileNotFoundException. (str "Parameter file \"" f "\" doesn't exist."))))
        (params-from-file f (myparams :param-key)))
      (merge-params (clean-params myparams))
-     (if (has-branches?) 
+     (if (has-branches?)
        (do
          (copy-statics)
          (gen-branch-docs))
-       (do 
+       (do
          (if (nil? (params :namespaces-to-document))
           (merge-params {:namespaces-to-document
                          (map
@@ -91,7 +91,7 @@
              (help)))))))
 
 (defn -main [& args]
-  (if-let [[params args] (try 
+  (if-let [[params args] (try
                           (process-command-line args)
                           (catch RuntimeException e
                             (println (.getMessage e))
