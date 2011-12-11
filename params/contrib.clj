@@ -36,7 +36,8 @@
             args)]))
 
 (into {}
-      [(! :project "algo.generic" :name "Generic versions of common functions")
+      [(! :project "algo.generic" :name "Generic versions of common functions"
+          :description "Generic versions of commonly used functions, implemented as multimethods that can be implemented for any data type.")
        (! :project "algo.monads" :name "Monad Macros and Definitions"
           :branches [{:name "master"
                       :version :from-pom
