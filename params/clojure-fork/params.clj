@@ -16,17 +16,17 @@
 
    :built-clojure-jar nil,
 
-   :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" "clojure.pprint" 
+   :namespaces-to-document ["clojure.core" "clojure.inspector" "clojure.main" "clojure.pprint"
                             "clojure.set" "clojure.stacktrace" "clojure.template"
                             "clojure.test" "clojure.walk" "clojure.xml"
                             "clojure.zip"],
 
-   :branches [["pprint" 
+   :branches [["pprint"
                {:built-clojure-jar
                 "/home/tom/src/clj/autodoc-work-area/clojure-fork/src/clojure-slim.jar"}],
               ]
-   :load-except-list 
-   [ 
+   :load-except-list
+   [
     #"clojure/core.clj"
     #"clojure/parallel.clj"
     ],

@@ -37,8 +37,8 @@
                         :load-classpath [(str root "/src") (str root "/classes")]}}
               ]
 
-   :load-except-list 
-   [ 
+   :load-except-list
+   [
     #"/test_contrib"
     #"/test_clojure"
     #"/load_all"

@@ -3,22 +3,22 @@
         [autodoc.params :only (params params-from-dir params-from-file)]))
 
 ;; Build a single structure representing all the info we care about concerning
-;; namespaces and their members 
+;; namespaces and their members
 ;;
 ;; Assumes that all the relevant namespaces have already been loaded
 
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
-(defn remove-leading-whitespace 
+(defn remove-leading-whitespace
   "Find out what the minimum leading whitespace is for a doc block and remove it.
-We do this because lots of people indent their doc blocks to the indentation of the 
+We do this because lots of people indent their doc blocks to the indentation of the
 string, which looks nasty when you display it."
   [s]
   (when s
-    (let [lines (.split s "\\n") 
-          prefix-lens (map #(count (re-find #"^ *" %)) 
-                           (filter #(not (= 0 (count %))) 
+    (let [lines (.split s "\\n")
+          prefix-lens (map #(count (re-find #"^ *" %))
+                           (filter #(not (= 0 (count %)))
                                    (next lines)))
           min-prefix (when (seq prefix-lens) (apply min prefix-lens))
           regex (when min-prefix (apply str "^" (repeat min-prefix " ")))]
@@ -26,7 +26,7 @@ string, which looks nasty when you display it."
         (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
         s))))
 
-(defn var-type 
+(defn var-type
   "Determing the type (var, function, macro) of a var from the metadata and
 return it as a string."
   [v]
@@ -43,7 +43,7 @@ return it as a string."
     v))
 
 (defn vars-info [ns]
-  (for [v (vars-for-ns ns)] 
+  (for [v (vars-for-ns ns)]
     (merge (select-keys (meta v) [:arglists :file :line :added :deprecated :dynamic])
            {:name (name (:name (meta v)))
             :doc (remove-leading-whitespace (:doc (meta v))),
@@ -54,7 +54,7 @@ return it as a string."
 
 (defn relevant-namespaces []
   (filter #(not (:skip-wiki (meta %)))
-          (map #(find-ns (symbol %)) 
+          (map #(find-ns (symbol %))
                (filter #(some (fn [n] (or (= % n) (.startsWith % (str n "."))))
                               (params :namespaces-to-document))
                        (sort (map #(name (ns-name %)) (all-ns)))))))
@@ -68,9 +68,9 @@ return it as a string."
 (defn base-namespace
   "A nasty function that finds the shortest prefix namespace of this one"
   [ns]
-  (first 
-   (drop-while 
-    (comp not identity) 
+  (first
+   (drop-while
+    (comp not identity)
     (map #(let [ns-part (find-ns (symbol %))]
             (if (not (:skip-wiki (meta ns-part)))
               ns-part))
@@ -81,8 +81,8 @@ return it as a string."
 (defn base-relevant-namespaces []
   (filter #(= % (base-namespace %)) (relevant-namespaces)))
 
-(defn sub-namespaces 
-  "Find the list of namespaces that are sub-namespaces of this one. That is they 
+(defn sub-namespaces
+  "Find the list of namespaces that are sub-namespaces of this one. That is they
 have the same prefix followed by a . and then more components"
   [ns]
   (let [pat (re-pattern (str (.replaceAll (name (ns-name ns)) "\\." "\\.") "\\..*"))]
@@ -102,7 +102,7 @@ have the same prefix followed by a . and then more components"
   (sort-by :short-name (map add-vars (map build-ns-entry nss))))
 
 (defn add-subspaces [info]
-     (assoc info :subspaces 
+     (assoc info :subspaces
             (filter #(or (:doc %) (seq (:members %)))
                     (build-ns-list (sub-namespaces (:ns info))))))
 
@@ -111,7 +111,7 @@ have the same prefix followed by a . and then more components"
     :base-ns (:short-name ns)
     :subspaces (map #(assoc % :base-ns (:short-name ns)) (:subspaces ns))))
 
-(defn clean-ns-info 
+(defn clean-ns-info
   "Remove the back pointers to the namespace from the ns-info"
   [ns-info]
   (map (fn [ns] (assoc (dissoc ns :ns)
@@ -124,13 +124,13 @@ have the same prefix followed by a . and then more components"
         (map add-subspaces
              (build-ns-list (base-relevant-namespaces))))))
 
-(defn writer 
-  "A version of duck-streams/writer that only handles file strings. Moved here for 
+(defn writer
+  "A version of duck-streams/writer that only handles file strings. Moved here for
 versioning reasons"
   [s]
   (java.io.PrintWriter.
    (java.io.BufferedWriter.
-    (java.io.OutputStreamWriter. 
+    (java.io.OutputStreamWriter.
      (java.io.FileOutputStream. (java.io.File. s) false)
      "UTF-8"))))
 

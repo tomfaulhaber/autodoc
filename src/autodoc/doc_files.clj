@@ -24,12 +24,12 @@ Raise an exception if any deletion fails unless silently is true."
     (when-let [m (re-find #"\.([^./]+)$" (.getPath file))]
       (second m))))
 
-(defmulti xform-file 
-  "Copy a file from the source to the destination, performing any 
+(defmulti xform-file
+  "Copy a file from the source to the destination, performing any
 transformations along the way."
-  get-extension) 
+  get-extension)
 
-(defmethod xform-file :default 
+(defmethod xform-file :default
   [src-file dst relative]
   (copy src-file (File. (File. dst) relative)))
 
@@ -49,7 +49,7 @@ transformations along the way."
    (File. (File. dst) (.replaceFirst relative "\\.md$" ".html"))
    (:out (sh "markdown" (.getPath src-file)))))
 
-(defn xform-tree 
+(defn xform-tree
   "Takes source and destination directories and copies the source to the destination,
 transforming files as appropriate."
   [src dst]

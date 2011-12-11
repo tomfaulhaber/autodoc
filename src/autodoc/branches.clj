@@ -7,12 +7,12 @@
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)]
         [autodoc.pom-tools :only (get-version)])
-  
+
   (import [java.io File]
           [java.util.regex Pattern]))
 
 ;;; This was dropped from contrib in 1.3, I think
-(defn re-split [#^Pattern pattern string] 
+(defn re-split [#^Pattern pattern string]
   (seq (.split pattern string)))
 
 ;;; stolen from lancet
@@ -26,7 +26,7 @@
   (pprint args)
   (println (:out (apply sh (build-sh-args args)))))
 
-(defn switch-branches 
+(defn switch-branches
   "Switch to the specified branch"
   [branch]
   (with-sh-dir (params :root)
@@ -34,28 +34,28 @@
     (system (str "git checkout " branch))
     (system (str "git merge origin/" branch))))
 
-(defn path-str [path-seq] 
+(defn path-str [path-seq]
   (apply str (interpose (System/getProperty "path.separator")
                         (map #(.getAbsolutePath (file %)) path-seq))))
 
 (defn exec-clojure [class-path & args]
-  (apply system (concat [ "java" "-cp"] 
+  (apply system (concat [ "java" "-cp"]
                         [(path-str class-path)]
                         ["clojure.main" "-e"]
                         args)))
 
 (defn expand-jar-path [jar-dirs]
-  (apply concat 
+  (apply concat
          (for [jar-dir jar-dirs]
            (filter #(.endsWith (.getName %) ".jar")
                    (file-seq (java.io.File. jar-dir))))))
 
-(defn do-collect 
+(defn do-collect
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
   (let [src-path (.getPath (File. (params :root) (params :source-path)))
-        class-path (concat 
-                    (filter 
+        class-path (concat
+                    (filter
                      identity
                      [(params :built-clojure-jar)
                       "src"
@@ -69,22 +69,22 @@
                     (expand-classpath branch-name (params :root) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
-    (exec-clojure class-path 
-                  (cl-format 
-                   nil 
+    (exec-clojure class-path
+                  (cl-format
+                   nil
                    "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
                    (params :param-file)
                    (params :param-key)
                    (params :param-dir)
                    (.getAbsolutePath tmp-file)
                    branch-name))
-    (try 
-     (with-open [f (java.io.PushbackReader. (reader tmp-file))] 
+    (try
+     (with-open [f (java.io.PushbackReader. (reader tmp-file))]
        (binding [*in* f] (read)))
-     (finally 
+     (finally
       (.delete tmp-file)))))
 
-(defn do-build 
+(defn do-build
   "Execute an ant build in the given directory, if there's a build.xml"
   [dir branch]
   (when-let [build-file (first
@@ -100,10 +100,10 @@
 (defn with-first [s]
   (map #(assoc %1 :first? %2) s (conj (repeat false) true)))
 
-(defn load-branch-data 
+(defn load-branch-data
   "Collects the doc data from all the branches specified in the params and
-   executes the function f for each branch with the collected data. When f is executed, 
-   the correct branch will be checked out and any branch-specific parameters 
+   executes the function f for each branch with the collected data. When f is executed,
+   the correct branch will be checked out and any branch-specific parameters
    will be bound. Takes an array of maps, one for each branch that will be
    documented. Each map has the keys :name, :version, :status and :params.
    It calls f as (f branch-info all-branch-info ns-info)."
