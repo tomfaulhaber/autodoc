@@ -46,7 +46,9 @@
                                               ['org.clojure/tools.macro "0.1.1"]]}},
                      ]
           )
-       (! :project "core.incubator" :name "Functions proposed for core inclusion")
+       (! :project "core.incubator" :name "Functions proposed for core inclusion"
+          :namespaces-to-document ["clojure.core.incubator" "clojure.core.strint"]
+          :description "Future home of functions proposed for core inclusion.")
        (! :project "core.match" :name "Pattern match and predicate dispatch")
        (! :project "core.unify" :name "Unification library")
        (! :project "data.codec" :name "Native codec implementations")
