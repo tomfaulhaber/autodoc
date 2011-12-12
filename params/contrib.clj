@@ -46,10 +46,13 @@
                                               ['org.clojure/tools.macro "0.1.1"]]}},
                      ]
           )
+       ;; (! :project "core.cache" :name "A caching library implementing various cache strategies")
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
           :namespaces-to-document ["clojure.core.incubator" "clojure.core.strint"]
           :description "Future home of functions proposed for core inclusion.")
+       ;; (! :project "core.logic" :name "A logic programming library based on miniKanren")
        (! :project "core.match" :name "Pattern match and predicate dispatch")
+       ;; (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.unify" :name "Unification library")
        (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.csv" :name "Reading and writing CSV files")
@@ -71,6 +74,7 @@
        (! :project "math.combinatorics" :name "Lazy sequences for common combinatorial functions")
        (! :project "math.numeric-tower" :name "Math functions")
        (! :project "test.benchmark" :name "Benchmark suite")
+       ;; (! :project "test.generative" :name "Test data generation and execution harness")
        (! :project "tools.cli" :name "Command-line processor")
        (! :project "tools.logging" :name "Logging Tools")
        (! :project "tools.macros" :name "Tools for Macro Writers")
@@ -81,5 +85,5 @@
                       :params {:dependencies [['org.clojure/clojure "1.3.0"]
                                               ['org.clojure/java.classpath "0.1.1"]]}},
                      ])
-       (! :project "tools.trace" :name "Execution tracing tool")
-       (! :project "tools.nrepl" :name "Network REPL")])
+       (! :project "tools.nrepl" :name "Network REPL")
+       (! :project "tools.trace" :name "Execution tracing tool")])
