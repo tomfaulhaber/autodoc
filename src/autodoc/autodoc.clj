@@ -97,4 +97,5 @@
                             (println (.getMessage e))
                             (prn)
                             (help)))]
-    (apply autodoc params args)))
+    (apply autodoc params args))
+  (shutdown-agents))
