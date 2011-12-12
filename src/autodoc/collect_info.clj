@@ -67,19 +67,22 @@ return it as a string."
 
 (defn base-namespace
   "A nasty function that finds the shortest prefix namespace of this one"
-  [ns]
+  [ns relevant]
   (first 
    (drop-while 
     (comp not identity) 
     (map #(let [ns-part (find-ns (symbol %))]
-            (if (not (:skip-wiki (meta ns-part)))
+            (if (and (not (:skip-wiki (meta ns-part)))
+                     (relevant ns-part))
               ns-part))
          (let [parts (seq (.split (name (ns-name ns)) "\\."))]
            (map #(apply str (interpose "." (take (inc %) parts)))
                 (range 0 (count parts)))))))) ;; TODO first arg to range was 0 for contrib
 
 (defn base-relevant-namespaces []
-  (filter #(= % (base-namespace %)) (relevant-namespaces)))
+  (let [relevant (relevant-namespaces)
+        relevant-set (set relevant)]
+    (filter #(= % (base-namespace % relevant-set)) relevant)))
 
 (defn sub-namespaces 
   "Find the list of namespaces that are sub-namespaces of this one. That is they 
