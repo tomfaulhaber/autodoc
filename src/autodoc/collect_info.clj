@@ -10,6 +10,8 @@
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
+(def ^{:dynamic true} *saved-out* nil)
+
 (defn remove-leading-whitespace 
   "Find out what the minimum leading whitespace is for a doc block and remove it.
 We do this because lots of people indent their doc blocks to the indentation of the 
@@ -26,31 +28,76 @@ string, which looks nasty when you display it."
         (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
         s))))
 
+(defn protocol?
+  "Return true if the var is a protocol definition. The only way we can tell
+this is by looking at the map and seeing if it has the right keys, which
+may not be foolproof."
+  [v]
+  (and (map? @v)
+       ((every-pred :on-interface :on :sigs :var :method-map :method-builders) @v)))
+
 (defn var-type 
-  "Determing the type (var, function, macro) of a var from the metadata and
+  "Determing the type (var, function, macro, protocol) of a var from the metadata and
 return it as a string."
   [v]
   (cond (:macro (meta v)) "macro"
         (= (:tag (meta v)) clojure.lang.MultiFn) "multimethod"
         (:arglists (meta v)) "function"
+        (protocol? v) "protocol"
         :else "var"))
 
 (defn vars-for-ns [ns]
   (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
         :when (and (or (:wiki-doc (meta v)) (:doc (meta v)))
+                   (not (protocol? v))
+                   (not (:protocol (meta v)))
                    (not (:skip-wiki (meta v)))
                    (not (:private (meta v))))]
     v))
 
+(defn var-info
+  [v]
+  (merge (select-keys (meta v) [:arglists :file :line
+                                :added :deprecated :dynamic])
+         {:name (name (:name (meta v)))
+          :doc (remove-leading-whitespace (:doc (meta v))),
+          :var-type (var-type v)}))
+
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
-    (merge (select-keys (meta v) [:arglists :file :line :added :deprecated :dynamic])
-           {:name (name (:name (meta v)))
-            :doc (remove-leading-whitespace (:doc (meta v))),
-            :var-type (var-type v)})))
+    (var-info v)))
+
+(defn protos-for-ns
+  "Find all the protocols in the namespace"
+  [ns]
+  (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
+        :when (and (protocol? v)
+                   (or (:wiki-doc (meta v)) (:doc (meta v))
+                       (seq (filter identity
+                                    (map (comp :doc second)
+                                         (:sigs @v))))))]
+    v))
+
+(defn proto-vars-info
+  "Get the expanded list of functions for this protocol"
+  [proto-var ns]
+  (for [v (sort-by (comp :name meta) (vals (ns-interns ns)))
+        :when (= (:protocol (meta v)) proto-var)]
+    (var-info v)))
+
+(defn protos-info
+  "Build the info structure for the protocols"
+  [ns]
+  (for [p (protos-for-ns ns)]
+    (merge (select-keys (meta p) [:file :line :added :deprecated])
+           {:name (name (:name (meta p)))
+            :doc (remove-leading-whitespace (:doc (meta p))),
+            :var-type (var-type p)
+            :fns (proto-vars-info p ns)})))
 
 (defn add-vars [ns-info]
-  (merge ns-info {:members (vars-info (:ns ns-info))}))
+  (merge ns-info {:members (vars-info (:ns ns-info))
+                  :protocols (protos-info (:ns ns-info))}))
 
 (defn relevant-namespaces []
   (filter #(not (:skip-wiki (meta %)))
@@ -146,7 +193,13 @@ versioning reasons"
     (params-from-file param-file param-key))
   (binding [params (merge params (some #(when (= branch-name (:name %)) (:params %)) (params :branches)))]
     (load-namespaces)
+    (with-open [w (writer "/tmp/autodoc-debug")] ; this is basically spit, but we do it
+                                        ; here so we don't have clojure version issues
+      (binding [*saved-out* *out*]
+        (binding [*out* w]
+          (pr (contrib-info)))))    
     (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [*out* w]
-        (pr (contrib-info))))))
+      (binding [*saved-out* *out*]
+        (binding [*out* w]
+          (pr (contrib-info)))))))
