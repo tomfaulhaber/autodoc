@@ -11,6 +11,14 @@
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
 (def ^{:dynamic true} *saved-out* nil)
+(def post-1-2? (let [{:keys [major minor]} *clojure-version*]
+                 (or (>= major 2) (and (= major 1) (>= minor 2)))))
+
+(if post-1-2?
+  (do
+    (load "reflect")
+    (refer 'autodoc.reflect :only '[reflect]))
+  (defn reflect [obj & options]))
 
 (defn remove-leading-whitespace 
   "Find out what the minimum leading whitespace is for a doc block and remove it.
@@ -94,6 +102,27 @@ return it as a string."
             :doc (remove-leading-whitespace (:doc (meta p))),
             :var-type (var-type p)
             :fns (proto-vars-info p ns)})))
+
+(defn types-for-ns
+  "Discover the types and records in ns"
+  [ns]
+  ;; We rely on the fact that deftype creates a factory function in
+  ;; the form ->TypeName to find the defined types in this namespace.
+  (let [names (map #(.substring % 2)
+                   (filter #(.startsWith % "->")
+                           (sort
+                            (map name
+                                 (keys (ns-interns ns))))))
+        ns-prefix (.replace (name (ns-name ns)) "-" "_")
+        ns-map (into
+                {}
+                (filter
+                 second
+                 (for [n names]
+                   [n (try
+                        (when-let [cls (Class/forName (str ns-prefix "." n))]
+                          (reflect cls))
+                        (catch Exception e)) ])))]))
 
 (defn add-vars [ns-info]
   (merge ns-info {:members (vars-info (:ns ns-info))
