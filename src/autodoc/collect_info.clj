@@ -11,6 +11,11 @@
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
 (def ^{:dynamic true} *saved-out* nil)
+(defn debug [& args]
+  (binding [*out* (or *saved-out* *out*)]
+    (apply println args)))
+
+
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
                  (or (>= major 2) (and (= major 1) (>= minor 2)))))
 
@@ -19,6 +24,16 @@
     (load "reflect")
     (refer 'autodoc.reflect :only '[reflect]))
   (defn reflect [obj & options]))
+
+(defn ns-to-class-name
+  "Convert the namespece name into a class root name"
+  [ns]
+  (.replace (name (ns-name ns)) "-" "_"))
+
+(defn class-to-ns-name
+  "Convert a class to the corresponding namespace name"
+  [ns]
+  (.replace (name (ns-name ns)) "_" "-"))
 
 (defn remove-leading-whitespace 
   "Find out what the minimum leading whitespace is for a doc block and remove it.
@@ -41,8 +56,25 @@ string, which looks nasty when you display it."
 this is by looking at the map and seeing if it has the right keys, which
 may not be foolproof."
   [v]
-  (and (map? @v)
+  (and v
+       (map? @v)
        ((every-pred :on-interface :on :sigs :var :method-map :method-builders) @v)))
+
+(defn class-to-var
+  "Take a class object that points to a var and return the Var object"
+  [cls]
+  (let [className (.replace (.getName cls) "_" "-")
+        dot (.lastIndexOf className ".")
+        ns (.substring className 0 dot)
+        sym (.substring className (inc dot))]
+    (when (find-ns (symbol ns))
+      (find-var (symbol ns sym)))))
+
+(defn protocol-class?
+  "Return true if the class erpresents a protocol. We resolve this by finding the
+associated var"
+  [cls]
+  (protocol? (class-to-var cls)))
 
 (defn var-type 
   "Determing the type (var, function, macro, protocol) of a var from the metadata and
@@ -113,7 +145,7 @@ return it as a string."
                            (sort
                             (map name
                                  (keys (ns-interns ns))))))
-        ns-prefix (.replace (name (ns-name ns)) "-" "_")
+        ns-prefix (ns-to-class-name ns)
         ns-map (into
                 {}
                 (filter
@@ -122,11 +154,33 @@ return it as a string."
                    [n (try
                         (when-let [cls (Class/forName (str ns-prefix "." n))]
                           (reflect cls))
-                        (catch Exception e)) ])))]))
+                        (catch Exception e))])))]
+    ns-map))
+
+(def interfaces-to-skip #{'clojure.lang.IType 'clojure.lang.IRecord})
+
+(defn types-info
+  "Create the info structure for all the types in the namespace"
+  [ns]
+  (for [[type-name reflect-info] (types-for-ns ns)]
+    (let [protocols (set (filter protocol-class? (:bases reflect-info)))
+          record? ((:bases reflect-info) 'clojure.lang.IRecord)]
+      {:name type-name
+       :protocols (sort protocols)
+       :interfaces (sort
+                    (filter #(and (not (interfaces-to-skip %))
+                                  (not (protocols %))
+                                  (.isInterface (Class/forName (name %))))
+                            (:bases reflect-info)))
+       :var-type (if record? "record" "type")
+       :fields (map :name (filter #(and (instance? autodoc.reflect.Field %)
+                                        (= (:flags %) #{:public :final}))
+                                  (:members reflect-info)))})))
 
 (defn add-vars [ns-info]
   (merge ns-info {:members (vars-info (:ns ns-info))
-                  :protocols (protos-info (:ns ns-info))}))
+                  :protocols (protos-info (:ns ns-info))
+                  :types (types-info (:ns ns-info))}))
 
 (defn relevant-namespaces []
   (filter #(not (:skip-wiki (meta %)))
@@ -222,7 +276,7 @@ versioning reasons"
     (params-from-file param-file param-key))
   (binding [params (merge params (some #(when (= branch-name (:name %)) (:params %)) (params :branches)))]
     (load-namespaces)
-    (with-open [w (writer "/tmp/autodoc-debug")] ; this is basically spit, but we do it
+    (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
       (binding [*saved-out* *out*]
         (binding [*out* w]
