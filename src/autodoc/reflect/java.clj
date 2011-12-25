@@ -177,8 +177,9 @@ the kinds of objects to which they can apply."}
                                   (declared-methods cls)
                                   (declared-constructors cls))})))
 
+;;; NOTE: changed from the clojure.reflect version!!!!
 (def ^:private default-reflector
-     (JavaReflector. (.getContextClassLoader (Thread/currentThread))))
+     (JavaReflector. (clojure.lang.DynamicClassLoader.)))
 
 (defn- parse-method-descriptor
   [^String md]
