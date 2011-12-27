@@ -77,7 +77,7 @@
          (copy-statics)
          (gen-branch-docs))
        (do 
-         (if (nil? (params :namespaces-to-document))
+         (when (nil? (params :namespaces-to-document))
           (merge-params {:namespaces-to-document
                          (map
                           name
