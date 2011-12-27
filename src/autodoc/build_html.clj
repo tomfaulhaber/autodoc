@@ -227,7 +227,9 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 (deffragment make-overview-content *overview-file* [branch-info ns-info]
   [:span#header-project] (content (or (params :name) "Project"))
   [:span#header-version] (content (:version branch-info))
-  [:span#header-status] (content (:status branch-info))
+  [:span#header-status-block] (when (:status branch-info)
+                                #(at % [:span#header-status]
+                                     (content (:status branch-info))))
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
@@ -278,7 +280,7 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 (defn make-overview [ns-info master-toc branch-info prefix]
   (create-page "index.html"
                (when (not (:first? branch-info)) (:name branch-info))
-               (cl-format nil "Overview - ~a ~a API documentation" (params :name) (:version branch-info))
+               (cl-format nil "Overview - ~a~@[ ~a~] API documentation" (params :name) (:version branch-info))
                prefix
                master-toc
                (make-local-toc (overview-toc-data ns-info))
@@ -397,7 +399,9 @@ actually changed). This reduces the amount of random doc file changes that happe
         [:#namespace-name] (content (:short-name ns))
         [:#header-project] (content (:name params))
         [:#header-version] (content (:version branch-info))
-        [:#header-status] (content (:status branch-info))
+        [:#header-status-block] (when (:status branch-info)
+                                  #(at % [:span#header-status]
+                                       (content (:status branch-info))))
         [:span#author-line] (when (:author ns)
                               #(at % [:#author-name] 
                                    (content (:author ns))))
@@ -419,7 +423,7 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix]
   (create-page (if unique-ns? "index.html" (ns-html-file ns))
                (when (not (:first? branch-info)) (:name branch-info))
-               (cl-format nil "~a - ~a ~a API documentation"
+               (cl-format nil "~a - ~a~@[ ~a~] API documentation"
                           (:short-name ns) (params :name) (:version branch-info))
                prefix
                master-toc
@@ -471,6 +475,9 @@ vars in ns-info that begin with that letter"
 (deffragment make-index-content *index-html-file* [branch-info vars-by-letter unique-ns?]
   [:#header-project] (content (:name params))
   [:#header-version] (content (:version branch-info))
+  [:#header-status-block] (when (:status branch-info)
+                            #(at % [:span#header-status]
+                                 (content (:status branch-info))))
   [:#header-status] (content (:status branch-info))
   [:.project-name-span] (content (:name params))
   [:div#index-body] (clone-for [[letter vars] vars-by-letter]
@@ -483,7 +490,7 @@ vars in ns-info that begin with that letter"
 (defn make-index-html [ns-info master-toc branch-info prefix]
   (create-page *index-html-file*
                (when (not (:first? branch-info)) (:name branch-info))
-               (cl-format nil "Index - ~a ~a API documentation"
+               (cl-format nil "Index - ~a~@[ ~a~] API documentation"
                           (params :name) (:version branch-info))
                prefix
                master-toc
