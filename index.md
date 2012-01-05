@@ -69,7 +69,7 @@ for use by other tools. See the file index.clj in the output directory:
          :file "src/noir/cookies.clj"}
         {:arglists ([sign-key k] [sign-key k default]),
          :name "get-signed",
-  ...
+        ...
 {% endhighlight %}
 
 By default, Autodoc produces documentation that looks a lot like
