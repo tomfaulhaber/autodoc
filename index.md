@@ -44,31 +44,31 @@ and a snippet of their documentation.
     ![(A sample of the index page)](static/sample-index.png)
 
 4. A Clojure index of all the namespaces and vars in those namespaces 
-for use by other tools. See the file index.clj in the output directory.
+for use by other tools. See the file index.clj in the output directory:
 
 {% highlight clojure %}
-{:namespaces
- ({:source-url nil,
-   :wiki-url "noir.cookies-api.html",
-   :name "noir.cookies",
-   :doc "Stateful access to cookie values"}
-  {:source-url nil,
-   :wiki-url "noir.core-api.html",
-  ...
- :vars
- ({:arglists ([k] [k default]),
-   :name "get",
-   :namespace "noir.cookies",
-   :source-url nil,
-   :raw-source-url nil,
-   :wiki-url "/noir.cookies-api.html#noir.cookies/get",
-   :doc
-   "Get the value of a cookie from the request. k can either be a string or keyword.\nIf this is a signed cookie, use get-signed, otherwise the signature will not be\nchecked.",
-   :var-type "function",
-   :line 20,
-   :file "src/noir/cookies.clj"}
-  {:arglists ([sign-key k] [sign-key k default]),
-   :name "get-signed",
+      {:namespaces
+       ({:source-url nil,
+         :wiki-url "noir.cookies-api.html",
+         :name "noir.cookies",
+         :doc "Stateful access to cookie values"}
+        {:source-url nil,
+         :wiki-url "noir.core-api.html",
+        ...
+       :vars
+       ({:arglists ([k] [k default]),
+         :name "get",
+         :namespace "noir.cookies",
+         :source-url nil,
+         :raw-source-url nil,
+         :wiki-url "/noir.cookies-api.html#noir.cookies/get",
+         :doc
+         "Get the value of a cookie from the request. k can either be a string or keyword.",
+         :var-type "function",
+         :line 20,
+         :file "src/noir/cookies.clj"}
+        {:arglists ([sign-key k] [sign-key k default]),
+         :name "get-signed",
   ...
 {% endhighlight %}
 
@@ -513,6 +513,7 @@ There are two things to consider with Leiningen integration:
 
 1. Options that take lists (like `:load-except-list`) are not yet supported.
 2. In order to provide more independence from shared dependencies with Leiningen, Autodoc and its dependents are loaded into their own directory and executed in a separate process from Leiningen. This won't work if you run it for the first time when you're untethered from the Internet.
+
 ### Building with Ant ### 
 
 Building with ant is straightforward. Just add an autodoc target to
