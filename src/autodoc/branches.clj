@@ -2,7 +2,7 @@
   (:use [clojure.java.io :only [file reader]]
         [clojure.java.shell :only [with-sh-dir sh]]
         [clojure.pprint :only [cl-format pprint]]
-        [leiningen.deps :only [find-jars]]
+        [autodoc.deps :only [find-jars]]
         [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)]
@@ -62,8 +62,7 @@
                       src-path
                       "."])
                     (when-let [deps (params :dependencies)]
-                      (find-jars {:local-repo-classpath true,
-                                  :dependencies deps,
+                      (find-jars {:dependencies deps,
                                   :root src-path
                                   :name (str "Autodoc for " (params :name))}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
