@@ -133,7 +133,8 @@ return it as a string."
            {:name (name (:name (meta p)))
             :doc (remove-leading-whitespace (:doc (meta p))),
             :var-type (var-type p)
-            :fns (proto-vars-info p ns)})))
+            :fns (proto-vars-info p ns)
+            :known-impls (keys (:impls @p))})))
 
 (defn types-for-ns
   "Discover the types and records in ns"
