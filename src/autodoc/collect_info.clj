@@ -173,9 +173,8 @@ return it as a string."
                                   (.isInterface (Class/forName (name %))))
                             (:bases reflect-info)))
        :var-type (if record? "record" "type")
-       :fields (map :name (filter #(and (instance? autodoc.reflect.Field %)
-                                        (= (:flags %) #{:public :final}))
-                                  (:members reflect-info)))})))
+       ;; Get the fields from the constructor function so they're in the right order
+       :fields (first (:arglists (meta (get (ns-interns ns) (symbol (str "->" type-name))))))})))
 
 (defn add-vars [ns-info]
   (merge ns-info {:members (vars-info (:ns ns-info))
