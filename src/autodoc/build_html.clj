@@ -23,6 +23,7 @@
 (def ^:dynamic *sub-namespace-api-file* "sub-namespace-api.html")
 (def ^:dynamic *index-html-file* "api-index.html")
 (def ^:dynamic *index-clj-file* "index~@[-~a~].clj")
+(def ^:dynamic *raw-index-clj-file* "raw-index~@[-~a~].clj")
 (def ^:dynamic *index-json-file* "api-index.json")
 
 (defn template-for
@@ -545,6 +546,13 @@ vars in ns-info that begin with that letter"
     (binding [*out* out]
       (pprint (structured-index ns-info (:name branch-info))))))
 
+(defn make-raw-index-clj [ns-info branch-info]
+  (with-open [out (writer (file (params :output-path)
+                                (cl-format nil *raw-index-clj-file*
+                                           (:version branch-info))))]
+    (binding [*out* out]
+      (pprint ns-info))))
+
 (defn make-index-json
   "Generate a json formatted index file that can be consumed by other tools"
   [ns-info branch-info]
@@ -624,5 +632,7 @@ vars in ns-info that begin with that letter"
            (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix))
          (make-index-html ns-info master-toc branch-info prefix)
          (make-index-clj ns-info branch-info)
+         (when (params :build-raw-index)
+           (make-raw-index-clj ns-info branch-info))
          (make-index-json ns-info branch-info)))))
 
