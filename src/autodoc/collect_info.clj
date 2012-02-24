@@ -156,7 +156,7 @@ return it as a string."
                         (when-let [cls (Class/forName (str ns-prefix "." n))]
                           (reflect cls))
                         (catch Exception e))])))]
-    ns-map))
+    (sort-by first ns-map)))
 
 (def interfaces-to-skip #{'clojure.lang.IType 'clojure.lang.IRecord})
 

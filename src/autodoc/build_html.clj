@@ -142,15 +142,21 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 
 (defn var-toc-entries 
   "Build the var-name, <a> tag pairs for the vars in ns"
-  [ns]
-  (for [v (:members ns)] [(:name v) (var-tag-name ns v)]))
+  [ns key]
+  (seq (for [v (get ns key)] [(:name v) (var-tag-name ns v)])))
 
 (defn ns-toc-data [ns]
   (apply 
    vector 
-   ["Overview" "toc0" (var-toc-entries ns)]
-   (for [sub-ns (:subspaces ns)]
-     [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)])))
+   `(["Overview" "toc0"]
+     ~@[(when-let [entries (var-toc-entries ns :protocols)]
+          ["Protocols" "proto-section" entries])]
+     ~@[(when-let [entries (var-toc-entries ns :types)]
+          ["Types" "type-section" entries])]
+     ~@[(when-let [entries (var-toc-entries ns :members)]
+          ["Vars and Functions" "var-section" entries])]
+     ~(for [sub-ns (:subspaces ns)]
+        [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)]))))
 
 (defn var-url
   "Return the relative URL of the anchored entry for a var on a namespace detail page"
@@ -391,6 +397,64 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn make-ns-content [ns branch-info external-docs]
   (render-namespace-api ns branch-info external-docs))
 
+(defn proto-details [ns p loc branch-info]
+  (at loc
+      [:#proto-tag] 
+      (do->
+       (set-attr :id (var-tag-name ns p))
+       (content (:name p)))
+      [:pre#proto-docstr] (content (expand-links (:doc p)))
+      [:span#proto-impls] (content (str/join ", " (map #(if (nil? %) "nil" (str %))
+                                                       (:known-impls p))))
+      [:a#proto-source] (fn [n] (when-let [link (var-src-link p (:name branch-info))]
+                                  (apply (set-attr :href link) [n])))
+      [:.proto-added] (when (:added p)
+                        #(at % [:#content]
+                             (content (str "Added in " (params :name)
+                                           " version " (:added p)))))
+      [:.proto-deprecated] (when (:deprecated p)
+                             #(at % [:#content]
+                                  (content (str "Deprecated since " (params :name)
+                                                " version " (:deprecated p)))))
+      [:div#proto-var-entry] (clone-for [v (:fns p)]
+                                        #(var-details ns v % branch-info))))
+
+(defn render-protos
+  [ns proto-list branch-info]
+  (when (seq proto-list)
+    (fn [loc]
+      (at loc [:div#proto-entry]
+          (clone-for [p proto-list]
+                     #(proto-details ns p % branch-info))))))
+
+(defn type-details [ns t loc branch-info]
+  (at loc
+      [:#type-tag] 
+      (do->
+       (set-attr :id (var-tag-name ns t))
+       (content (:name t)))
+      [:span#type-type] (content (:var-type t))
+      [:pre#type-docstr] (content (expand-links (:doc t))) ; Not yet supported
+      [:span#type-fields] (content (str "[" (str/join " " (:fields t)) "]"))
+      [:span#type-protocols] (content (str/join ", " (:protocols t)))
+      [:span#type-interfaces] (content (str/join ", " (:interfaces t)))))
+
+(defn render-types
+  [ns type-list branch-info]
+    (when (seq type-list)
+    (fn [loc]
+      (at loc [:div#type-entry]
+          (clone-for [t type-list]
+                     #(type-details ns t % branch-info))))))
+
+(defn render-vars
+  [ns var-list branch-info]
+  (when (seq var-list)
+    (fn [loc]
+      (at loc [:div#var-entry]
+          (clone-for [v var-list]
+                     #(var-details ns v % branch-info))))))
+
 (defn common-namespace-api [ns branch-info external-docs]
   (fn [node]
     (at node
@@ -412,9 +476,12 @@ actually changed). This reduces the amount of random doc file changes that happe
                                  (content (str "Deprecated since " (params :name)
                                                " version " (:deprecated ns)))))
         [:span#external-doc] (external-doc-links ns external-docs)
-        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch-info))
+        [:div#proto-section] (render-protos ns (:protocols ns) branch-info)
+        [:div#type-section] (render-types ns (:types ns) branch-info)
+        [:div#var-section] (render-vars ns (:members ns) branch-info)
         [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % branch-info external-docs) (:subspaces ns))))))
+        (substitute (map #(render-sub-namespace-api % branch-info external-docs)
+                         (:subspaces ns))))))
 
 (defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix]
   (create-page (if unique-ns? "index.html" (ns-html-file ns))
