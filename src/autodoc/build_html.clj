@@ -396,7 +396,9 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn common-namespace-api [ns branch-info external-docs]
   (fn [node]
     (at node
-        [:#namespace-name] (content (:short-name ns))
+        [:#namespace-name] (do->
+                            (set-attr :id (:short-name ns))
+                            (content (:short-name ns)))
         [:#header-project] (content (:name params))
         [:#header-version] (content (:version branch-info))
         [:#header-status-block] (when (:status branch-info)
