@@ -31,6 +31,7 @@
       [:branches [[nil {}]] nil]
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
       [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
+      [:build-raw-index false "Set to true if you want to create an index that contains all of the namespace metadata used to generate the docs (suitable for feeding to autodoc's internal functions)"]
       
       [:page-title nil "A title to put on each page"],
       [:copyright "No copyright info " "Copyright (or other page footer data) to put at the bottom of each page"]
