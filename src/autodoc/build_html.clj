@@ -5,6 +5,7 @@
            [java.util.regex Pattern])
   (:require [clojure.string :as str])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
+        [clojure.string :only (split-lines)]
         [clojure.java.io :only (as-file file writer)]
         [clojure.java.shell :only (sh)]
         [clojure.pprint :only (pprint cl-format)]
@@ -296,6 +297,17 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
     (if (= (:var-type v) "multimethod")
       "No usage documentation available")))
 
+(defn- git-get-last-commit-hash [file branch]
+  (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file
+                              :dir (params :root))))]
+    (when (not (or (zero? (count hash)) (.startsWith hash "fatal")))
+      hash)))
+
+(defn- hg-get-last-commit-hash [file branch]
+  (let [res (.trim (:out (sh "hg" "log" "--limit" "1" file :dir (params :root))))]
+    (when (not (or (zero? (count res)) (.startsWith res "fatal")))
+      (->> res split-lines first (re-find #"\w+$")))))
+
 (def 
  #^{:doc "Gets the commit hash for the last commit that included this file. We
 do this for source links so that we don't change them with every commit (unless that file
@@ -303,10 +315,9 @@ actually changed). This reduces the amount of random doc file changes that happe
  get-last-commit-hash
  (memoize
   (fn [file branch]
-    (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file 
-                                :dir (params :root))))]
-      (when (not (or (zero? (count hash)) (.startsWith hash "fatal")))
-        hash)))))
+    (case (params :scm-tool)
+          "git" (git-get-last-commit-hash file branch)
+          "hg" (hg-get-last-commit-hash file branch)))))
 
 (defn web-src-file [file branch]
   (when-let [web-src-dir (params :web-src-dir)]
@@ -358,7 +369,11 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn var-src-link [v branch]
   (when (and (:file v) (:line v))
     (when-let [web-file (web-src-file (var-base-file (:file v) branch) branch)]
-      (cl-format nil "~a#L~d" web-file (:line v)))))
+      (let [link-format (case (params :scm-tool)
+                              "git" "~a#L~d"
+                              "hg" "~a#cl-~d"
+                              "~a")]
+        (cl-format nil link-format web-file (:line v))))))
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template branch-info]
