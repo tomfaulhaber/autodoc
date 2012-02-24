@@ -35,6 +35,7 @@
       
       [:page-title nil "A title to put on each page"],
       [:copyright "No copyright info " "Copyright (or other page footer data) to put at the bottom of each page"]
+      [:scm-tool "git" "Source control management tool: git or hg"]
       [:commit? false "Commit and push the documentation when complete, if doc dir is a git repo"]
       ])
 
@@ -56,9 +57,19 @@
        (doseq [[kw _ desc] available-params :when desc]
          (println (str "   --" (name kw) ": " desc))))))
 
+(defn check-params
+  "Check the param map to make sure its values are legal"
+  [param-map]
+  (do
+    (when-let [tool (param-map :scm-tool)]
+      (when-not (contains? #{"git" "hg"} tool)
+        (throw (IllegalArgumentException. "Parameter :scm-tool can only be git or hg"))))
+    nil))
+
 (defn merge-params 
   "Merge the param map supplied into the params defined in the params var"
   [param-map]
+  (check-params param-map)
   (alter-var-root #'params merge param-map))
 
 (defn params-from-dir 
