@@ -387,15 +387,15 @@ actually changed). This reduces the amount of random doc file changes that happe
 (declare common-namespace-api)
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
- [ns branch-info external-docs]
-  (common-namespace-api ns branch-info external-docs))
+ [ns branch-info ns-info external-docs]
+  (common-namespace-api ns branch-info ns-info external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
- [ns branch-info external-docs]
-  (common-namespace-api ns branch-info external-docs))
+ [ns branch-info ns-info external-docs]
+  (common-namespace-api ns branch-info ns-info external-docs))
 
-(defn make-ns-content [ns branch-info external-docs]
-  (render-namespace-api ns branch-info external-docs))
+(defn make-ns-content [ns branch-info ns-info external-docs]
+  (render-namespace-api ns branch-info ns-info external-docs))
 
 (defn proto-details [ns p loc branch-info]
   (at loc
@@ -427,7 +427,20 @@ actually changed). This reduces the amount of random doc file changes that happe
           (clone-for [p proto-list]
                      #(proto-details ns p % branch-info))))))
 
-(defn type-details [ns t loc branch-info]
+(defn proto-with-link [ns-info this-ns proto-name]
+  (let [[_ raw-ns base-name] (re-matches #"^(.*)\.([^.]+)$" (str proto-name))
+        ns (str/replace raw-ns "_" "-")]
+    (cond
+     (= ns (:base-ns this-ns)) {:tag :a
+                                :attrs {:href (str "#" ns "/" base-name)}
+                                :content base-name}
+     (seq (filter #(= (:base-ns %) ns) ns-info)) {:tag :a
+                                                  :attrs {:href (str ns "-api.html#" ns
+                                                                     "/" base-name)}
+                                                  :content (str ns "/" base-name)}
+     :else (str ns "/" base-name))))
+
+(defn type-details [ns t loc branch-info ns-info]
   (at loc
       [:#type-tag] 
       (do->
@@ -436,16 +449,18 @@ actually changed). This reduces the amount of random doc file changes that happe
       [:span#type-type] (content (:var-type t))
       [:pre#type-docstr] (content (expand-links (:doc t))) ; Not yet supported
       [:span#type-fields] (content (str "[" (str/join " " (:fields t)) "]"))
-      [:span#type-protocols] (content (str/join ", " (:protocols t)))
+      [:span#type-protocols] (content (interpose ", "
+                                                 (map (partial proto-with-link ns-info ns)
+                                                      (:protocols t))))
       [:span#type-interfaces] (content (str/join ", " (:interfaces t)))))
 
 (defn render-types
-  [ns type-list branch-info]
+  [ns type-list branch-info ns-info]
     (when (seq type-list)
     (fn [loc]
       (at loc [:div#type-entry]
           (clone-for [t type-list]
-                     #(type-details ns t % branch-info))))))
+                     #(type-details ns t % branch-info ns-info))))))
 
 (defn render-vars
   [ns var-list branch-info]
@@ -455,7 +470,7 @@ actually changed). This reduces the amount of random doc file changes that happe
           (clone-for [v var-list]
                      #(var-details ns v % branch-info))))))
 
-(defn common-namespace-api [ns branch-info external-docs]
+(defn common-namespace-api [ns branch-info ns-info external-docs]
   (fn [node]
     (at node
         [:#namespace-name] (content (:short-name ns))
@@ -477,13 +492,13 @@ actually changed). This reduces the amount of random doc file changes that happe
                                                " version " (:deprecated ns)))))
         [:span#external-doc] (external-doc-links ns external-docs)
         [:div#proto-section] (render-protos ns (:protocols ns) branch-info)
-        [:div#type-section] (render-types ns (:types ns) branch-info)
+        [:div#type-section] (render-types ns (:types ns) branch-info ns-info)
         [:div#var-section] (render-vars ns (:members ns) branch-info)
         [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % branch-info external-docs)
+        (substitute (map #(render-sub-namespace-api % branch-info ns-info external-docs)
                          (:subspaces ns))))))
 
-(defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix]
+(defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix ns-info]
   (create-page (if unique-ns? "index.html" (ns-html-file ns))
                (when (not (:first? branch-info)) (:name branch-info))
                (cl-format nil "~a - ~a ~a API documentation"
@@ -491,7 +506,7 @@ actually changed). This reduces the amount of random doc file changes that happe
                prefix
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns branch-info external-docs)))
+               (make-ns-content ns branch-info ns-info external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -680,8 +695,8 @@ vars in ns-info that begin with that letter"
          (if (> (count ns-info) 1)
            (do (make-overview ns-info master-toc branch-info prefix)
                (doseq [ns ns-info]
-                 (make-ns-page false ns master-toc external-docs branch-info prefix)))
-           (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix))
+                 (make-ns-page false ns master-toc external-docs branch-info prefix ns-info)))
+           (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix ns-info))
          (make-index-html ns-info master-toc branch-info prefix)
          (make-index-clj ns-info branch-info)
          (make-index-json ns-info branch-info)))))
