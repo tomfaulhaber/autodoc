@@ -25,6 +25,16 @@
 (def ^:dynamic *index-clj-file* "index~@[-~a~].clj")
 (def ^:dynamic *index-json-file* "api-index.json")
 
+(defn ns-to-class-name
+  "Convert the namespace name into a class root name"
+  [ns]
+  (.replace ns "-" "_"))
+
+(defn class-to-ns-name
+  "Convert a class to the corresponding namespace name"
+  [ns]
+  (.replace ns "_" "-"))
+
 (defn template-for
   "Get the actual filename corresponding to a template. We check in the project
 specific directory first, then sees if a parameter with that name is set, then 
@@ -397,7 +407,24 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn make-ns-content [ns branch-info ns-info external-docs]
   (render-namespace-api ns branch-info ns-info external-docs))
 
-(defn proto-details [ns p loc branch-info]
+(defn find-impls
+  "Find all the implementations of this protocol in all the namespaces
+that we're documenting"
+  [p this-ns ns-info]
+  (let [full-name (ns-to-class-name (str (:full-name this-ns) "." (:name p)))]
+    (set
+     (apply
+      concat
+      (:known-impls p)
+      ;; TODO add links to the targets
+      (for [ns ns-info]
+        (for [type (:types ns)
+              :when (some #(= full-name (str %)) (:protocols type))]
+          (str (when (not= this-ns ns)
+                 (str (:short-name ns) "."))
+               (:name type))))))))
+
+(defn proto-details [ns p loc branch-info ns-info]
   (at loc
       [:#proto-tag] 
       (do->
@@ -405,7 +432,7 @@ actually changed). This reduces the amount of random doc file changes that happe
        (content (:name p)))
       [:pre#proto-docstr] (content (expand-links (:doc p)))
       [:span#proto-impls] (content (str/join ", " (map #(if (nil? %) "nil" (str %))
-                                                       (:known-impls p))))
+                                                       (find-impls p ns ns-info))))
       [:a#proto-source] (fn [n] (when-let [link (var-src-link p (:name branch-info))]
                                   (apply (set-attr :href link) [n])))
       [:.proto-added] (when (:added p)
@@ -420,16 +447,16 @@ actually changed). This reduces the amount of random doc file changes that happe
                                         #(var-details ns v % branch-info))))
 
 (defn render-protos
-  [ns proto-list branch-info]
+  [ns proto-list branch-info ns-info]
   (when (seq proto-list)
     (fn [loc]
       (at loc [:div#proto-entry]
           (clone-for [p proto-list]
-                     #(proto-details ns p % branch-info))))))
+                     #(proto-details ns p % branch-info ns-info))))))
 
 (defn proto-with-link [ns-info this-ns proto-name]
   (let [[_ raw-ns base-name] (re-matches #"^(.*)\.([^.]+)$" (str proto-name))
-        ns (str/replace raw-ns "_" "-")]
+        ns (class-to-ns-name raw-ns)]
     (cond
      (= ns (:base-ns this-ns)) {:tag :a
                                 :attrs {:href (str "#" ns "/" base-name)}
@@ -491,7 +518,7 @@ actually changed). This reduces the amount of random doc file changes that happe
                                  (content (str "Deprecated since " (params :name)
                                                " version " (:deprecated ns)))))
         [:span#external-doc] (external-doc-links ns external-docs)
-        [:div#proto-section] (render-protos ns (:protocols ns) branch-info)
+        [:div#proto-section] (render-protos ns (:protocols ns) branch-info ns-info)
         [:div#type-section] (render-types ns (:types ns) branch-info ns-info)
         [:div#var-section] (render-vars ns (:members ns) branch-info)
         [:div#sub-namespaces]
