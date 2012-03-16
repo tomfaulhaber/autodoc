@@ -407,22 +407,36 @@ actually changed). This reduces the amount of random doc file changes that happe
 (defn make-ns-content [ns branch-info ns-info external-docs]
   (render-namespace-api ns branch-info ns-info external-docs))
 
+(defn process-links
+  "Take a list and build either a raw string or a link depending if we have the link"
+  [list]
+  (for [item list] (if (vector? item)
+                     {:tag :a :attrs {:href (item 1)} :content (item 0)}
+                     item)))
+
 (defn find-impls
   "Find all the implementations of this protocol in all the namespaces
 that we're documenting"
   [p this-ns ns-info]
-  (let [full-name (ns-to-class-name (str (:full-name this-ns) "." (:name p)))]
-    (set
-     (apply
-      concat
-      (:known-impls p)
-      ;; TODO add links to the targets
-      (for [ns ns-info]
-        (for [type (:types ns)
-              :when (some #(= full-name (str %)) (:protocols type))]
-          (str (when (not= this-ns ns)
-                 (str (:short-name ns) "."))
-               (:name type))))))))
+  (process-links
+   (let [full-name (ns-to-class-name (str (:full-name this-ns) "." (:name p)))]
+     (sort-by
+      #(.toLowerCase (if (vector? %)
+                       (first %)
+                       (str %)))
+      (apply
+       concat
+       (map #(if (nil? %) "nil" (str %))
+            (:known-impls p))
+       ;; TODO add links to the targets
+       (for [ns ns-info]
+         (for [type (:types ns)
+               :when (some #(= full-name (str %)) (:protocols type))]
+           (if (not= this-ns ns)
+             ;; TODO Consider sub-namespaces and prefixes for branch directories
+             [(str (:short-name ns) "." (:name type))
+              (str (:short-name ns) "-api.html#" (:short-name ns) "/" (:name type))]
+             [(:name type) (str "#" (:short-name ns) "/" (:name type))]))))))))
 
 (defn proto-details [ns p loc branch-info ns-info]
   (at loc
@@ -431,8 +445,7 @@ that we're documenting"
        (set-attr :id (var-tag-name ns p))
        (content (:name p)))
       [:pre#proto-docstr] (content (expand-links (:doc p)))
-      [:span#proto-impls] (content (str/join ", " (map #(if (nil? %) "nil" (str %))
-                                                       (find-impls p ns ns-info))))
+      [:span#proto-impls] (content (interpose ", " (find-impls p ns ns-info)))
       [:a#proto-source] (fn [n] (when-let [link (var-src-link p (:name branch-info))]
                                   (apply (set-attr :href link) [n])))
       [:.proto-added] (when (:added p)
