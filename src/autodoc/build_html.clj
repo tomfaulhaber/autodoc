@@ -153,7 +153,9 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 (defn var-toc-entries 
   "Build the var-name, <a> tag pairs for the vars in ns"
   [ns key]
-  (seq (for [v (get ns key)] [(:name v) (var-tag-name ns v)])))
+  (seq (for [v (get ns key)] [(:name v) (var-tag-name ns v)
+                              (for [proto-fn (:fns v)]
+                                [(:name proto-fn) (var-tag-name ns proto-fn)])])))
 
 (defn ns-toc-data [ns]
   (apply 
@@ -284,12 +286,18 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
                        [:a] (do->
                              (set-attr :href (str "#" tag))
                              (content text))
-                       [:.toc-entry] (clone-for [[subtext subtag] entries]
+                       [:.toc-entry] (clone-for [[subtext subtag subentries] entries]
                                        (fn [node]
                                          (at node
-                                           [:a] (do->
-                                                 (set-attr :href (str "#" subtag))
-                                                 (content subtext))))))))
+                                           [:a.toc-entry-anchor] (do->
+                                                                  (set-attr :href (str "#" subtag))
+                                                                  (content subtext))
+                                           [:.toc-subentry] (clone-for [[subtext subtag] subentries]
+                                                              (fn [node]
+                                                                (at node
+                                                                    [:a ] (do->
+                                                                           (set-attr :href (str "#" subtag))
+                                                                           (content subtext)))))))))))
 
 (defn make-overview [ns-info master-toc branch-info prefix]
   (create-page "index.html"
