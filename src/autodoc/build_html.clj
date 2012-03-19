@@ -170,12 +170,24 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
      ~(for [sub-ns (:subspaces ns)]
         [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)]))))
 
+(defn names-for-ns
+  "Find all the names that we want to documetn in a namespace including
+vars, types, protocols, and functions in protocols"
+  [ns]
+  (apply
+   concat
+   (:members ns)
+   (:types ns)
+   (:protocols ns)
+   (for [proto (:protocols ns)]
+     (:fns proto))))
+
 (defn var-url
   "Return the relative URL of the anchored entry for a var on a namespace detail page"
   [ns v] (str (ns-html-file (:base-ns ns)) "#" (var-tag-name ns v)))
 
 (defn add-ns-vars [ns]
-  (clone-for [v (:members ns)]
+  (clone-for [v (names-for-ns ns)]
              #(at % 
                 [:a] (do->
                       (set-attr :href (var-url ns v))
@@ -563,7 +575,7 @@ vars in ns-info that begin with that letter"
   (let [chars (conj (into [] (map #(str (char (+ 65 %))) (range 26))) "Other")
         var-map (apply merge-with conj 
                        (into {} (for [c chars] [c [] ]))
-                       (for [v (mapcat #(for [v (:members %)] [v %]) ns-info)]
+                       (for [v (mapcat #(for [v (names-for-ns %)] [v %]) ns-info)]
                          {(or (re-find #"[A-Z]" (-> v first :name .toUpperCase))
                               "Other")
                           v}))]
@@ -571,13 +583,14 @@ vars in ns-info that begin with that letter"
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (let [doc (:doc v)
-        len (min (count doc) n)
-        suffix (if (< len (count doc)) "..." ".")]
-    (str (.replaceAll 
-          (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
-          "\n *" " ")
-         suffix)))
+  (if-let [doc (:doc v)]
+    (let [len (min (count doc) n)
+          suffix (if (< len (count doc)) "..." ".")]
+      (str (.replaceAll 
+            (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
+            "\n *" " ")
+           suffix))
+    ""))
 
 (defn gen-index-line [v ns unique-ns?]
   (let [var-name (:name v)
@@ -654,7 +667,7 @@ vars in ns-info that begin with that letter"
   "Create a structured index of all the reference information about contrib"
   [ns-info branch]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
-        all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
+        all-vars (mapcat #(for [v (names-for-ns %)] [v %]) namespaces)]
      {:namespaces (map #(namespace-index-info % branch) namespaces)
       :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
 
