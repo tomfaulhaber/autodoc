@@ -517,7 +517,7 @@ that we're documenting"
 
 (defn render-types
   [ns type-list branch-info ns-info]
-    (when (seq type-list)
+  (when (seq type-list)
     (fn [loc]
       (at loc [:div#type-entry]
           (clone-for [t type-list]
