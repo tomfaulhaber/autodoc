@@ -167,8 +167,9 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
           ["Types" "type-section" entries])]
      ~@[(when-let [entries (var-toc-entries ns :members)]
           ["Vars and Functions" "var-section" entries])]
+     ;; TODO do all types for subspaces
      ~(for [sub-ns (:subspaces ns)]
-        [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)]))))
+        [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns :members)]))))
 
 (defn names-for-ns
   "Find all the names that we want to documetn in a namespace including
