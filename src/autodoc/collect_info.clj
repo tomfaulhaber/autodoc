@@ -10,14 +10,20 @@
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
 
-(def ^{:dynamic true} *saved-out* nil)
-(defn debug [& args]
-  (binding [*out* (or *saved-out* *out*)]
-    (apply println args)))
-
 
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
                  (or (>= major 2) (and (= major 1) (>= minor 2)))))
+
+;; (defmacro defdynamic [var init]
+;;   (if post-1-2?
+;;     `(def ^{:dynamic true} ~var ~init)
+;;     `(def ~var ~init)))
+
+;; (defdynamic *saved-out* nil)
+
+;; (defn debug [& args]
+;;   (binding [*out* (or *saved-out* *out*)]
+;;     (apply println args)))
 
 (if post-1-2?
   (do
@@ -51,14 +57,21 @@ string, which looks nasty when you display it."
         (apply str (interpose "\n" (map #(.replaceAll % regex "") lines)))
         s))))
 
+(defn my-every-pred
+  "every-pred didn't exist before clojure-1.3, so we replicate it here"
+  [& ps]
+  (fn [& args]
+    (every? #(every? % args) ps)))
+
 (defn protocol?
   "Return true if the var is a protocol definition. The only way we can tell
 this is by looking at the map and seeing if it has the right keys, which
 may not be foolproof."
   [v]
   (and v
+       (.isBound v)
        (map? @v)
-       ((every-pred :on-interface :on :sigs :var :method-map :method-builders) @v)))
+       ((my-every-pred :on-interface :on :sigs :var :method-map :method-builders) @v)))
 
 (defn class-to-var
   "Take a class object that points to a var and return the Var object"
@@ -107,6 +120,31 @@ return it as a string."
   (for [v (vars-for-ns ns)] 
     (var-info v)))
 
+
+
+(let [primitive-map {Boolean/TYPE 'booleans,
+                     Character/TYPE 'characters,
+                     Byte/TYPE 'bytes,
+                     Short/TYPE 'shorts,
+                     Integer/TYPE 'ints,
+                     Long/TYPE 'longs,
+                     Float/TYPE 'floats,
+                     Double/TYPE 'doubles,
+                     Void/TYPE 'voids}]
+  (defn expand-array-types
+    "Expand array types to create a symbol like array-of-bytes so that it can parse
+   (since [B doesn't parse as a symbol). Non-arrays are retuened as is."
+    [#^Class cls]
+    (cond
+     (nil? cls) nil
+     (.isArray cls) (symbol
+                     (str "array-of-"
+                          (name (expand-array-types
+                                 (.getComponentType cls)))))
+     (= cls java.lang.Object) 'objects
+     (contains? primitive-map cls) (primitive-map cls)
+     :else cls)))
+
 (defn protos-for-ns
   "Find all the protocols in the namespace"
   [ns]
@@ -134,7 +172,7 @@ return it as a string."
             :doc (remove-leading-whitespace (:doc (meta p))),
             :var-type (var-type p)
             :fns (proto-vars-info p ns)
-            :known-impls (keys (:impls @p))})))
+            :known-impls (map expand-array-types (keys (:impls @p)))})))
 
 (defn types-for-ns
   "Discover the types and records in ns"
@@ -278,11 +316,9 @@ versioning reasons"
     (load-namespaces)
     (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [*saved-out* *out*]
-        (binding [*out* w]
-          (pr (contrib-info)))))    
+      (binding [*out* w]
+        (pr (contrib-info))))    
     (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [*saved-out* *out*]
-        (binding [*out* w]
-          (pr (contrib-info)))))))
+      (binding [*out* w]
+        (pr (contrib-info))))))
