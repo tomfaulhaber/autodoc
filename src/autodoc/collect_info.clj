@@ -14,16 +14,19 @@
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
                  (or (>= major 2) (and (= major 1) (>= minor 2)))))
 
-;; (defmacro defdynamic [var init]
-;;   (if post-1-2?
-;;     `(def ^{:dynamic true} ~var ~init)
-;;     `(def ~var ~init)))
+(def post-1-3? (let [{:keys [major minor]} *clojure-version*]
+                 (or (>= major 2) (and (= major 1) (>= minor 3)))))
 
-;; (defdynamic *saved-out* nil)
+(defmacro defdynamic [var init]
+  `(do
+     (def  ~var ~init)
+     (when post-1-3? (.setDynamic #'~var))))
 
-;; (defn debug [& args]
-;;   (binding [*out* (or *saved-out* *out*)]
-;;     (apply println args)))
+(defdynamic saved-out nil)
+
+(defn debug [& args]
+  (binding [*out* (or saved-out *out*)]
+    (apply println args)))
 
 (if post-1-2?
   (do
@@ -317,9 +320,11 @@ versioning reasons"
     (load-namespaces)
     (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [*out* w]
-        (pr (contrib-info))))    
+      (binding [saved-out *out*]
+        (binding [*out* w]
+          (pr (contrib-info)))))
     (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [*out* w]
-        (pr (contrib-info))))))
+      (binding [saved-out *out*]
+        (binding [*out* w]
+          (pr (contrib-info)))))))
