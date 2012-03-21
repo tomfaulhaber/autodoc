@@ -274,7 +274,8 @@ have the same prefix followed by a . and then more components"
 
 (defn add-subspaces [info]
      (assoc info :subspaces 
-            (filter #(or (:doc %) (seq (:members %)))
+            (filter #(or (:doc %) (seq (:members %))
+                         (seq (:types %)) (seq (:protocols %)))
                     (build-ns-list (sub-namespaces (:ns info))))))
 
 (defn add-base-ns-info [ns]
