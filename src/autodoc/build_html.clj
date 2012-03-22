@@ -161,18 +161,22 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
   (apply 
    vector 
    `(["Overview" "toc0"]
-     ~@[(when-let [entries (var-toc-entries ns :protocols)]
-          ["Protocols" "proto-section" entries])]
-     ~@[(when-let [entries (var-toc-entries ns :types)]
-          ["Types" "type-section" entries])]
-     ~@[(when-let [entries (var-toc-entries ns :members)]
-          ["Vars and Functions" "var-section" entries])]
-     ;; TODO do all types for subspaces
-     ~(for [sub-ns (:subspaces ns)]
-        [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns :members)]))))
+       ~@[(when-let [entries (var-toc-entries ns :protocols)]
+            ["Protocols" "proto-section" entries])]
+       ~@[(when-let [entries (var-toc-entries ns :types)]
+            ["Types" "type-section" entries])]
+       ~@[(when-let [entries (var-toc-entries ns :members)]
+            ["Vars and Functions" "var-section" entries])]
+       ;; TODO do all types for subspaces
+       ~@(for [sub-ns (:subspaces ns)]
+           [(:short-name sub-ns) (:short-name sub-ns)
+            (concat
+             (var-toc-entries sub-ns :protocols)
+             (var-toc-entries sub-ns :types)
+             (var-toc-entries sub-ns :members))]))))
 
 (defn names-for-ns
-  "Find all the names that we want to documetn in a namespace including
+  "Find all the names that we want to document in a namespace including
 vars, types, protocols, and functions in protocols"
   [ns]
   (apply
