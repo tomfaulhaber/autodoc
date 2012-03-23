@@ -27,6 +27,16 @@
 (def ^:dynamic *raw-index-clj-file* "raw-index~@[-~a~].clj")
 (def ^:dynamic *index-json-file* "api-index.json")
 
+(defn ns-to-class-name
+  "Convert the namespace name into a class root name"
+  [ns]
+  (.replace ns "-" "_"))
+
+(defn class-to-ns-name
+  "Convert a class to the corresponding namespace name"
+  [ns]
+  (.replace ns "_" "-"))
+
 (defn template-for
   "Get the actual filename corresponding to a template. We check in the project
 specific directory first, then sees if a parameter with that name is set, then 
@@ -144,22 +154,47 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 
 (defn var-toc-entries 
   "Build the var-name, <a> tag pairs for the vars in ns"
-  [ns]
-  (for [v (:members ns)] [(:name v) (var-tag-name ns v)]))
+  [ns key]
+  (seq (for [v (get ns key)] [(:name v) (var-tag-name ns v)
+                              (for [proto-fn (:fns v)]
+                                [(:name proto-fn) (var-tag-name ns proto-fn)])])))
 
 (defn ns-toc-data [ns]
   (apply 
    vector 
-   ["Overview" "toc0" (var-toc-entries ns)]
-   (for [sub-ns (:subspaces ns)]
-     [(:short-name sub-ns) (:short-name sub-ns) (var-toc-entries sub-ns)])))
+   `(["Overview" "toc0"]
+       ~@[(when-let [entries (var-toc-entries ns :protocols)]
+            ["Protocols" "proto-section" entries])]
+       ~@[(when-let [entries (var-toc-entries ns :types)]
+            ["Types" "type-section" entries])]
+       ~@[(when-let [entries (var-toc-entries ns :members)]
+            ["Vars and Functions" "var-section" entries])]
+       ;; TODO do all types for subspaces
+       ~@(for [sub-ns (:subspaces ns)]
+           [(:short-name sub-ns) (:short-name sub-ns)
+            (concat
+             (var-toc-entries sub-ns :protocols)
+             (var-toc-entries sub-ns :types)
+             (var-toc-entries sub-ns :members))]))))
+
+(defn names-for-ns
+  "Find all the names that we want to document in a namespace including
+vars, types, protocols, and functions in protocols"
+  [ns]
+  (apply
+   concat
+   (:members ns)
+   (:types ns)
+   (:protocols ns)
+   (for [proto (:protocols ns)]
+     (:fns proto))))
 
 (defn var-url
   "Return the relative URL of the anchored entry for a var on a namespace detail page"
   [ns v] (str (ns-html-file (:base-ns ns)) "#" (var-tag-name ns v)))
 
 (defn add-ns-vars [ns]
-  (clone-for [v (:members ns)]
+  (clone-for [v (sort-by #(.toLowerCase (:name %)) (names-for-ns ns))]
              #(at % 
                 [:a] (do->
                       (set-attr :href (var-url ns v))
@@ -272,12 +307,18 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
                        [:a] (do->
                              (set-attr :href (str "#" tag))
                              (content text))
-                       [:.toc-entry] (clone-for [[subtext subtag] entries]
+                       [:.toc-entry] (clone-for [[subtext subtag subentries] entries]
                                        (fn [node]
                                          (at node
-                                           [:a] (do->
-                                                 (set-attr :href (str "#" subtag))
-                                                 (content subtext))))))))
+                                           [:a.toc-entry-anchor] (do->
+                                                                  (set-attr :href (str "#" subtag))
+                                                                  (content subtext))
+                                           [:.toc-subentry] (clone-for [[subtext subtag] subentries]
+                                                              (fn [node]
+                                                                (at node
+                                                                    [:a ] (do->
+                                                                           (set-attr :href (str "#" subtag))
+                                                                           (content subtext)))))))))))
 
 (defn make-overview [ns-info master-toc branch-info prefix]
   (create-page "index.html"
@@ -399,17 +440,128 @@ actually changed). This reduces the amount of random doc file changes that happe
 (declare common-namespace-api)
 
 (deffragment render-sub-namespace-api *sub-namespace-api-file*
- [ns branch-info external-docs]
-  (common-namespace-api ns branch-info external-docs))
+ [ns branch-info ns-info external-docs]
+  (common-namespace-api ns branch-info ns-info external-docs))
 
 (deffragment render-namespace-api *namespace-api-file*
- [ns branch-info external-docs]
-  (common-namespace-api ns branch-info external-docs))
+ [ns branch-info ns-info external-docs]
+  (common-namespace-api ns branch-info ns-info external-docs))
 
-(defn make-ns-content [ns branch-info external-docs]
-  (render-namespace-api ns branch-info external-docs))
+(defn make-ns-content [ns branch-info ns-info external-docs]
+  (render-namespace-api ns branch-info ns-info external-docs))
 
-(defn common-namespace-api [ns branch-info external-docs]
+(defn process-links
+  "Take a list and build either a raw string or a link depending if we have the link"
+  [list]
+  (for [item list] (if (vector? item)
+                     {:tag :a :attrs {:href (item 1)} :content (item 0)}
+                     item)))
+
+(defn flatten-namespaces
+  "Build a list of namespaces and sub-namespaces"
+  [ns-info]
+  (mapcat #(conj (:subspaces %) %) ns-info))
+
+(defn find-impls
+  "Find all the implementations of this protocol in all the namespaces
+that we're documenting"
+  [p this-ns ns-info]
+  (process-links
+   (let [full-name (ns-to-class-name (str (:full-name this-ns) "." (:name p)))]
+     (sort-by
+      #(.toLowerCase (if (vector? %)
+                       (first %)
+                       (str %)))
+      (apply
+       concat
+       (map #(if (nil? %) "nil" (str %))
+            (:known-impls p))
+       (for [ns (flatten-namespaces ns-info)]
+         (for [type (:types ns)
+               :when (some #(= full-name (str %)) (:protocols type))]
+           (if (not= this-ns ns)
+             ;; TODO Consider sub-namespaces and prefixes for branch directories
+             [(str (:short-name ns) "." (:name type))
+              (str (:short-name ns) "-api.html#" (:short-name ns) "/" (:name type))]
+             [(:name type) (str "#" (:short-name ns) "/" (:name type))]))))))))
+
+(defn proto-details [ns p loc branch-info ns-info]
+  (at loc
+      [:#proto-tag] 
+      (do->
+       (set-attr :id (var-tag-name ns p))
+       (content (:name p)))
+      [:pre#proto-docstr] (content (expand-links (:doc p)))
+      [:span#proto-impls] (content (interpose ", " (find-impls p ns ns-info)))
+      [:a#proto-source] (fn [n] (when-let [link (var-src-link p (:name branch-info))]
+                                  (apply (set-attr :href link) [n])))
+      [:.proto-added] (when (:added p)
+                        #(at % [:#content]
+                             (content (str "Added in " (params :name)
+                                           " version " (:added p)))))
+      [:.proto-deprecated] (when (:deprecated p)
+                             #(at % [:#content]
+                                  (content (str "Deprecated since " (params :name)
+                                                " version " (:deprecated p)))))
+      [:div#proto-var-entry] (clone-for [v (:fns p)]
+                                        #(var-details ns v % branch-info))))
+
+(defn render-protos
+  [ns proto-list branch-info ns-info]
+  (when (seq proto-list)
+    (fn [loc]
+      (at loc [:div#proto-entry]
+          (clone-for [p proto-list]
+                     #(proto-details ns p % branch-info ns-info))))))
+
+(defn proto-with-link [ns-info this-ns proto-name]
+  (let [[_ raw-ns base-name] (re-matches #"^(.*)\.([^.]+)$" (str proto-name))
+        ns (class-to-ns-name raw-ns)]
+    (if-let [target-ns (first (filter #(= (:full-name %) ns) ns-info))]
+      (if (= ns (:full-name this-ns))
+        {:tag :a
+         :attrs {:href (str "#" ns "/" base-name)}
+         :content base-name}
+        {:tag :a
+         :attrs {:href (str (:base-ns target-ns) "-api.html#" ns
+                            "/" base-name)}
+         :content (str ns "/" base-name)})
+      (str ns "/" base-name))))
+
+(defn type-details [ns t loc branch-info ns-info]
+    (let [expanded-ns-info (flatten-namespaces ns-info)]
+      (at loc
+          [:#type-tag] 
+          (do->
+           (set-attr :id (var-tag-name ns t))
+           (content (:name t)))
+          [:span#type-type] (content (:var-type t))
+          [:pre#type-docstr] (content (expand-links (:doc t))) ; Not yet supported
+          [:span#type-fields] (content (str "[" (str/join " " (:fields t)) "]"))
+          [:span#type-protocols] (content (interpose ", "
+                                                     (map (partial proto-with-link
+                                                                   expanded-ns-info
+                                                                   ns)
+                                                          (:protocols t))))
+          [:span#type-interfaces] (content (str/join ", " (:interfaces t))))))
+
+(defn render-types
+  [ns type-list branch-info ns-info]
+  (when (seq type-list)
+    (fn [loc]
+      (at loc [:div#type-entry]
+          (clone-for [t type-list]
+                     #(type-details ns t % branch-info ns-info))))))
+
+(defn render-vars
+  [ns var-list branch-info]
+  (when (seq var-list)
+    (fn [loc]
+      (at loc [:div#var-entry]
+          (clone-for [v var-list]
+                     #(var-details ns v % branch-info))))))
+
+(defn common-namespace-api [ns branch-info ns-info external-docs]
   (fn [node]
     (at node
         [:#namespace-name] (do->
@@ -434,11 +586,14 @@ actually changed). This reduces the amount of random doc file changes that happe
                                  (content (str "Deprecated since " (params :name)
                                                " version " (:deprecated ns)))))
         [:span#external-doc] (external-doc-links ns external-docs)
-        [:div#var-entry] (clone-for [v (:members ns)] #(var-details ns v % branch-info))
+        [:div#proto-section] (render-protos ns (:protocols ns) branch-info ns-info)
+        [:div#type-section] (render-types ns (:types ns) branch-info ns-info)
+        [:div#var-section] (render-vars ns (:members ns) branch-info)
         [:div#sub-namespaces]
-        (substitute (map #(render-sub-namespace-api % branch-info external-docs) (:subspaces ns))))))
+        (substitute (map #(render-sub-namespace-api % branch-info ns-info external-docs)
+                         (:subspaces ns))))))
 
-(defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix]
+(defn make-ns-page [unique-ns? ns master-toc external-docs branch-info prefix ns-info]
   (create-page (if unique-ns? "index.html" (ns-html-file ns))
                (when (not (:first? branch-info)) (:name branch-info))
                (cl-format nil "~a - ~a~@[ ~a~] API documentation"
@@ -446,7 +601,7 @@ actually changed). This reduces the amount of random doc file changes that happe
                prefix
                master-toc
                (make-local-toc (ns-toc-data ns))
-               (make-ns-content ns branch-info external-docs)))
+               (make-ns-content ns branch-info ns-info external-docs)))
 
 (defn vars-by-letter 
   "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
@@ -455,7 +610,7 @@ vars in ns-info that begin with that letter"
   (let [chars (conj (into [] (map #(str (char (+ 65 %))) (range 26))) "Other")
         var-map (apply merge-with conj 
                        (into {} (for [c chars] [c [] ]))
-                       (for [v (mapcat #(for [v (:members %)] [v %]) ns-info)]
+                       (for [v (mapcat #(for [v (names-for-ns %)] [v %]) ns-info)]
                          {(or (re-find #"[A-Z]" (-> v first :name .toUpperCase))
                               "Other")
                           v}))]
@@ -463,13 +618,14 @@ vars in ns-info that begin with that letter"
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (let [doc (:doc v)
-        len (min (count doc) n)
-        suffix (if (< len (count doc)) "..." ".")]
-    (str (.replaceAll 
-          (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
-          "\n *" " ")
-         suffix)))
+  (if-let [doc (:doc v)]
+    (let [len (min (count doc) n)
+          suffix (if (< len (count doc)) "..." ".")]
+      (str (.replaceAll 
+            (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
+            "\n *" " ")
+           suffix))
+    ""))
 
 (defn gen-index-line [v ns unique-ns?]
   (let [var-name (:name v)
@@ -549,7 +705,7 @@ vars in ns-info that begin with that letter"
   "Create a structured index of all the reference information about contrib"
   [ns-info branch]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
-        all-vars (mapcat #(for [v (:members %)] [v %]) namespaces)]
+        all-vars (mapcat #(for [v (names-for-ns %)] [v %]) namespaces)]
      {:namespaces (map #(namespace-index-info % branch) namespaces)
       :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
 
@@ -645,8 +801,8 @@ vars in ns-info that begin with that letter"
          (if (> (count ns-info) 1)
            (do (make-overview ns-info master-toc branch-info prefix)
                (doseq [ns ns-info]
-                 (make-ns-page false ns master-toc external-docs branch-info prefix)))
-           (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix))
+                 (make-ns-page false ns master-toc external-docs branch-info prefix ns-info)))
+           (make-ns-page true (first ns-info) master-toc external-docs branch-info prefix ns-info))
          (make-index-html ns-info master-toc branch-info prefix)
          (make-index-clj ns-info branch-info)
          (when (params :build-raw-index)
