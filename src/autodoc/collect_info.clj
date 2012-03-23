@@ -144,7 +144,7 @@ return it as a string."
                      (str "array-of-"
                           (name (expand-array-types
                                  (.getComponentType cls)))))
-     (= cls java.lang.Object) 'objects
+     (= cls java.lang.Object) 'Object
      (contains? primitive-map cls) (primitive-map cls)
      :else cls)))
 
