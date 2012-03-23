@@ -192,7 +192,7 @@ vars, types, protocols, and functions in protocols"
   [ns v] (str (ns-html-file (:base-ns ns)) "#" (var-tag-name ns v)))
 
 (defn add-ns-vars [ns]
-  (clone-for [v (names-for-ns ns)]
+  (clone-for [v (sort-by #(.toLowerCase (:name %)) (names-for-ns ns))]
              #(at % 
                 [:a] (do->
                       (set-attr :href (var-url ns v))
@@ -439,6 +439,11 @@ actually changed). This reduces the amount of random doc file changes that happe
                      {:tag :a :attrs {:href (item 1)} :content (item 0)}
                      item)))
 
+(defn flatten-namespaces
+  "Build a list of namespaces and sub-namespaces"
+  [ns-info]
+  (mapcat #(conj (:subspaces %) %) ns-info))
+
 (defn find-impls
   "Find all the implementations of this protocol in all the namespaces
 that we're documenting"
@@ -453,8 +458,7 @@ that we're documenting"
        concat
        (map #(if (nil? %) "nil" (str %))
             (:known-impls p))
-       ;; TODO add links to the targets
-       (for [ns ns-info]
+       (for [ns (flatten-namespaces ns-info)]
          (for [type (:types ns)
                :when (some #(= full-name (str %)) (:protocols type))]
            (if (not= this-ns ns)
@@ -495,29 +499,33 @@ that we're documenting"
 (defn proto-with-link [ns-info this-ns proto-name]
   (let [[_ raw-ns base-name] (re-matches #"^(.*)\.([^.]+)$" (str proto-name))
         ns (class-to-ns-name raw-ns)]
-    (cond
-     (= ns (:base-ns this-ns)) {:tag :a
-                                :attrs {:href (str "#" ns "/" base-name)}
-                                :content base-name}
-     (seq (filter #(= (:base-ns %) ns) ns-info)) {:tag :a
-                                                  :attrs {:href (str ns "-api.html#" ns
-                                                                     "/" base-name)}
-                                                  :content (str ns "/" base-name)}
-     :else (str ns "/" base-name))))
+    (if-let [target-ns (first (filter #(= (:full-name %) ns) ns-info))]
+      (if (= ns (:full-name this-ns))
+        {:tag :a
+         :attrs {:href (str "#" ns "/" base-name)}
+         :content base-name}
+        {:tag :a
+         :attrs {:href (str (:base-ns target-ns) "-api.html#" ns
+                            "/" base-name)}
+         :content (str ns "/" base-name)})
+      (str ns "/" base-name))))
 
 (defn type-details [ns t loc branch-info ns-info]
-  (at loc
-      [:#type-tag] 
-      (do->
-       (set-attr :id (var-tag-name ns t))
-       (content (:name t)))
-      [:span#type-type] (content (:var-type t))
-      [:pre#type-docstr] (content (expand-links (:doc t))) ; Not yet supported
-      [:span#type-fields] (content (str "[" (str/join " " (:fields t)) "]"))
-      [:span#type-protocols] (content (interpose ", "
-                                                 (map (partial proto-with-link ns-info ns)
-                                                      (:protocols t))))
-      [:span#type-interfaces] (content (str/join ", " (:interfaces t)))))
+    (let [expanded-ns-info (flatten-namespaces ns-info)]
+      (at loc
+          [:#type-tag] 
+          (do->
+           (set-attr :id (var-tag-name ns t))
+           (content (:name t)))
+          [:span#type-type] (content (:var-type t))
+          [:pre#type-docstr] (content (expand-links (:doc t))) ; Not yet supported
+          [:span#type-fields] (content (str "[" (str/join " " (:fields t)) "]"))
+          [:span#type-protocols] (content (interpose ", "
+                                                     (map (partial proto-with-link
+                                                                   expanded-ns-info
+                                                                   ns)
+                                                          (:protocols t))))
+          [:span#type-interfaces] (content (str/join ", " (:interfaces t))))))
 
 (defn render-types
   [ns type-list branch-info ns-info]
