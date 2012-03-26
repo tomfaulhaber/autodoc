@@ -338,6 +338,13 @@ vars, types, protocols, and functions in protocols"
     (if (= (:var-type v) "multimethod")
       "No usage documentation available")))
 
+(defn var-examples [v]
+  (if-let [examples (:examples v)]
+    (cl-format nil
+               "~<Examples:\n~:i~@{~{~a\n~{~a~}\n~}~^~:@_~}~:>~%"
+               (map #(vector %1 %2)
+                    examples (map (comp vector eval) examples)))))
+
 (defn- git-get-last-commit-hash [file branch]
   (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file
                               :dir (params :root))))]
@@ -426,6 +433,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:span#var-type] (content (:var-type v))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
+    [:pre#var-examples] (content (var-examples v))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
                               (apply (set-attr :href link) [n])))
     [:.var-added] (when (:added v)
@@ -808,4 +816,3 @@ vars in ns-info that begin with that letter"
          (when (params :build-raw-index)
            (make-raw-index-clj ns-info branch-info))
          (make-index-json ns-info branch-info)))))
-

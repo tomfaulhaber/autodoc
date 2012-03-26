@@ -8,7 +8,7 @@
 ;; Assumes that all the relevant namespaces have already been loaded
 
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
-;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
+;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic :examples}
 
 
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
@@ -117,7 +117,8 @@ return it as a string."
                                 :added :deprecated :dynamic])
          {:name (name (:name (meta v)))
           :doc (remove-leading-whitespace (:doc (meta v))),
-          :var-type (var-type v)}))
+          :var-type (var-type v)
+          :examples (:examples (meta v))}))
 
 (defn vars-info [ns]
   (for [v (vars-for-ns ns)] 
