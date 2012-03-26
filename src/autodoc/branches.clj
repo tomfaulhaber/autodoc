@@ -62,7 +62,8 @@
                       src-path
                       "."])
                     (when-let [deps (params :dependencies)]
-                      (find-jars {:dependencies deps,
+                      (find-jars {:local-repo-classpath true,
+                                  :dependencies deps,
                                   :root src-path
                                   :name (str "Autodoc for " (params :name))}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
