@@ -77,7 +77,7 @@
        ;; (! :project "test.generative" :name "Test data generation and execution harness")
        (! :project "tools.cli" :name "Command-line processor")
        (! :project "tools.logging" :name "Logging Tools")
-       (! :project "tools.macros" :name "Tools for Macro Writers")
+       (! :project "tools.macro" :name "Tools for Macro Writers")
        (! :project "tools.namespace" :name "Extract namespace declarations"
           :branches [{:name "master"
                       :version :from-pom
