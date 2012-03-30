@@ -4,11 +4,11 @@
 *** DONE Standalone autodoc working again
 *** DONE Command line option for param-file-driven autodoc building
 *** DONE Webhook operational
-*** TODO Make sure we can standalone autodoc for 1.2 or 1.3 programs
+*** DONE Make sure we can standalone autodoc for 1.2 or 1.3 programs
 We should probably use recursive invocation?
 *** DONE Update autodoc to a 1.2 base
 *** Leiningen support
-**** TODO develop strategy for working with Leinigen 1.2
+**** DONE develop strategy for working with Leinigen 1.2
 No clojure dependency allowed in plugin
 ***** Option 1: Just port to 1.2 and drop 1.1 support
 I don't thinks this works because standalone requires a clojure dependency 
@@ -46,7 +46,7 @@ by italics, maybe
 *** TODO Use "Dust Me selectors plugin" and clean up CSS based on results
 *** TODO Think through ids vs. classes
 ** Improved 1.2 Support
-*** TODO Document protocols and figure out how to link their methods back to them
+*** DONE Document protocols and figure out how to link their methods back to them
 incanter.distribution.Distribution might be a good one to use for testing
 & clojure.data.finger-tree
 ** Improved 1.3 support
@@ -90,7 +90,7 @@ We need to add the appropriate ../.. stuff to the links on the master TOC
 This appears to be a pathname thing / vs. \
 *** DONE Clean up "only used with ant-wrapper" params in params.clj
 *** TODO Make the param-dir option in autodoc.clj better integrated with the rest
-*** TODO Remove all refs to contrib
+*** DONE Remove all refs to contrib
 *** TODO Figure out why Condition/-init doesn't seem to generate an index entry
 Is this still a bug?
 *** DONE Fix url detection so that it always works
@@ -98,12 +98,12 @@ Is this still a bug?
 *** TODO Make &emdash; work in headers and titles
 Enlive seems to not escape this correctly (probably it's just tag soup underneath)
 *** DONE Fix "no project specified" at the top of the API index page!
-*** TODO Make the sub-namespace links on a namespace right hand TOC work
+*** DONE Make the sub-namespace links on a namespace right hand TOC work
 *** DONE Get source links working right again
 *** TODO Get non-master updates to trigger auto builds
 *** TODO Fix left-TOC on ie (ul styling on first category)
 *** DONE Fix modular contrib docs
 *** TODO Add version number info to wrapped markdown files
 *** DONE Some source link (see clojure.contrib.accumulators/add) don't seem to be working right.
-*** TODO Fix source links in incanter
+*** DONE Fix source links in incanter
 *** TODO Add a README in the target 
