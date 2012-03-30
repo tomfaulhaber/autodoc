@@ -293,7 +293,7 @@ have the same prefix followed by a . and then more components"
                   :subspaces (map #(dissoc % :ns) (:subspaces ns))))
        ns-info))
 
-(defn contrib-info []
+(defn project-info []
   (clean-ns-info
    (map add-base-ns-info
         (map add-subspaces
@@ -322,9 +322,9 @@ versioning reasons"
                                         ; here so we don't have clojure version issues
       (binding [saved-out *out*]
         (binding [*out* w]
-          (pr (contrib-info)))))
+          (pr (project-info)))))
     (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
       (binding [saved-out *out*]
         (binding [*out* w]
-          (pr (contrib-info)))))))
+          (pr (project-info)))))))
