@@ -610,7 +610,8 @@ vars in ns-info that begin with that letter"
   (let [chars (conj (into [] (map #(str (char (+ 65 %))) (range 26))) "Other")
         var-map (apply merge-with conj 
                        (into {} (for [c chars] [c [] ]))
-                       (for [v (mapcat #(for [v (names-for-ns %)] [v %]) ns-info)]
+                       (for [v (mapcat #(for [v (names-for-ns %)] [v %])
+                                       (concat ns-info (mapcat :subspaces ns-info)))]
                          {(or (re-find #"[A-Z]" (-> v first :name .toUpperCase))
                               "Other")
                           v}))]
