@@ -9,6 +9,7 @@
 (def available-params
      ;; name, default val, description (for help)
      [[:name nil "The name of this project"],
+      [:project-home nil "The home page of this project on the web"]
       [:description nil "A description of this project"],
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
       [:param-file nil "A multi-project file from which to load custom project data"],

@@ -270,7 +270,11 @@ vars, types, protocols, and functions in protocols"
   [:div#project-description] (content (or 
                                        (make-project-description)
                                        (params :description)))
-
+  [:div#home-page] (when-let [home (params :project-home)]
+                     #(at %
+                          [:a] (do->
+                                (set-attr :href home)
+                                (content home))))
   [:div#namespace-entry] (clone-for [ns ns-info] #(namespace-overview ns %)))
 
 (deffragment make-master-toc *master-toc-file* [ns-info branch-info all-branch-info prefix]
@@ -576,6 +580,12 @@ that we're documenting"
                               #(at % [:#author-name] 
                                    (content (:author ns))))
         [:span#long-name] (content (:full-name ns))
+        [:div#home-page] (when (= (count ns-info) 1)
+                           (when-let [home (params :project-home)]
+                             #(at %
+                                  [:a] (do->
+                                        (set-attr :href home)
+                                        (content home)))))
         [:pre#namespace-docstr] (content (expand-links (:doc ns)))
         [:span#see-also] (see-also-links ns)
         [:.ns-added] (when (:added ns)
