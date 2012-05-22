@@ -1,0 +1,19 @@
+<project name="clojure-core" default="all">
+
+  <description>
+    The subsidiary autodoc build file for building the clojure core
+  </description>
+
+  <target name="all">
+    <exec executable="bash" dir="${src-dir}">
+      <arg value="antsetup.sh"/>
+    </exec>
+    <ant dir="${src-dir}" inheritAll="false">
+      <target name="clean"/>
+      <target name="jar"/>
+    </ant>
+  </target>
+
+</project>
+
+

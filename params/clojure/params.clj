@@ -16,7 +16,7 @@
 
    :built-clojure-jar nil,
 
-   :namespaces-to-document ["clojure.core" "clojure.core.protocols"
+   :namespaces-to-document ["clojure.core" "clojure.core.protocols" "clojure.core.reducers"
                             "clojure.inspector" "clojure.main" "clojure.pprint"
                             "clojure.repl" 
                             "clojure.set" "clojure.stacktrace" "clojure.string"
@@ -25,24 +25,29 @@
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell", "clojure.data", "clojure.reflect"],
 
-   :branches [{:name "1.3.x"
+   :branches [{:name "clojure-1.4.0"
+               :version "v1.4" 
+               :status "stable"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}
+              {:name "master"
+               :version "v1.5" 
+               :status "in development"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
+              {:name "1.3.x"
                :version "v1.3" 
                :status "stable"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
-              {:name "master"
-               :version "v1.4" 
-               :status "in development"
-               :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
               {:name "1.2.x"
                :version "v1.2" 
-               :status "stable"
+               :status "legacy"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}},
               {:name "1.1.x" 
                :version "v1.1"
-               :status "stable"
+               :status "legacy"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure-slim.jar"}}],
    :load-except-list 
