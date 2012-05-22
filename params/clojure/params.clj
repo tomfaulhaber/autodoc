@@ -33,7 +33,8 @@
               {:name "master"
                :version "v1.5" 
                :status "in development"
-               :params {:built-clojure-jar
+               :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
+                        :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
               {:name "1.3.x"
                :version "v1.3" 
