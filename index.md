@@ -148,7 +148,7 @@ Def
 </td>
 <td>
 A string with the author of this namespace. Used to attribute the
-namespace when muliple authors have worked on a project.
+namespace when multiple authors have worked on a project.
 </td>
 <td>
 Namespace
