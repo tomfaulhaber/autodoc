@@ -107,7 +107,7 @@ Autodoc reads metadata attached to namespaces and vars. Since defined
 functions are a type of var, their doc strings and other metadata are
 included automatically.
 
-Every Clojure namespace and var has a Clojure map for it's
+Every Clojure namespace and var has a Clojure map for its
 metadata. Metadata is generally added when you use the `ns` macro or
 the `def` macro (or one of its relatives such as `defn`).
 
@@ -148,7 +148,7 @@ Def
 </td>
 <td>
 A string with the author of this namespace. Used to attribute the
-namespace when muliple authors have worked on a project.
+namespace when multiple authors have worked on a project.
 </td>
 <td>
 Namespace
@@ -598,7 +598,7 @@ your preferred build tool.
         $ git push origin gh-pages
 
 Now, after a few minutes, you should be able to go to `http://<user name>.github.com/<project name>`
-and see your documenation rendered for the whole world to see. (Once
+and see your documentation rendered for the whole world to see. (Once
 in a while I've had to create an extra checkin to kick GitHub when it
 didn't notice my first checkin.
 
