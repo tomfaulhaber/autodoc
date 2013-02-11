@@ -107,7 +107,7 @@ Autodoc reads metadata attached to namespaces and vars. Since defined
 functions are a type of var, their doc strings and other metadata are
 included automatically.
 
-Every Clojure namespace and var has a Clojure map for it's
+Every Clojure namespace and var has a Clojure map for its
 metadata. Metadata is generally added when you use the `ns` macro or
 the `def` macro (or one of its relatives such as `defn`).
 
