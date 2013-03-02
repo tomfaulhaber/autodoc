@@ -22,7 +22,7 @@
              :trim-prefix nil,
              :build-json-index nil,
 
-             :copyright "Copyright 2007-2012 by Rich Hickey and the various contributors",
+             :copyright "Copyright 2007-2013 by Rich Hickey and the various contributors",
              :page-title (str project " API Reference"),
 
              :param-dir "params/contrib",
@@ -47,12 +47,24 @@
                                               ['org.clojure/tools.macro "0.1.1"]]}},
                      ]
           )
-       (! :project "core.cache" :name "A caching library implementing various cache strategies")
+       (! :project "core.cache" :name "A caching library implementing various cache strategies"
+          :branches [{:name "master"
+                      :version :from-pom
+                      :status "in development"
+                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
+                                              ['org.clojure/data.priority-map "0.0.2"]]}},
+                     ])
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
           :namespaces-to-document ["clojure.core.incubator" "clojure.core.strint"]
-          :description "Future home of functions proposed for core inclusion.")
+          :description "Home of functions proposed for core inclusion.")
        ;; (! :project "core.logic" :name "A logic programming library based on miniKanren")
-       (! :project "core.match" :name "Pattern match and predicate dispatch")
+       (! :project "core.match" :name "Pattern match and predicate dispatch"
+          :branches [{:name "master"
+                      :version :from-pom
+                      :status "in development"
+                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
+                                              ['org.clojure/core.logic "0.6.5"]]}},
+                     ])
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework"
           :branches [{:name "master"
                       :version :from-pom
@@ -98,5 +110,12 @@
                       :params {:dependencies [['org.clojure/clojure "1.3.0"]
                                               ['org.clojure/java.classpath "0.1.1"]]}},
                      ])
-       (! :project "tools.nrepl" :name "Network REPL")
+       (! :project "tools.nrepl" :name "Network REPL"
+          :branches [{:name "master"
+                      :version :from-pom
+                      :status "in development"
+                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
+                                              ['org.clojure/tools.logging "0.2.3"]]
+                               :load-classpath [ "../autodoc-work-area/tools.nrepl/src/target/classes" ]}},
+                     ])
        (! :project "tools.trace" :name "Execution tracing tool")])
