@@ -23,22 +23,29 @@
                             "clojure.template" "clojure.test" "clojure.walk" 
                             "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
-                            "clojure.java.shell", "clojure.data", "clojure.reflect"],
+                            "clojure.java.shell", "clojure.data", "clojure.reflect"
+                            "clojure.edn", "clojure.instant",  ],
 
-   :branches [{:name "clojure-1.4.0"
-               :version "v1.4" 
-               :status "stable"
-               :params {:built-clojure-jar
-                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}
-              {:name "master"
+   :branches [{:name "clojure-1.5.0"
                :version "v1.5" 
+               :status "stable"
+               :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
+                        :built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
+              {:name "master"
+               :version "v1.6" 
                :status "in development"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}, 
+              {:name "clojure-1.4.0"
+               :version "v1.4" 
+               :status "stable"
+               :params {:built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}
               {:name "1.3.x"
                :version "v1.3" 
-               :status "stable"
+               :status "legacy"
                :params {:built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "1.2.x"
@@ -58,5 +65,5 @@
     ],
 
    :page-title "Clojure Core API Reference",
-   :copyright "Copyright 2007-2012 by Rich Hickey",
+   :copyright "Copyright 2007-2013 by Rich Hickey",
    })
