@@ -8,7 +8,7 @@ else
     commit=$2
 fi
 
-jar=`ls -t autodoc*-standalone.jar |head -1`
+jar=`ls -t target/autodoc*-standalone.jar |head -1`
 
 if [ -d params/$file ]
 then
