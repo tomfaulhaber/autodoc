@@ -30,7 +30,7 @@
              :branches [{:name "master"
                          :version :from-pom
                          :status "in development"
-                         :params {:dependencies [['org.clojure/clojure "1.3.0"]]}},
+                         :params {:dependencies :from-pom}},
                         ],
 
              :load-except-list [#"/classes/"]}
@@ -39,39 +39,14 @@
 (into {}
       [(! :project "algo.generic" :name "Generic versions of common functions"
           :description "Generic versions of commonly used functions, implemented as multimethods that can be implemented for any data type.")
-       (! :project "algo.monads" :name "Monad Macros and Definitions"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/tools.macro "0.1.1"]]}},
-                     ]
-          )
-       (! :project "core.cache" :name "A caching library implementing various cache strategies"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/data.priority-map "0.0.2"]]}},
-                     ])
+       (! :project "algo.monads" :name "Monad Macros and Definitions")
+       (! :project "core.cache" :name "A caching library implementing various cache strategies")
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
           :namespaces-to-document ["clojure.core.incubator" "clojure.core.strint"]
           :description "Home of functions proposed for core inclusion.")
        ;; (! :project "core.logic" :name "A logic programming library based on miniKanren")
-       (! :project "core.match" :name "Pattern match and predicate dispatch"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/core.logic "0.6.5"]]}},
-                     ])
-       (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/core.cache "0.5.0"]]}},
-                     ])
+       (! :project "core.match" :name "Pattern match and predicate dispatch")
+       (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.unify" :name "Unification library")
        (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.csv" :name "Reading and writing CSV files")
@@ -81,41 +56,16 @@
        (! :project "data.xml" :name "Lazy XML parsing")
        (! :project "data.zip" :name "Manipulating zippers")
        (! :project "java.classpath" :name "Classpath Utilities")
-       (! :project "java.data" :name "Work with Java Beans"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/tools.logging "0.2.3"]]}},
-                     ])
+       (! :project "java.data" :name "Work with Java Beans")
        (! :project "java.jdbc" :name "JDBC-based SQL Interface")
        (! :project "java.jmx" :name "JMX Interface")
        (! :project "math.combinatorics" :name "Lazy sequences for common combinatorial functions")
        (! :project "math.numeric-tower" :name "Math functions")
        ;; (! :project "test.benchmark" :name "Benchmark suite")
-       (! :project "test.generative" :name "Test data generation and execution harness"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/tools.namespace "0.1.1"]]}},
-                     ])
+       (! :project "test.generative" :name "Test data generation and execution harness")
        (! :project "tools.cli" :name "Command-line processor")
        (! :project "tools.logging" :name "Logging Tools")
        (! :project "tools.macro" :name "Tools for Macro Writers")
-       (! :project "tools.namespace" :name "Extract namespace declarations"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/java.classpath "0.1.1"]]}},
-                     ])
-       (! :project "tools.nrepl" :name "Network REPL"
-          :branches [{:name "master"
-                      :version :from-pom
-                      :status "in development"
-                      :params {:dependencies [['org.clojure/clojure "1.3.0"]
-                                              ['org.clojure/tools.logging "0.2.3"]]
-                               :load-classpath [ "../autodoc-work-area/tools.nrepl/src/target/classes" ]}},
-                     ])
+       (! :project "tools.namespace" :name "Extract namespace declarations")
+       (! :project "tools.nrepl" :name "Network REPL")
        (! :project "tools.trace" :name "Execution tracing tool")])

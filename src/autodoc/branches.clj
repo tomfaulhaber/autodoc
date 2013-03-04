@@ -6,7 +6,7 @@
         [autodoc.params :only (params expand-classpath)]
         [autodoc.build-html :only (branch-subdir)]
         [autodoc.doc-files :only (xform-tree)]
-        [autodoc.pom-tools :only (get-version)])
+        [autodoc.pom-tools :only (get-dependencies get-version)])
   
   (import [java.io File]
           [java.util.regex Pattern]))
@@ -54,14 +54,16 @@
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
   (let [src-path (.getPath (File. (params :root) (params :source-path)))
+        target-path (.getPath (File. (params :root) "target/classes"))
         class-path (concat 
                     (filter 
                      identity
                      [(params :built-clojure-jar)
                       "src"
                       src-path
+                      target-path
                       "."])
-                    (when-let [deps (params :dependencies)]
+                    (when-let [deps (get-dependencies (params :root) (params :dependencies))]
                       (find-jars {:local-repo-classpath true,
                                   :dependencies deps,
                                   :root src-path
@@ -119,6 +121,6 @@
                            (str (branch-subdir (:name branch-info)) "/"))
                          "doc"))
         (let [branch-info (if (= (:version branch-info) :from-pom)
-                            (assoc branch-info :version (first (get-version)))
+                            (assoc branch-info :version (first (get-version (params :root))))
                             branch-info)]
           (f branch-info branch-spec (doall (do-collect (:name branch-info)))))))))
