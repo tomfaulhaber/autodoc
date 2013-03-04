@@ -18,10 +18,16 @@ fi
 
 for project in $projects
 do
+    echo
+    echo "================= Project $project ======================"
+    echo
     ./run.sh $project $commit
 done
 
 for contrib in $contribs
 do
+    echo
+    echo "================= Project $contrib ======================"
+    echo
     ./run.sh $contrib $commit
 done
