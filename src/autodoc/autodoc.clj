@@ -39,7 +39,15 @@
                [cmd (:doc (meta (sym-to-var cmd)))]))
     (params-help *out*))
 
-(def commands ['build-html 'help])
+(defn list-keys
+  "List the keys available in the specified --param-file arg"
+  []
+  (if-let [param-file (params :param-file)]
+    (cl-format true "Keys specified in ~a:~%~{~a~%~}" param-file
+               (sort (keys (load-file param-file))))
+    (cl-format true "list-keys command requires that you specify --param-file option~%")))
+
+(def commands ['build-html 'help 'list-keys])
 
 (defn directory-name []
   (.replaceFirst (.getParent (.getAbsoluteFile (file "."))) ".*/" ""))
@@ -67,10 +75,11 @@
      (when-let [dir (myparams :param-dir)]
        (if (.exists (File. (File. dir) "params.clj"))
          (params-from-dir dir)))
-     (when-let [f (myparams :param-file)]
-       (when-not (.exists (File. f))
-         (throw (FileNotFoundException. (str "Parameter file \"" f "\" doesn't exist."))))
-       (params-from-file f (myparams :param-key)))
+     (when-not (= cmd "list-keys")
+       (when-let [f (myparams :param-file)]
+         (when-not (.exists (File. f))
+           (throw (FileNotFoundException. (str "Parameter file \"" f "\" doesn't exist."))))
+         (params-from-file f (myparams :param-key))))
      (merge-params (clean-params myparams))
      (if (has-branches?) 
        (do

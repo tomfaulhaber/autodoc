@@ -1,7 +1,9 @@
 #!/bin/bash
 
+jar=`ls -t target/autodoc*-standalone.jar |head -1`
+
 projects="clojure incanter"
-contribs="algo.generic algo.monads core.cache core.incubator core.match core.memoize core.unify data.codec data.csv data.finger-tree data.json data.priority-map data.xml data.zip java.classpath java.data java.jdbc java.jmx math.combinatorics math.numeric-tower test.generative tools.cli tools.logging tools.macro tools.namespace tools.trace tools.nrepl"
+contribs=$(java -jar $jar --param-file=params/contrib.clj list-keys | tail -n +2)
 
 if [ $# -ge 1 ]; then
     if [ "$1" == "contrib" ]; then
