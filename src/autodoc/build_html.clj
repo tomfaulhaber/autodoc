@@ -409,7 +409,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     (cond
      (.startsWith f (params :root)) (.substring f (inc (src-prefix-length)))
      (.startsWith f (memoized-working-directory)) (.substring f (inc (.length (memoized-working-directory))))
-     true (.getPath (file (params :source-path) f)))))
+     true (.getPath (file (first (params :source-path)) f))))) ;; TODO: we really should consider *all* elements of the source path here
 
 (defn var-src-link [v branch]
   (when (and (:file v) (:line v))
@@ -700,7 +700,10 @@ vars in ns-info that begin with that letter"
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
     :wiki-url (str (params :web-home) (ns-html-file ns))
-    :source-url (web-src-file (.getPath (file (params :source-path) (ns-file ns))) branch)))
+    :source-url (web-src-file
+                 (.getPath
+                  (file (first (params :source-path)) ; TODO: consider *all* elements of the source path here
+                        (ns-file ns))) branch)))
 
 (defn var-index-info [v ns branch]
   (assoc (select-keys v [:name :doc :author :arglists :var-type :line :added :deprecated :dynamic])

@@ -53,7 +53,7 @@
 (defn do-collect 
   "Collect the namespace and var info for the checked out branch"
   [branch-name]
-  (let [src-path (.getPath (File. (params :root) (params :source-path)))
+  (let [src-path (map #(.getPath (File. (params :root) %)) (params :source-path))
         target-path (.getPath (File. (params :root) "target/classes"))
         class-path (concat 
                     (filter 

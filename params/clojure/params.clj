@@ -6,7 +6,7 @@
    :name "Clojure",
    :file-prefix file-prefix,
    :root root,
-   :source-path "src/clj",
+   :source-path ["src/clj"],
    :web-src-dir "https://github.com/clojure/clojure/blob/",
 
    :web-home "http://clojure.github.com/clojure/",

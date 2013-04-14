@@ -55,11 +55,12 @@
 ;;; Leiningen likes to make the source path include the absolute path to this directory
 ;;; for whatever reason, so we clean it up on the way in.
 (defn clean-params [params]
-  (if (and (params :root) (params :source-path))
+  (if (and (params :root) (> (count (params :source-path)) 0))
     (update-in params [:source-path]
-               #(if (.startsWith % (params :root)) 
-                  (.substring % (inc (count (params :root))))
-                  %))
+               #(vec (for [path %]
+                       (if (.startsWith path (params :root)) 
+                         (.substring path (inc (count (params :root))))
+                         path))))
     params))
 
 ;;; We really shouldn't be special-casing this!
@@ -87,12 +88,13 @@
          (gen-branch-docs))
        (do 
          (when (nil? (params :namespaces-to-document))
-          (merge-params {:namespaces-to-document
-                         (map
-                          name
-                          (find-namespaces-in-dir
-                           (file (params :root)
-                                 (params :source-path))))}))
+           (merge-params {:namespaces-to-document
+                          (map
+                           name
+                           (mapcat
+                            #(find-namespaces-in-dir
+                              (file (params :root) %))
+                            (params :source-path)))}))
          (if-let [cmd-sym ((set commands) (symbol (or cmd 'build-html)))]
            (apply (sym-to-var cmd-sym) cmd-args)
            (do

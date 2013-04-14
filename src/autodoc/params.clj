@@ -1,4 +1,5 @@
 (ns autodoc.params
+  (require [clojure.string :as str])
   (import [java.io File]))
 
 ;;; 
@@ -16,7 +17,7 @@
       [:param-key nil "The project in a multi-project file that should be built (only used\n     when param-file is specified.)"],
       
       [:root "." "The directory in which to find the project"],
-      [:source-path "src" "The relative path within the project directory where we find the source"],
+      [:source-path ["src"] "The relative path within the project directory where we find the source. Multiple source paths can be entered separated by \":\""],
       [:web-src-dir nil "The web address for source files (e.g., http://github.com/clojure/clojure/blob/)"],
       
       [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
@@ -114,6 +115,8 @@ the supplied key and set params accordingly"
     "true" true
     "false" false
     (throw (IllegalArgumentException. "Boolean argument doesn't have boolean value (true or false)"))))
+(defmethod convert-val clojure.lang.PersistentVector [default-val arg-str] 
+  (vec (str/split arg-str #":")))
 
 (defn convert-arg [param arg-str]
   (let [default-val (params param)] 

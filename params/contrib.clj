@@ -8,7 +8,7 @@
     [(:project args)
      (merge {:file-prefix file-prefix,
              :root root,
-             :source-path "src/main/clojure",
+             :source-path ["src/main/clojure"],
              :web-src-dir (str "https://github.com/clojure/" project "/blob/"),
 
              :web-home (str "http://clojure.github.com/" project "/"),

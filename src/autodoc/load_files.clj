@@ -44,5 +44,7 @@
 (defn load-namespaces []
   (load-files
    (map #(.getPath %)
-        (find-clojure-sources-in-dir
-         (File. (params :root) (params :source-path))))))
+        (mapcat
+         #(find-clojure-sources-in-dir
+           (File. (params :root) %))
+         (params :source-path)))))

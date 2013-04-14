@@ -5,7 +5,7 @@
   {:name "Incanter",
    :file-prefix file-prefix,
    :root root,
-   :source-path "modules",
+   :source-path ["modules"],
    :web-src-dir "https://github.com/liebke/incanter/blob/",
 
    :web-home "http://liebke.github.com/incanter/",

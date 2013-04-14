@@ -6,7 +6,7 @@
    :name "Clojure (Tom's Fork)",
    :file-prefix file-prefix,
    :root root,
-   :source-path "src/clj",
+   :source-path ["src/clj"],
    :web-src-dir "http://github.com/tomfaulhaber/clojure/blob/",
 
    :web-home "http://tomfaulhaber.github.com/clojure/",
