@@ -1,6 +1,5 @@
 (ns autodoc.collect-info
-  (:use [autodoc.load-files :only (load-namespaces)]
-        [autodoc.params :only (params params-from-dir params-from-file)]))
+  (:use [autodoc.load-files :only (load-namespaces)]))
 
 ;; Build a single structure representing all the info we care about concerning
 ;; namespaces and their members 
@@ -9,6 +8,17 @@
 
 ;; namespace: { :full-name :short-name :doc :author :members :subspaces :see-also}
 ;; vars: {:name :doc :arglists :var-type :file :line :added :deprecated :dynamic}
+
+;; collect-info is special in that it is run as a separate process to run in
+;; environment of the code being documented. What's particularly important is
+;; that it needs to run in various versions of Clojure and depend as little
+;; as possible on the differences.
+
+;; Because of this, it's important that it doesn't use any AOT'ed code. Because
+;; of CLJ-322 this is tricky and we can't touch any namespaces that might be
+;; transitively compiled from autodoc.autodoc. Hence we reproduce a minimal version
+;; of autodoc.params here. (autodoc.load-files is *only* used here and so it
+;; shouldn't be mistakenly AOT'ed.)
 
 
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
@@ -21,6 +31,36 @@
   `(do
      (def  ~var ~init)
      (when post-1-3? (.setDynamic #'~var))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; A stubbed out version of autodoc.params
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defdynamic params {})
+
+(defn merge-params 
+  "Merge the param map supplied into the params defined in the params var"
+  [param-map]
+  (alter-var-root #'params merge param-map))
+
+(defn params-from-dir 
+  "Read param.clj from the specified directory and set the params accordingly"
+  [param-dir]
+  (merge-params (merge {:param-dir param-dir} (load-file (str param-dir "/params.clj")))))
+
+(defn params-from-file
+  "Read the specified file which should return a map of parameter entries, dereference 
+the supplied key and set params accordingly"
+  [param-file key]
+  (merge-params (get (load-file param-file) key)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; The code for collect-info
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defdynamic saved-out nil)
 
@@ -319,7 +359,7 @@ versioning reasons"
   (binding [params (merge params
                           (some #(when (= branch-name (:name %)) (:params %))
                                 (params :branches)))]
-    (load-namespaces)
+    (load-namespaces params)
     (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
       (binding [saved-out *out*]

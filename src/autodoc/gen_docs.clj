@@ -1,7 +1,6 @@
 (ns autodoc.gen-docs
   (:use [clojure.java.io :only (delete-file)]
         [clojure.pprint :only (pprint)]
-        [autodoc.load-files :only (load-namespaces)]
         [autodoc.build-html :only (make-all-pages)]
         [autodoc.params :only (params params-from-dir)]
         [autodoc.branches :only (load-branch-data)]

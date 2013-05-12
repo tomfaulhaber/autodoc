@@ -1,12 +1,27 @@
 (ns autodoc.load-files
   (:import [java.util.jar JarFile]
-           [java.io File])
-  (:use [autodoc.find-namespaces :only [find-clojure-sources-in-dir]]
-        [autodoc.params :only (params)]))
+           [java.io File]))
 
 ;;; Load all the files from the source. This is a little hacked up 
 ;;; because we can't just grab them out of the jar, but rather need 
 ;;; to load the files because of bug in namespace metadata
+
+;;; The following two functions are taken from find-namespaces which in turn is taken
+;;; from contrib code. The there for more details.
+
+(defn clojure-source-file?
+  "Returns true if file is a normal file with a .clj extension."
+  [#^File file]
+  (and (.isFile file)
+       (.endsWith (.getName file) ".clj")))
+
+(defn find-clojure-sources-in-dir
+  "Searches recursively under dir for Clojure source files (.clj).
+  Returns a sequence of File objects, in breadth-first sort order."
+  [#^File dir]
+  ;; Use sort by absolute path to get breadth-first search.
+  (sort-by #(.getAbsolutePath %)
+           (filter clojure-source-file? (file-seq dir))))
 
 (defn not-in [str regex-seq] 
   (loop [regex-seq regex-seq]
@@ -32,7 +47,7 @@
   [filename]
   (.substring filename 0 (- (.length filename) 4)))
 
-(defn load-files [filelist]
+(defn load-files [filelist params]
   (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
     (print (str filename ": "))
     (try 
@@ -41,10 +56,11 @@
      (catch Exception e 
        (println  (str "failed (ex = " (.getMessage e) ")"))))))
 
-(defn load-namespaces []
+(defn load-namespaces [params]
   (load-files
    (map #(.getPath %)
         (mapcat
          #(find-clojure-sources-in-dir
            (File. (params :root) %))
-         (params :source-path)))))
+         (params :source-path)))
+   params))

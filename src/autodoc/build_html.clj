@@ -10,7 +10,6 @@
         [clojure.java.shell :only (sh)]
         [clojure.pprint :only (pprint cl-format)]
         [clojure.data.json :only (pprint-json)]
-        [autodoc.collect-info :only (project-info)]
         [autodoc.params :only (params expand-classpath)]))
 
 ;;; TODO should these really be dynamic? I don't think so
@@ -804,7 +803,6 @@ vars in ns-info that begin with that letter"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-all-pages 
-  ([] (make-all-pages {:first? true} nil (project-info)))
   ([ns-info] (make-all-pages {:first? true} nil ns-info))
   ([branch-info all-branch-info ns-info]
      (let [doc-dir (str (when-not (:first? branch-info) 
