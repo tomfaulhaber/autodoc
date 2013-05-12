@@ -3,12 +3,14 @@
    [clojure.pprint :only (cl-format)]
    [clojure.java.io :only [file make-parents]]
    [clojure.tools.namespace :only [find-namespaces-in-dir]]
-   [autodoc.params :only [merge-params params params-from-dir params-from-file
-                          params-help process-command-line]]
-   [autodoc.load-files :only (load-namespaces)]
-   [autodoc.gen-docs :only (gen-branch-docs)]
    [autodoc.build-html :only (make-all-pages)]
-   [autodoc.copy-statics :only (copy-statics)])
+   [autodoc.collect-info :only (project-info)]
+   [autodoc.collect-info-wrapper :only (do-collect)]
+   [autodoc.copy-statics :only (copy-statics)]
+   [autodoc.gen-docs :only (gen-branch-docs)]
+   [autodoc.load-files :only (load-namespaces)]
+   [autodoc.params :only [merge-params params params-from-dir params-from-file
+                          params-help process-command-line]])
   (:import
    [java.io File FileNotFoundException])
   (:gen-class))
@@ -18,10 +20,17 @@
 (defn build-html 
   "Build the documentation (default command)"
   [& _]
-  (load-namespaces)
   (make-doc-dir)
   (copy-statics)
-  (make-all-pages))
+  ;; If load-classpath has been set to a list (as leiningen does, but you can too)
+  ;; then spawn a separate process woth the right dependencies to scoop up the
+  ;; doc info
+  (let [ns-info (if (seq (params :load-classpath))
+                  (do-collect nil)
+                  (do
+                    (load-namespaces)
+                    (project-info)))]
+    (make-all-pages ns-info)))
 
 (defn sym-to-var [sym] 
   (find-var (symbol "autodoc.autodoc" (name sym))))

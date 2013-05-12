@@ -805,6 +805,7 @@ vars in ns-info that begin with that letter"
 
 (defn make-all-pages 
   ([] (make-all-pages {:first? true} nil (project-info)))
+  ([ns-info] (make-all-pages {:first? true} nil ns-info))
   ([branch-info all-branch-info ns-info]
      (let [doc-dir (str (when-not (:first? branch-info) 
                           (str (branch-subdir (:name branch-info)) "/")) 

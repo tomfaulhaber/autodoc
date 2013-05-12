@@ -5,9 +5,7 @@
            (org.apache.maven.artifact.ant Authentication DependenciesTask
                                           RemoteRepository RepositoryPolicy)
            (org.apache.maven.artifact.repository ArtifactRepositoryPolicy)
-           (org.apache.maven.model Dependency Exclusion))
-  
-  )
+           (org.apache.maven.model Dependency Exclusion)))
 
 ;;; This whole file is adapted from leiningen 1.6.1.
 ;;; The only reason we did this is that it's hard to use lein as a library
@@ -200,4 +198,4 @@ to exclude from transitive dependencies."
           (concat (find-local-repo-jars project)
                   ;; This must be hard-coded because it's used in
                   ;; bin/lein and thus can't be changed in project.clj.
-                  (.listFiles (file (:root project) "lib/dev")))))
+                   (.listFiles (file (:root project) "lib/dev")))))

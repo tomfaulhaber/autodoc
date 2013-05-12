@@ -316,7 +316,9 @@ versioning reasons"
   (if (= param-file "nil")
     (params-from-dir param-dir)
     (params-from-file param-file param-key))
-  (binding [params (merge params (some #(when (= branch-name (:name %)) (:params %)) (params :branches)))]
+  (binding [params (merge params
+                          (some #(when (= branch-name (:name %)) (:params %))
+                                (params :branches)))]
     (load-namespaces)
     (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues

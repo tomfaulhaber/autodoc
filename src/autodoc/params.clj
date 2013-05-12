@@ -23,7 +23,7 @@
       [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
       [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
-      [:load-classpath nil "Extra items on the classpath needed to load (e.g., gen-classed items)."]
+      [:load-classpath [] "Extra items on the classpath needed to load (e.g., gen-classed items)."]
       [:load-jar-dirs nil "Directories with jars to add to classpath when doing loads"]
       
       [:built-clojure-jar nil nil],

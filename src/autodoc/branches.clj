@@ -1,26 +1,25 @@
 (ns autodoc.branches
-  (:use [clojure.java.io :only [file reader]]
-        [clojure.java.shell :only [with-sh-dir sh]]
-        [clojure.pprint :only [cl-format pprint]]
-        [autodoc.deps :only [find-jars]]
-        [autodoc.params :only (params expand-classpath)]
-        [autodoc.build-html :only (branch-subdir)]
-        [autodoc.doc-files :only (xform-tree)]
-        [autodoc.pom-tools :only (get-dependencies get-version)])
+  (:require
+   [clojure.string :as str])
   
-  (import [java.io File]
-          [java.util.regex Pattern]))
-
-;;; This was dropped from contrib in 1.3, I think
-(defn re-split [#^Pattern pattern string] 
-  (seq (.split pattern string)))
+  (:use
+   [clojure.java.io :only [file]]
+   [clojure.java.shell :only [with-sh-dir sh]]
+   [clojure.pprint :only [pprint]]
+   [autodoc.params :only (params)]
+   [autodoc.build-html :only (branch-subdir)]
+   [autodoc.collect-info-wrapper :only (do-collect)]
+   [autodoc.doc-files :only (xform-tree)]
+   [autodoc.pom-tools :only (get-version)])
+  
+  (:import [java.util.regex Pattern]))
 
 ;;; stolen from lancet
 (defn env [val]
   (System/getenv (name val)))
 
 (defn- build-sh-args [args]
-  (concat (re-split #"\s+" (first args)) (rest args)))
+  (concat (str/split (first args) #"\s+") (rest args)))
 
 (defn system [& args]
   (pprint args)
@@ -34,57 +33,6 @@
     (system (str "git checkout " branch))
     (system (str "git merge origin/" branch))))
 
-(defn path-str [path-seq] 
-  (apply str (interpose (System/getProperty "path.separator")
-                        (map #(.getAbsolutePath (file %)) path-seq))))
-
-(defn exec-clojure [class-path & args]
-  (apply system (concat [ "java" "-cp"] 
-                        [(path-str class-path)]
-                        ["clojure.main" "-e"]
-                        args)))
-
-(defn expand-jar-path [jar-dirs]
-  (apply concat 
-         (for [jar-dir jar-dirs]
-           (filter #(.endsWith (.getName %) ".jar")
-                   (file-seq (java.io.File. jar-dir))))))
-
-(defn do-collect 
-  "Collect the namespace and var info for the checked out branch"
-  [branch-name]
-  (let [src-path (map #(.getPath (File. (params :root) %)) (params :source-path))
-        target-path (.getPath (File. (params :root) "target/classes"))
-        class-path (concat 
-                    (filter 
-                     identity
-                     [(params :built-clojure-jar)
-                      "src"
-                      src-path
-                      target-path
-                      "."])
-                    (when-let [deps (get-dependencies (params :root) (params :dependencies))]
-                      (find-jars {:local-repo-classpath true,
-                                  :dependencies deps,
-                                  :root src-path
-                                  :name (str "Autodoc for " (params :name))}))
-                    (expand-classpath branch-name (params :root) (params :load-classpath))
-                    (expand-jar-path (params :load-jar-dirs)))
-        tmp-file (File/createTempFile "collect-" ".clj")]
-    (exec-clojure class-path 
-                  (cl-format 
-                   nil 
-                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
-                   (params :param-file)
-                   (params :param-key)
-                   (params :param-dir)
-                   (.getAbsolutePath tmp-file)
-                   branch-name))
-    (try 
-     (with-open [f (java.io.PushbackReader. (reader tmp-file))] 
-       (binding [*in* f] (read)))
-     (finally 
-      (.delete tmp-file)))))
 
 (defn do-build 
   "Execute an ant build in the given directory, if there's a build.xml"
