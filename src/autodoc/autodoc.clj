@@ -102,11 +102,12 @@
              (help)))))))
 
 (defn -main [& args]
-  (if-let [[params args] (try 
-                          (process-command-line args)
-                          (catch RuntimeException e
-                            (println (.getMessage e))
-                            (prn)
-                            (help)))]
-    (apply autodoc params args))
-  (shutdown-agents))
+  (try
+    (if-let [[params args] (try 
+                             (process-command-line args)
+                             (catch RuntimeException e
+                               (println (.getMessage e))
+                               (prn)
+                               (help)))]
+      (apply autodoc params args))
+    (finally (shutdown-agents))))
