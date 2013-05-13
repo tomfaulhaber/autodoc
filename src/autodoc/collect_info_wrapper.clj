@@ -57,7 +57,6 @@ This means that we can keep versions and dependencies unentangled "
                      identity
                      (concat
                       [(params :built-clojure-jar)]
-                      (autodoc-jar)
                       ["src"]
                       src-path
                       [target-path "."]))
@@ -67,15 +66,18 @@ This means that we can keep versions and dependencies unentangled "
                                   :root (params :root)
                                   :name (str "Autodoc for " (params :name))}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
-                    (expand-jar-path (params :load-jar-dirs)))
+                    (expand-jar-path (params :load-jar-dirs))
+                    (autodoc-jar))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
                   (cl-format 
                    nil 
-                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
-                   (params :param-file)
-                   (params :param-key)
-                   (params :param-dir)
+                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
+                   (params :root)
+                   (str/join ":" (params :source-path))
+                   (str/join ":" (params :namespaces-to-document))
+                   (str/join ":" (params :load-except-list))
+                   (params :trim-prefix)
                    (.getAbsolutePath tmp-file)
                    branch-name))
     (try 

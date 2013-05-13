@@ -6,6 +6,9 @@
 ;;; because we can't just grab them out of the jar, but rather need 
 ;;; to load the files because of bug in namespace metadata
 
+;;; Because clojure.string/split didn't always exist (re is a string here)
+(defn split [s re] (seq (.split s re)))
+
 ;;; The following two functions are taken from find-namespaces which in turn is taken
 ;;; from contrib code. The there for more details.
 
@@ -47,8 +50,8 @@
   [filename]
   (.substring filename 0 (- (.length filename) 4)))
 
-(defn load-files [filelist params]
-  (doseq [filename (filter #(not-in % (params :load-except-list)) filelist)]
+(defn load-files [filelist load-except-list]
+  (doseq [filename (filter #(not-in % load-except-list) filelist)]
     (print (str filename ": "))
     (try 
      (load-file filename)
@@ -56,11 +59,11 @@
      (catch Exception e 
        (println  (str "failed (ex = " (.getMessage e) ")"))))))
 
-(defn load-namespaces [params]
+(defn load-namespaces [root source-path load-except-list]
   (load-files
    (map #(.getPath %)
         (mapcat
          #(find-clojure-sources-in-dir
-           (File. (params :root) %))
-         (params :source-path)))
-   params))
+           (File. root %))
+         (split source-path ":")))
+   (map re-pattern (split load-except-list ":"))))

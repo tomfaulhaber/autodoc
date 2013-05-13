@@ -16,9 +16,8 @@
 
 ;; Because of this, it's important that it doesn't use any AOT'ed code. Because
 ;; of CLJ-322 this is tricky and we can't touch any namespaces that might be
-;; transitively compiled from autodoc.autodoc. Hence we reproduce a minimal version
-;; of autodoc.params here. (autodoc.load-files is *only* used here and so it
-;; shouldn't be mistakenly AOT'ed.)
+;; transitively compiled from autodoc.autodoc. autodoc.load-files is *only* used
+;; here and so it shouldn't be mistakenly AOT'ed.)
 
 
 (def post-1-2? (let [{:keys [major minor]} *clojure-version*]
@@ -31,36 +30,6 @@
   `(do
      (def  ~var ~init)
      (when post-1-3? (.setDynamic #'~var))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; A stubbed out version of autodoc.params
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defdynamic params {})
-
-(defn merge-params 
-  "Merge the param map supplied into the params defined in the params var"
-  [param-map]
-  (alter-var-root #'params merge param-map))
-
-(defn params-from-dir 
-  "Read param.clj from the specified directory and set the params accordingly"
-  [param-dir]
-  (merge-params (merge {:param-dir param-dir} (load-file (str param-dir "/params.clj")))))
-
-(defn params-from-file
-  "Read the specified file which should return a map of parameter entries, dereference 
-the supplied key and set params accordingly"
-  [param-file key]
-  (merge-params (get (load-file param-file) key)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; The code for collect-info
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defdynamic saved-out nil)
 
@@ -263,18 +232,17 @@ return it as a string."
                   :protocols (protos-info (:ns ns-info))
                   :types (types-info (:ns ns-info))}))
 
-(defn relevant-namespaces []
+(defn relevant-namespaces [namespaces-to-document]
   (filter #(not (:skip-wiki (meta %)))
           (map #(find-ns (symbol %)) 
                (filter #(some (fn [n] (or (= % n) (.startsWith % (str n "."))))
-                              (params :namespaces-to-document))
+                              (seq (.split namespaces-to-document ":")))
                        (sort (map #(name (ns-name %)) (all-ns)))))))
 
-(defn trim-ns-name [s]
-  (let [trim-prefix (params :trim-prefix)]
-    (if (and trim-prefix (.startsWith s trim-prefix))
-      (subs s (count trim-prefix))
-      s)))
+(defn trim-ns-name [s trim-prefix]
+  (if (and trim-prefix (.startsWith s trim-prefix))
+    (subs s (count trim-prefix))
+    s))
 
 (defn base-namespace
   "A nasty function that finds the shortest prefix namespace of this one"
@@ -290,8 +258,8 @@ return it as a string."
            (map #(apply str (interpose "." (take (inc %) parts)))
                 (range 0 (count parts)))))))) ;; TODO first arg to range was 0 for contrib
 
-(defn base-relevant-namespaces []
-  (let [relevant (relevant-namespaces)
+(defn base-relevant-namespaces [namespaces-to-document]
+  (let [relevant (relevant-namespaces namespaces-to-document)
         relevant-set (set relevant)]
     (filter #(= % (base-namespace % relevant-set)) relevant)))
 
@@ -304,22 +272,22 @@ have the same prefix followed by a . and then more components"
      #(name (ns-name %))
      (filter #(and (not (:skip-wiki (meta %))) (re-matches pat (name (ns-name %)))) (all-ns)))))
 
-(defn ns-short-name [ns]
-  (trim-ns-name (name (ns-name ns))))
+(defn ns-short-name [ns trim-prefix]
+  (trim-ns-name (name (ns-name ns)) trim-prefix))
 
-(defn build-ns-entry [ns]
+(defn build-ns-entry [ns trim-prefix]
   (merge (select-keys (meta ns) [:author :see-also :added :deprecated])
-         {:full-name (name (ns-name ns)) :short-name (ns-short-name ns)
+         {:full-name (name (ns-name ns)) :short-name (ns-short-name ns trim-prefix)
           :doc (remove-leading-whitespace (:doc (meta ns))) :ns ns}))
 
-(defn build-ns-list [nss]
-  (sort-by :short-name (map add-vars (map build-ns-entry nss))))
+(defn build-ns-list [nss trim-prefix]
+  (sort-by :short-name (map add-vars (map build-ns-entry nss trim-prefix))))
 
-(defn add-subspaces [info]
+(defn add-subspaces [info trim-prefix]
      (assoc info :subspaces 
             (filter #(or (:doc %) (seq (:members %))
                          (seq (:types %)) (seq (:protocols %)))
-                    (build-ns-list (sub-namespaces (:ns info))))))
+                    (build-ns-list (sub-namespaces (:ns info)) trim-prefix))))
 
 (defn add-base-ns-info [ns]
   (assoc ns
@@ -333,11 +301,11 @@ have the same prefix followed by a . and then more components"
                   :subspaces (map #(dissoc % :ns) (:subspaces ns))))
        ns-info))
 
-(defn project-info []
+(defn project-info [namespaces-to-document trim-prefix]
   (clean-ns-info
    (map add-base-ns-info
-        (map add-subspaces
-             (build-ns-list (base-relevant-namespaces))))))
+        (map #(add-subspaces % trim-prefix)
+             (build-ns-list (base-relevant-namespaces namespaces-to-document) trim-prefix)))))
 
 (defn writer 
   "A version of duck-streams/writer that only handles file strings. Moved here for 
@@ -351,22 +319,16 @@ versioning reasons"
 
 
 (defn collect-info-to-file
-  "build the file out-file with all the namespace info for the project described in param-dir"
-  [param-file param-key param-dir out-file branch-name]
-  (if (= param-file "nil")
-    (params-from-dir param-dir)
-    (params-from-file param-file param-key))
-  (binding [params (merge params
-                          (some #(when (= branch-name (:name %)) (:params %))
-                                (params :branches)))]
-    (load-namespaces params)
-    (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
+  "build the file out-file with all the namespace info for the project described by the arguments"
+  [root source-path namespaces-to-document load-except-list trim-prefix out-file branch-name]
+  (load-namespaces root source-path load-except-list)
+  (with-open [w (writer "/tmp/autodoc-debug.clj")] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [saved-out *out*]
-        (binding [*out* w]
-          (pr (project-info)))))
-    (with-open [w (writer out-file)] ; this is basically spit, but we do it
+    (binding [saved-out *out*]
+      (binding [*out* w]
+        (pr (project-info namespaces-to-document trim-prefix)))))
+  (with-open [w (writer out-file)] ; this is basically spit, but we do it
                                         ; here so we don't have clojure version issues
-      (binding [saved-out *out*]
-        (binding [*out* w]
-          (pr (project-info)))))))
+    (binding [saved-out *out*]
+      (binding [*out* w]
+        (pr (project-info namespaces-to-document trim-prefix))))))
