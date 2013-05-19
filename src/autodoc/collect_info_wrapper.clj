@@ -37,7 +37,6 @@ that autodoc was invoked from a jar rather than out of its source directory."
                           (re-pattern (System/getProperty "path.separator"))))))
 
 (defn exec-clojure [class-path & args]
-  (println "@exec-clojure: classpath = " class-path)
   (apply system (concat [ "java" "-cp"] 
                         [(path-str class-path)]
                         ["clojure.main" "-e"]
