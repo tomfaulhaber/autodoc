@@ -31,12 +31,12 @@ removed that suffix and false otherwise"
   [deps]
   (if (some #(= "clojure" (-> % first name)) deps)
     deps
-    (conj deps ['org.clojure/clojure "1.5.0"])))
+    (conj deps ['org.clojure/clojure "1.5.1"])))
 
 (defn get-dependencies
   "If dep-param is :from-pom, returns the dependencies from the pom as a
 sequence of 2-vectors in the form ['group/artifact \"version\"].
-Otherwise, returns dep-param as is. If the pom is empty, depend on Clojure 1.3"
+Otherwise, returns dep-param as is. If the pom is empty, depend on Clojure 1.5"
   [root dep-param]
   (if (= :from-pom dep-param)
     (add-clojure (let [get-tag (fn [loc tag] (first (:content (xml1-> loc tag zip/node))))

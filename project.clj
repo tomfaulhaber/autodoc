@@ -8,5 +8,5 @@
                  [org.clojure/tools.namespace "0.1.0"]
                  [enlive "1.0.0"]
                  [lancet "1.0.1"]
-                 [org.apache.maven/maven-ant-tasks "2.0.10" :exclusions [ant]]]
-  :profiles {:dev {:dependencies [[alembic "0.1.1"]]}})
+                 [org.apache.maven/maven-ant-tasks "2.0.10" :exclusions [ant]]
+                 [autodoc-collect "1.0.0-SNAPSHOT"]])

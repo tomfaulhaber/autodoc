@@ -14,6 +14,9 @@
 
 ;;; The code to execute collect-info in a separate process
 
+;;; TODO: consider pulling this from project.clj, maybe via the classpath
+(def autodoc-collect ['autodoc-collect "1.0.0-SNAPSHOT"])
+
 (defn- build-sh-args [args]
   (concat (str/split (first args) #"\s+") (rest args)))
 
@@ -60,19 +63,20 @@ This means that we can keep versions and dependencies unentangled "
                       ["src"]
                       src-path
                       [target-path "."]))
-                    (when-let [deps (get-dependencies (params :root) (params :dependencies))]
+                    (when-let [deps (conj
+                                     (get-dependencies (params :root) (params :dependencies))
+                                     autodoc-collect)]
                       (find-jars {:local-repo-classpath true,
                                   :dependencies deps,
                                   :root (params :root)
                                   :name (str "Autodoc for " (params :name))}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
-                    (expand-jar-path (params :load-jar-dirs))
-                    (autodoc-jar))
+                    (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
     (exec-clojure class-path 
                   (cl-format 
                    nil 
-                   "(use 'autodoc.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
+                   "(use 'autodoc-collect.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
                    (params :root)
                    (str/join ":" (params :source-path))
                    (str/join ":" (params :namespaces-to-document))
