@@ -15,7 +15,7 @@
 ;;; The code to execute collect-info in a separate process
 
 ;;; TODO: consider pulling this from project.clj, maybe via the classpath
-(def autodoc-collect ['autodoc-collect "1.0.0-SNAPSHOT"])
+(def autodoc-collect ['autodoc-collect "1.0.0"])
 
 (defn- build-sh-args [args]
   (concat (str/split (first args) #"\s+") (rest args)))
