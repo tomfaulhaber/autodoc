@@ -3,7 +3,8 @@
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter StringReader]
            [java.util.regex Pattern])
-  (:require [clojure.string :as str])
+  (:require [clojure.string :as str]
+            [clojure.walk :as walk])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.string :only (split-lines)]
         [clojure.java.io :only (as-file file writer)]
@@ -332,9 +333,20 @@ vars, types, protocols, and functions in protocols"
                (make-local-toc (overview-toc-data ns-info))
                (make-overview-content branch-info ns-info)))
 
+(defn- add-gensyms
+  "Walk the arglist tree and convert any symbols gensymed with #
+back to their foo# form. This can happen when a function is created
+with a macro. In addition to looking better, this keeps the
+generated HTML files from having gratuitous diffs."
+  [arglists]
+  (let [xform (fn [s] (if (symbol? s)
+                        (symbol (.replaceFirst (name s) "__\\d+__auto__" "#"))
+                        s))]
+    (walk/postwalk xform arglists)))
+
 ;;; TODO: redo this so the usage parts can be styled
 (defn var-usage [v]
-  (if-let [arglists (:arglists v)]
+  (if-let [arglists (add-gensyms (:arglists v))]
     (cl-format nil
                "~<Usage: ~:i~@{~{(~a~{ ~a~})~}~^~:@_~}~:>~%"
                (map #(vector %1 %2) (repeat (:name v)) arglists))
