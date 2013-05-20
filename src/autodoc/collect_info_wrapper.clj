@@ -53,7 +53,8 @@ that autodoc was invoked from a jar rather than out of its source directory."
 This means that we can keep versions and dependencies unentangled "
   [branch-name]
   (let [src-path (map #(.getPath (File. (params :root) %)) (params :source-path))
-        target-path (.getPath (File. (params :root) "target/classes"))
+        target-path (when-not (params :built-clojure-jar)
+                      (.getPath (File. (params :root) "target/classes")))
         class-path (concat 
                     (filter 
                      identity
