@@ -657,7 +657,7 @@ vars in ns-info that begin with that letter"
     #(at %
          [:a] (do->
                (set-attr :href
-                         (str (if unique-ns? "index.html" (ns-html-file ns))
+                         (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
                               "#" (:full-name ns) "/" (:name v)))
                (content (:name v)))
          [:#line-content] (content 
