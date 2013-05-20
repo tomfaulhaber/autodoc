@@ -30,6 +30,7 @@
   [branch]
   (with-sh-dir (params :root)
     (system "git fetch")
+    (system "git reset --hard HEAD")
     (system (str "git checkout " branch))
     (system (str "git merge origin/" branch))))
 
