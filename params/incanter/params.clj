@@ -11,23 +11,22 @@
    :web-home "http://liebke.github.com/incanter/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
-;;   :clojure-contrib-classes (str root "build"),
+   ;;   :clojure-contrib-classes (str root "build"),
 
    :load-jar-dirs [(str root "lib")],
 
    :namespaces-to-document ["incanter"],
    :trim-prefix "incanter.",
+   :dependencies :from-pom
 
-   :branches [{:name "master"
-               :version "next"
-               :status "in development"
-               :params {:built-clojure-jar (str root "lib/clojure-1.2.0.jar")
-                        :load-classpath [#"/modules/[^/]+/src$"]}},
-              {:name "1.0.x"
-               :version "1.0"
+   :branches [{:name "1.4.1"
+               :version "1.4.1"
                :status "stable"
-               :params {:built-clojure-jar (str root "lib/clojure-slim.jar")
-                        :load-classpath [#"/modules/[^/]+/src/main/clojure$"]}}]
+               :params {:load-classpath [#"/modules/[^/]+/src$"]}}
+              {:name "master"
+               :version "1.5"
+               :status "in development"
+               :params {:load-classpath [#"/modules/[^/]+/src$"]}}]
 
    :load-except-list [#"/test/" #"/classes/" #"project.clj$"],
    })

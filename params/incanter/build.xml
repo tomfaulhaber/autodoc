@@ -15,6 +15,11 @@
     <exec executable="/bin/sh" dir="${src-dir}">
       <arg value="script/install"/>
     </exec>
+
+    <!-- make a pom so that we can use it to get the dependencies -->
+    <exec executable="lein" dir="${src-dir}">
+      <arg value="pom"/>
+    </exec>
   </target>
 
 </project>
