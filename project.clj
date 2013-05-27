@@ -1,4 +1,4 @@
-(defproject autodoc "1.0.0-SNAPSHOT"
+(defproject autodoc "1.0.0"
   :description "A tool to build HTML documentation from your Clojure source"
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
@@ -9,4 +9,4 @@
                  [enlive "1.0.0"]
                  [lancet "1.0.1"]
                  [org.apache.maven/maven-ant-tasks "2.0.10" :exclusions [ant]]
-                 [autodoc-collect "1.0.0"]])
+                 [autodoc-collect "1.0.1"]])
