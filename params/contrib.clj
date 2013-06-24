@@ -40,6 +40,7 @@
       [(! :project "algo.generic" :name "Generic versions of common functions"
           :description "Generic versions of commonly used functions, implemented as multimethods that can be implemented for any data type.")
        (! :project "algo.monads" :name "Monad Macros and Definitions")
+       (! :project "core.async" :name "Facilities for async programming and communication")
        (! :project "core.cache" :name "A caching library implementing various cache strategies")
        (! :project "core.contracts" :name "Contracts programming in Clojure")
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
@@ -48,6 +49,7 @@
        ;; (! :project "core.logic" :name "A logic programming library based on miniKanren")
        (! :project "core.match" :name "Pattern match and predicate dispatch")
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
+       (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
        (! :project "core.typed" :name "Gradual Typing")
        (! :project "core.unify" :name "Unification library")
        (! :project "data.codec" :name "Native codec implementations")
