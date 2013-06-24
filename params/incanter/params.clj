@@ -19,8 +19,8 @@
    :trim-prefix "incanter.",
    :dependencies :from-pom
 
-   :branches [{:name "1.5.0"
-               :version "1.5.0"
+   :branches [{:name "1.5.1"
+               :version "1.5.1"
                :status "stable"
                :params {:load-classpath [#"/modules/[^/]+/src$"]}}
               {:name "1.4.1"
