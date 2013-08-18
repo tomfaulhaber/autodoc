@@ -346,12 +346,14 @@ generated HTML files from having gratuitous diffs."
 
 ;;; TODO: redo this so the usage parts can be styled
 (defn var-usage [v]
-  (if-let [arglists (add-gensyms (:arglists v))]
-    (cl-format nil
-               "~<Usage: ~:i~@{~{(~a~{ ~a~})~}~^~:@_~}~:>~%"
-               (map #(vector %1 %2) (repeat (:name v)) arglists))
-    (if (= (:var-type v) "multimethod")
-      "No usage documentation available")))
+  (if-let [forms (:forms v)]
+    (cl-format nil "~<Usage: ~:i~@{~a~^~:@_~}~:>~%" forms)
+   (if-let [arglists (add-gensyms (:arglists v))]
+     (cl-format nil
+                "~<Usage: ~:i~@{~{(~a~{ ~a~})~}~^~:@_~}~:>~%"
+                (map #(vector %1 %2) (repeat (:name v)) arglists))
+     (if (= (:var-type v) "multimethod")
+       "No usage documentation available"))))
 
 (defn- git-get-last-commit-hash [file branch]
   (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file
@@ -717,7 +719,7 @@ vars in ns-info that begin with that letter"
                         (ns-file ns))) branch)))
 
 (defn var-index-info [v ns branch]
-  (assoc (select-keys v [:name :doc :author :arglists :var-type :line :added :deprecated :dynamic])
+  (assoc (select-keys v [:name :doc :author :arglists :var-type :line :added :deprecated :dynamic :forms])
     :namespace (:full-name ns)
     :wiki-url (str (params :web-home) "/" (var-url ns v))
     :source-url (var-src-link v branch)

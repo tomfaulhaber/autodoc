@@ -76,7 +76,8 @@ This means that we can keep versions and dependencies unentangled "
     (exec-clojure class-path 
                   (cl-format 
                    nil 
-                   "(use 'autodoc-collect.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
+                   "~@[~a ~](use 'autodoc-collect.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
+                   (params :collect-prefix-forms)
                    (params :root)
                    (str/join ":" (params :source-path))
                    (str/join ":" (params :namespaces-to-document))

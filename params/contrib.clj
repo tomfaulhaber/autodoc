@@ -50,7 +50,8 @@
        (! :project "core.match" :name "Pattern match and predicate dispatch")
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
-       (! :project "core.typed" :name "Gradual Typing")
+       (! :project "core.typed" :name "Gradual Typing"
+          :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)")
        (! :project "core.unify" :name "Unification library")
        (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.csv" :name "Reading and writing CSV files")

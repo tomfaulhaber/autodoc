@@ -29,6 +29,7 @@
       [:built-clojure-jar nil nil],
       [:namespaces-to-document nil "The list of namespaces to include in the documentation, separated by commas"],
       [:trim-prefix nil "The prefix to trim off namespaces in page names and references (e.g. \"clojure.contrib\")"],
+      [:collect-prefix-forms nil "Forms to invoke in the autodoc-collect process before starting collection"]
       
       [:branches [[nil {}]] nil]
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"], 
