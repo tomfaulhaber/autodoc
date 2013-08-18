@@ -440,7 +440,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     (do->
      (set-attr :id (var-tag-name ns v))
      (content (:name v)))
-    [:span#var-type] (content (:var-type v))
+    [:span#var-type] (content (str (when (:dynamic v) "dynamic ") (:var-type v)))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
@@ -665,8 +665,10 @@ vars in ns-info that begin with that letter"
          [:#line-content] (content 
                            (cl-format nil "~vt~a~vt~a~vt~a~%"
                                       (- 29 overhead)
-                                      (:var-type v) (- 43 overhead)
-                                      short-name (- 62 overhead)
+                                      (str (when (:dynamic v) "dynamic ") (:var-type v))
+                                      (- 43 overhead)
+                                      short-name
+                                      (- 62 overhead)
                                       (doc-prefix v doc-len))))))
 
 ;; TODO: skip entries for letters with no members
