@@ -1,7 +1,7 @@
 (ns autodoc.branches
   (:require
    [clojure.string :as str])
-  
+
   (:use
    [clojure.java.io :only [file]]
    [clojure.java.shell :only [with-sh-dir sh]]
@@ -11,7 +11,7 @@
    [autodoc.collect-info-wrapper :only (do-collect)]
    [autodoc.doc-files :only (xform-tree)]
    [autodoc.pom-tools :only (get-version)])
-  
+
   (:import [java.util.regex Pattern]))
 
 ;;; stolen from lancet
@@ -25,7 +25,7 @@
   (pprint args)
   (println (:out (apply sh (build-sh-args args)))))
 
-(defn switch-branches 
+(defn switch-branches
   "Switch to the specified branch"
   [branch]
   (with-sh-dir (params :root)
@@ -35,13 +35,15 @@
     (system (str "git merge origin/" branch))))
 
 
-(defn do-build 
+(defn do-build
   "Execute an ant build in the given directory, if there's a build.xml"
   [dir branch]
-  (when-let [build-file (first
-                         (filter
-                          #(.exists (file dir %))
-                          [(str "build-" branch ".xml") "build.xml"]))]
+  (when-let [build-file (if (params :build-file)
+                          (params :build-file)
+                          (first
+                           (filter
+                            #(.exists (file dir %))
+                            [(str "build-" branch ".xml") "build.xml"])))]
     (with-sh-dir dir
       (system "ant"
               (str "-Dsrc-dir=" (params :root))
@@ -51,10 +53,10 @@
 (defn with-first [s]
   (map #(assoc %1 :first? %2) s (conj (repeat false) true)))
 
-(defn load-branch-data 
+(defn load-branch-data
   "Collects the doc data from all the branches specified in the params and
-   executes the function f for each branch with the collected data. When f is executed, 
-   the correct branch will be checked out and any branch-specific parameters 
+   executes the function f for each branch with the collected data. When f is executed,
+   the correct branch will be checked out and any branch-specific parameters
    will be bound. Takes an array of maps, one for each branch that will be
    documented. Each map has the keys :name, :version, :status and :params.
    It calls f as (f branch-info all-branch-info ns-info)."

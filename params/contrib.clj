@@ -26,7 +26,7 @@
              :page-title (str project " API Reference"),
 
              :param-dir "params/contrib",
-             
+
              :branches [{:name "master"
                          :version :from-pom
                          :status "in development"
@@ -40,7 +40,8 @@
       [(! :project "algo.generic" :name "Generic versions of common functions"
           :description "Generic versions of commonly used functions, implemented as multimethods that can be implemented for any data type.")
        (! :project "algo.monads" :name "Monad Macros and Definitions")
-       (! :project "core.async" :name "Facilities for async programming and communication")
+       (! :project "core.async" :name "Facilities for async programming and communication"
+          :build-file "lein.xml")
        (! :project "core.cache" :name "A caching library implementing various cache strategies")
        (! :project "core.contracts" :name "Contracts programming in Clojure")
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
@@ -57,7 +58,7 @@
        (! :project "data.csv" :name "Reading and writing CSV files")
        (! :project "data.finger-tree" :name "Finger trees")
        (! :project "data.generators" :name "Random Data Generators")
-       (! :project "data.json" :name "JSON Utilities") 
+       (! :project "data.json" :name "JSON Utilities")
        (! :project "data.priority-map" :name "Priority maps")
        (! :project "data.xml" :name "Lazy XML parsing")
        (! :project "data.zip" :name "Manipulating zippers")

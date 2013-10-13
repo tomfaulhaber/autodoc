@@ -1,6 +1,6 @@
-<project name="new contrib" default="all">
+<project name="lein contrib" default="all">
   <description>
-    The subsidiary autodoc build file for building the contrib libs
+    The subsidiary autodoc build file for building those contrib libs that use leiningen
   </description>
 
   <target name="all">
@@ -10,8 +10,10 @@
     </delete>
     <mkdir dir="${src-dir}/lib"/>
 
-    <exec executable="mvn" dir="${src-dir}">
-      <arg value="test"/>
+    <exec executable="lein" dir="${src-dir}">
+      <arg value="do"/>
+      <arg value="jar,"/>
+      <arg value="pom"/>
     </exec>
   </target>
 </project>
