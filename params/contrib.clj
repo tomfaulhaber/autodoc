@@ -57,6 +57,7 @@
        (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.csv" :name "Reading and writing CSV files")
        (! :project "data.finger-tree" :name "Finger trees")
+       (! :project "data.fressian" :name "Extensible Binary Data Notation")
        (! :project "data.generators" :name "Random Data Generators")
        (! :project "data.json" :name "JSON Utilities")
        (! :project "data.priority-map" :name "Priority maps")
