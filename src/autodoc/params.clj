@@ -34,6 +34,7 @@
       [:branches [[nil {}]] nil]
       [:build-file nil nil]
       [:load-except-list [] "A list of regexps that describe files that shouldn't be loaded"],
+      [:external-autodoc-dirs [] "A list of directories in the target autodoc area that are maintained externally. Autodoc will avoid stepping on these."]
       [:build-json-index false "Set to true if you want to create an index file in JSON (currently slow)"],
       [:build-raw-index false "Set to true if you want to create an index that contains all of the namespace metadata used to generate the docs (suitable for feeding to autodoc's internal functions)"]
 
