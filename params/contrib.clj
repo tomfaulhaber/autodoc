@@ -56,6 +56,8 @@
        (! :project "core.typed" :name "Gradual Typing"
           :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)")
        (! :project "core.unify" :name "Unification library")
+       (! :project "data.avl" :name "AVL trees"
+          :description "Persistent sorted maps and sets with log-time rank queries")
        (! :project "data.codec" :name "Native codec implementations")
        (! :project "data.csv" :name "Reading and writing CSV files")
        (! :project "data.finger-tree" :name "Finger trees")
