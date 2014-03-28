@@ -48,7 +48,8 @@
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
           :namespaces-to-document ["clojure.core.incubator" "clojure.core.strint"]
           :description "Home of functions proposed for core inclusion.")
-       (! :project "core.logic" :name "A logic programming library based on miniKanren")
+       (! :project "core.logic" :name "A logic programming library based on miniKanren"
+          :build-file "lein.xml")
        (! :project "core.match" :name "Pattern match and predicate dispatch")
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
