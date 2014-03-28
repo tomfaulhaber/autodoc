@@ -22,7 +22,7 @@
              :trim-prefix nil,
              :build-json-index nil,
 
-             :copyright "Copyright 2007-2013 by Rich Hickey and the various contributors",
+             :copyright "Copyright 2007-2014 by Rich Hickey and the various contributors",
              :page-title (str project " API Reference"),
 
              :param-dir "params/contrib",
