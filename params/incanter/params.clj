@@ -19,8 +19,8 @@
    :trim-prefix "incanter.",
    :dependencies :from-pom
 
-   :branches [{:name "1.5.2"
-               :version "1.5.2"
+   :branches [{:name "1.5.4"
+               :version "1.5.4"
                :status "stable"
                :params {:load-classpath [#"/modules/[^/]+/src$"]}}
               {:name "1.4.1"
@@ -34,4 +34,3 @@
 
    :load-except-list [#"/test/" #"/classes/" #"project.clj$"],
    })
-
