@@ -1,10 +1,11 @@
 (ns autodoc.build-html
-  (:refer-clojure :exclude [empty complement]) 
+  (:refer-clojure :exclude [empty complement])
   (:import [java.util.jar JarFile]
            [java.io File FileWriter BufferedWriter StringReader]
            [java.util.regex Pattern])
   (:require [clojure.string :as str]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [clojure.core.memoize :as memo])
   (:use [net.cgrand.enlive-html :exclude (deftemplate)]
         [clojure.string :only (split-lines)]
         [clojure.java.io :only (as-file file writer)]
@@ -39,10 +40,12 @@
 
 (defn template-for
   "Get the actual filename corresponding to a template. We check in the project
-specific directory first, then sees if a parameter with that name is set, then 
+specific directory first, then sees if a parameter with that name is set, then
 looks in the base template directory."
-  [base] 
-  (let [custom-template (File. (str (params :param-dir) "/templates/" base))]
+  [base]
+  (let [custom-template (File. (str (params :param-dir)
+                                    "/" (params :template-dir)
+                                    "/"  base))]
     (if (.exists custom-template)
       custom-template
       (if-let [param (params (keyword (.replaceFirst base "\\.html$" "")))]
@@ -50,7 +53,7 @@ looks in the base template directory."
         (-> (clojure.lang.RT/baseLoader) (.getResourceAsStream (str "templates/" base)))))))
 
 (def memo-nodes
-     (memoize
+     (memo/memo
       (fn [source]
         (if-let [source (template-for source)]
           (map annotate (select (html-resource source) [:body :> any-node]))))))
@@ -60,10 +63,10 @@ looks in the base template directory."
   `(def ~name
         (fn ~args
           (if-let [nodes# (memo-nodes ~source)]
-            (flatmap (transformation ~@forms) nodes#)))))  
+            (flatmap (transformation ~@forms) nodes#)))))
 
 (def memo-html-resource
-     (memoize
+     (memo/memo
       (fn [source]
         (if-let [source (template-for source)]
           (html-resource source)))))
@@ -72,9 +75,9 @@ looks in the base template directory."
   "A template returns a seq of string:
    Overridden from enlive to defer evaluation of the source until runtime.
    Builds in \"template-for\""
-  [name source args & forms] 
+  [name source args & forms]
   `(def ~name
-        (comp emit* 
+        (comp emit*
               (fn ~args
                 (if-let [nodes# (memo-html-resource ~source)]
                   (flatmap (transformation ~@forms) nodes#))))))
@@ -104,7 +107,7 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
             (list (.subSequence string prevend (.length string)))))))
      0)))
 
-(defn expand-links 
+(defn expand-links
   "Return a seq of nodes with links expanded into anchor tags."
   [s]
   (when s
@@ -124,16 +127,16 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
   [:div#content-tag] (content page-content)
   [:div#copyright] (content (params :copyright)))
 
-(defn branch-subdir [branch-name] 
+(defn branch-subdir [branch-name]
   (when branch-name (str "branch-" branch-name)))
 
 (defn create-page [output-file branch title prefix master-toc local-toc page-content]
-  (let [dir (if branch 
+  (let [dir (if branch
               (file (params :output-path) (branch-subdir branch))
-              (file (params :output-path)))] 
+              (file (params :output-path)))]
     (when (not (.exists dir))
       (.mkdirs dir))
-    (with-open [out  (writer (file dir output-file))] 
+    (with-open [out  (writer (file dir output-file))]
       (binding [*out* out]
         (print
          (apply str (page title prefix master-toc local-toc page-content)))))))
@@ -146,13 +149,13 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
 (defmethod ns-html-file String [ns-name]
   (str ns-name "-api.html"))
 
-(defn overview-toc-data 
+(defn overview-toc-data
   [ns-info]
   (for [ns ns-info] [(:short-name ns) (:short-name ns)]))
 
 (defn var-tag-name [ns v] (str (:full-name ns) "/" (:name v)))
 
-(defn var-toc-entries 
+(defn var-toc-entries
   "Build the var-name, <a> tag pairs for the vars in ns"
   [ns key]
   (seq (for [v (get ns key)] [(:name v) (var-tag-name ns v)
@@ -160,8 +163,8 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
                                 [(:name proto-fn) (var-tag-name ns proto-fn)])])))
 
 (defn ns-toc-data [ns]
-  (apply 
-   vector 
+  (apply
+   vector
    `(["Overview" "toc0"]
        ~@[(when-let [entries (var-toc-entries ns :protocols)]
             ["Protocols" "proto-section" entries])]
@@ -195,7 +198,7 @@ vars, types, protocols, and functions in protocols"
 
 (defn add-ns-vars [ns]
   (clone-for [v (sort-by #(.toLowerCase (:name %)) (names-for-ns ns))]
-             #(at % 
+             #(at %
                 [:a] (do->
                       (set-attr :href (var-url ns v))
                       (content (:name v))))))
@@ -203,19 +206,19 @@ vars, types, protocols, and functions in protocols"
 (defn process-see-also
   "Take the variations on the see-also metadata and turn them into a canonical [link text] form"
   [see-also-seq]
-  (map 
+  (map
    #(cond
-      (string? %) [% %] 
+      (string? %) [% %]
       (< (count %) 2) (repeat 2 %)
-      :else %) 
+      :else %)
    see-also-seq))
 
 (defn see-also-links [ns]
   (if-let [see-also (seq (:see-also ns))]
     #(at %
-       [:span#see-also-link] 
+       [:span#see-also-link]
        (clone-for [[link text] (process-see-also (:see-also ns))]
-         (fn [t] 
+         (fn [t]
            (at t
              [:a] (do->
                    (set-attr :href link)
@@ -224,9 +227,9 @@ vars, types, protocols, and functions in protocols"
 (defn external-doc-links [ns external-docs]
   (if-let [ns-docs (get external-docs (:short-name ns))]
     #(at %
-       [:span#external-doc-link] 
+       [:span#external-doc-link]
        (clone-for [[link text] ns-docs]
-         (fn [t] 
+         (fn [t]
            (at t
              [:a] (do->
                    (set-attr :href (str "doc/" link))
@@ -234,19 +237,19 @@ vars, types, protocols, and functions in protocols"
 
 (defn namespace-overview [ns template]
   (at template
-    [:#namespace-tag] 
+    [:#namespace-tag]
     (do->
      (set-attr :id (:short-name ns))
      (content (:short-name ns)))
     [:#author-line] (when (:author ns)
-                 #(at % [:#author-name] 
+                 #(at % [:#author-name]
                       (content (:author ns))))
     [:a#api-link] (set-attr :href (ns-html-file ns))
     [:pre#namespace-docstr] (content (expand-links (:doc ns)))
     [:span#var-link] (add-ns-vars ns)
     [:span#subspace] (if-let [subspaces (seq (:subspaces ns))]
                        (clone-for [s subspaces]
-                         #(at % 
+                         #(at %
                             [:span#name] (content (:short-name s))
                             [:span#sub-var-link] (add-ns-vars s))))
     [:span#see-also] (see-also-links ns)
@@ -267,7 +270,7 @@ vars, types, protocols, and functions in protocols"
   [:span#header-status-block] (when (:status branch-info)
                                 #(at % [:span#header-status]
                                      (content (:status branch-info))))
-  [:div#project-description] (content (or 
+  [:div#project-description] (content (or
                                        (make-project-description)
                                        (params :description)))
   [:div#home-page] (when-let [home (params :project-home)]
@@ -299,8 +302,8 @@ vars, types, protocols, and functions in protocols"
                                      (let [subdir (if (= version (:version (first all-branch-info)))
                                                     nil
                                                     (str (branch-subdir name) "/"))]
-                                       (fn [n] 
-                                         (at n 
+                                       (fn [n]
+                                         (at n
                                              [:a] (do->
                                                    (set-attr :href (str prefix subdir "index.html"))
                                                    (content (cl-format nil "~a (~a)" version status))))))))))
@@ -366,12 +369,12 @@ generated HTML files from having gratuitous diffs."
     (when (not (or (zero? (count res)) (.startsWith res "fatal")))
       (->> res split-lines first (re-find #"\w+$")))))
 
-(def 
+(def
  #^{:doc "Gets the commit hash for the last commit that included this file. We
 do this for source links so that we don't change them with every commit (unless that file
 actually changed). This reduces the amount of random doc file changes that happen."}
  get-last-commit-hash
- (memoize
+ (memo/memo
   (fn [file branch]
     (case (params :scm-tool)
           "git" (git-get-last-commit-hash file branch)
@@ -389,29 +392,29 @@ actually changed). This reduces the amount of random doc file changes that happe
       (cl-format nil "~a~a/~a" web-raw-src-dir hash file))))
 
 (def src-prefix-length
-  (memoize
+  (memo/memo
    (fn []
      (.length (.getPath (File. (params :root)))))))
 
 (def memoized-working-directory
-     (memoize 
+     (memoize
       (fn [] (.getAbsolutePath (file ".")))))
 
-(def expand-src-file 
-     (memoize
-      (fn [f branch] 
+(def expand-src-file
+     (memo/memo
+      (fn [f branch]
         (let [fl (as-file f)]
           (if (.isAbsolute fl)
             f
-            (if-let [result (first 
+            (if-let [result (first
                              (filter #(.exists %)
                                      (map #(File. % f)
-                                          (expand-classpath 
+                                          (expand-classpath
                                            branch
-                                           (params :root) 
+                                           (params :root)
                                            (params :load-classpath)))))]
               (.getAbsolutePath result)
-              (do 
+              (do
                 (cl-format *err* "No absolute path for file metadata ~a~%" f)
                 nil)))))))
 
@@ -435,8 +438,8 @@ actually changed). This reduces the amount of random doc file changes that happe
 
 ;;; TODO: factor out var from namespace and sub-namespace into a separate template.
 (defn var-details [ns v template branch-info]
-  (at template 
-    [:#var-tag] 
+  (at template
+    [:#var-tag]
     (do->
      (set-attr :id (var-tag-name ns v))
      (content (:name v)))
@@ -504,7 +507,7 @@ that we're documenting"
 
 (defn proto-details [ns p loc branch-info ns-info]
   (at loc
-      [:#proto-tag] 
+      [:#proto-tag]
       (do->
        (set-attr :id (var-tag-name ns p))
        (content (:name p)))
@@ -548,7 +551,7 @@ that we're documenting"
 (defn type-details [ns t loc branch-info ns-info]
     (let [expanded-ns-info (flatten-namespaces ns-info)]
       (at loc
-          [:#type-tag] 
+          [:#type-tag]
           (do->
            (set-attr :id (var-tag-name ns t))
            (content (:name t)))
@@ -590,7 +593,7 @@ that we're documenting"
                                   #(at % [:span#header-status]
                                        (content (:status branch-info))))
         [:span#author-line] (when (:author ns)
-                              #(at % [:#author-name] 
+                              #(at % [:#author-name]
                                    (content (:author ns))))
         [:span#long-name] (content (:full-name ns))
         [:div#home-page] (when (= (count ns-info) 1)
@@ -626,12 +629,12 @@ that we're documenting"
                (make-local-toc (ns-toc-data ns))
                (make-ns-content ns branch-info ns-info external-docs)))
 
-(defn vars-by-letter 
-  "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the 
+(defn vars-by-letter
+  "Produce a lazy seq of two-vectors containing the letters A-Z and Other with all the
 vars in ns-info that begin with that letter"
   [ns-info]
   (let [chars (conj (into [] (map #(str (char (+ 65 %))) (range 26))) "Other")
-        var-map (apply merge-with conj 
+        var-map (apply merge-with conj
                        (into {} (for [c chars] [c [] ]))
                        (for [v (mapcat #(for [v (names-for-ns %)] [v %])
                                        (concat ns-info (mapcat :subspaces ns-info)))]
@@ -645,7 +648,7 @@ vars in ns-info that begin with that letter"
   (if-let [doc (:doc v)]
     (let [len (min (count doc) n)
           suffix (if (< len (count doc)) "..." ".")]
-      (str (.replaceAll 
+      (str (.replaceAll
             (.replaceFirst (.substring doc 0 len) "^[ \n]*" "")
             "\n *" " ")
            suffix))
@@ -662,7 +665,7 @@ vars in ns-info that begin with that letter"
                          (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
                               "#" (:full-name ns) "/" (:name v)))
                (content (:name v)))
-         [:#line-content] (content 
+         [:#line-content] (content
                            (cl-format nil "~vt~a~vt~a~vt~a~%"
                                       (- 29 overhead)
                                       (str (when (:dynamic v) "dynamic ") (:var-type v))
@@ -704,8 +707,8 @@ vars in ns-info that begin with that letter"
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ns-file 
-  "Get the file name (relative to src/ in clojure.contrib) where a namespace lives" 
+(defn ns-file
+  "Get the file name (relative to src/ in clojure.contrib) where a namespace lives"
   [ns]
   (let [ns-name (.replaceAll (:full-name ns) "-" "_")
         ns-file (.replaceAll ns-name "\\." "/")]
@@ -730,7 +733,7 @@ vars in ns-info that begin with that letter"
     :file (when (:file v)
             (var-base-file (:file v) branch))))
 
-(defn structured-index 
+(defn structured-index
   "Create a structured index of all the reference information about contrib"
   [ns-info branch]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
@@ -742,7 +745,7 @@ vars in ns-info that begin with that letter"
 (defn make-index-clj
   "Generate a Clojure formatted index file that can be consumed by other tools"
   [ns-info branch-info]
-  (with-open  [out (writer (file (params :output-path) 
+  (with-open  [out (writer (file (params :output-path)
                                  (cl-format nil *index-clj-file*
                                             (:version branch-info))))]
     (binding [*out* out]
@@ -761,7 +764,7 @@ vars in ns-info that begin with that letter"
   (when (params :build-json-index)
     (with-open  [out (writer (file (params :output-path)
                                    (str (when (not (:first? branch-info))
-                                          (str (branch-subdir (:name branch-info)) "/")) 
+                                          (str (branch-subdir (:name branch-info)) "/"))
                                         *index-json-file*)))]
       (binding [*out* out]
         (pprint-json (structured-index ns-info (:name branch-info)))))))
@@ -784,10 +787,10 @@ vars in ns-info that begin with that letter"
       (select-content-text node [:h1])))
 
 (defn external-doc-map [v]
-  (apply 
+  (apply
    merge-with concat
-   (map 
-    (partial apply assoc {}) 
+   (map
+    (partial apply assoc {})
     (for [[offset title :as elem] v]
       (let [[_ dir nm] (re-find #"(.*/)?([^/]*)\.html" offset)
             package (if dir (apply str (interpose "." (into [] (.split dir "/")))))]
@@ -818,11 +821,23 @@ vars in ns-info that begin with that letter"
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn make-all-pages 
+(def ^:private memoized-fns [memo-nodes memo-html-resource get-last-commit-hash
+                             src-prefix-length expand-src-file])
+
+(defn ^:private clear-memo-cache!
+  "We want to memoize some functions for performance but the context may change their
+execution on different branches (since we update the param structure per branch).
+So we clear the memoize cache between processing each branch to force a recompute."
+  []
+  (doseq [f memoized-fns]
+    (memo/memo-clear! f)))
+
+(defn make-all-pages
   ([ns-info] (make-all-pages {:first? true} nil ns-info))
   ([branch-info all-branch-info ns-info]
-     (let [doc-dir (str (when-not (:first? branch-info) 
-                          (str (branch-subdir (:name branch-info)) "/")) 
+     (clear-memo-cache!)
+     (let [doc-dir (str (when-not (:first? branch-info)
+                          (str (branch-subdir (:name branch-info)) "/"))
                         "doc")]
        (let [prefix (if (:first? branch-info) nil "../")
              master-toc (make-master-toc ns-info branch-info all-branch-info prefix)
@@ -837,4 +852,3 @@ vars in ns-info that begin with that letter"
          (when (params :build-raw-index)
            (make-raw-index-clj ns-info branch-info))
          (make-index-json ns-info branch-info)))))
-

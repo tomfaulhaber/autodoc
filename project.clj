@@ -3,6 +3,7 @@
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [org.clojure/core.memoize "0.5.6"]
                  [org.clojure/data.json "0.1.1"]
                  [org.clojure/data.zip "0.1.0"]
                  [org.clojure/tools.namespace "0.1.0"]

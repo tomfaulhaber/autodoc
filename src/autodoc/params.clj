@@ -15,7 +15,7 @@
       [:param-dir "autodoc-params" "A directory from which to load custom project data"],
       [:param-file nil "A multi-project file from which to load custom project data"],
       [:param-key nil "The project in a multi-project file that should be built (only used\n     when param-file is specified.)"],
-
+      [:template-dir "templates" "The directory in which project-specific templates are stored"]
       [:root "." "The directory in which to find the project"],
       [:source-path ["src"] "The relative path within the project directory where we find the source. Multiple source paths can be entered separated by \":\""],
       [:web-src-dir nil "The web address for source files (e.g., http://github.com/clojure/clojure/blob/)"],
