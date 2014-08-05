@@ -54,7 +54,8 @@
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
        (! :project "core.typed" :name "Gradual Typing"
-          :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)")
+          :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)"
+          :source-path ["module-check/src/main/clojure" "module-rt/src/main/clojure"])
        (! :project "core.unify" :name "Unification library")
        (! :project "data.avl" :name "AVL trees"
           :description "Persistent sorted maps and sets with log-time rank queries")
@@ -75,8 +76,12 @@
        (! :project "math.numeric-tower" :name "Math functions")
        ;; (! :project "test.benchmark" :name "Benchmark suite")
        (! :project "test.generative" :name "Test data generation and execution harness")
-       (! :project "tools.analyzer" :name "Analyzer for Clojure code")
-       (! :project "tools.analyzer.jvm" :name "JVM-specific passes for tools.analyzer")
+       (! :project "tools.analyzer" :name "Analyzer for Clojure code"
+                    :external-autodoc-dirs ["spec"])
+       (! :project "tools.analyzer.jvm" :name "JVM-specific passes for tools.analyzer"
+          :namespaces-to-document ["clojure.tools.analyzer.jvm" "clojure.tools.analyzer.passes.jvm"]
+          :external-autodoc-dirs ["spec"]
+          :trim-prefix "clojure.tools.analyzer.")
        (! :project "tools.cli" :name "Command-line processor")
        (! :project "tools.emitter.jvm" :name "JVM bytecode generator")
        (! :project "tools.logging" :name "Logging Tools")
