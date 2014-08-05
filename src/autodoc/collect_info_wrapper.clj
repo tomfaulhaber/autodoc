@@ -21,7 +21,7 @@
   (concat (str/split (first args) #"\s+") (rest args)))
 
 (defn system [& args]
-  (pprint args)
+  (println (str/join " " (map pr-str args)))
   (println (:out (apply sh (build-sh-args args)))))
 
 (defn path-str [path-seq]
