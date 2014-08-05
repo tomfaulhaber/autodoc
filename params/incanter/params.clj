@@ -6,9 +6,9 @@
    :file-prefix file-prefix,
    :root root,
    :source-path ["modules"],
-   :web-src-dir "https://github.com/liebke/incanter/blob/",
+   :web-src-dir "https://github.com/incanter/incanter/blob/",
 
-   :web-home "http://liebke.github.com/incanter/",
+   :web-home "http://incanter.github.com/incanter/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
    ;;   :clojure-contrib-classes (str root "build"),
@@ -19,8 +19,8 @@
    :trim-prefix "incanter.",
    :dependencies :from-pom
 
-   :branches [{:name "1.5.4"
-               :version "1.5.4"
+   :branches [{:name "1.5.5"
+               :version "1.5.5"
                :status "stable"
                :params {:load-classpath [#"/modules/[^/]+/src$"]}}
               {:name "1.4.1"
