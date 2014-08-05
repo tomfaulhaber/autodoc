@@ -24,7 +24,7 @@
   (pprint args)
   (println (:out (apply sh (build-sh-args args)))))
 
-(defn path-str [path-seq] 
+(defn path-str [path-seq]
   (apply str (interpose (System/getProperty "path.separator")
                         (map #(.getAbsolutePath (file %)) path-seq))))
 
@@ -37,26 +37,26 @@ that autodoc was invoked from a jar rather than out of its source directory."
                           (re-pattern (System/getProperty "path.separator"))))))
 
 (defn exec-clojure [class-path & args]
-  (apply system (concat [ "java" "-cp"] 
+  (apply system (concat [ "java" "-cp"]
                         [(path-str class-path)]
                         ["clojure.main" "-e"]
                         args)))
 
 (defn expand-jar-path [jar-dirs]
-  (apply concat 
+  (apply concat
          (for [jar-dir jar-dirs]
            (filter #(.endsWith (.getName %) ".jar")
                    (file-seq (java.io.File. jar-dir))))))
 
-(defn do-collect 
+(defn do-collect
   "Collect the namespace and var info for the checked out branch by spawning a separate process.
 This means that we can keep versions and dependencies unentangled "
   [branch-name]
   (let [src-path (map #(.getPath (File. (params :root) %)) (params :source-path))
         target-path (when-not (params :built-clojure-jar)
                       (.getPath (File. (params :root) "target/classes")))
-        class-path (concat 
-                    (filter 
+        class-path (concat
+                    (filter
                      identity
                      (concat
                       [(params :built-clojure-jar)]
@@ -64,7 +64,7 @@ This means that we can keep versions and dependencies unentangled "
                       src-path
                       [target-path "."]))
                     (when-let [deps (conj
-                                     (get-dependencies (params :root) (params :dependencies))
+                                     (get-dependencies (params :root) (params :dependencies) (params :dependency-exceptions))
                                      autodoc-collect)]
                       (find-jars {:local-repo-classpath true,
                                   :dependencies deps,
@@ -73,9 +73,9 @@ This means that we can keep versions and dependencies unentangled "
                     (expand-classpath branch-name (params :root) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
-    (exec-clojure class-path 
-                  (cl-format 
-                   nil 
+    (exec-clojure class-path
+                  (cl-format
+                   nil
                    "~@[~a ~](use 'autodoc-collect.collect-info) (collect-info-to-file \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\" \"~a\")"
                    (params :collect-prefix-forms)
                    (params :root)
@@ -85,8 +85,8 @@ This means that we can keep versions and dependencies unentangled "
                    (params :trim-prefix)
                    (.getAbsolutePath tmp-file)
                    branch-name))
-    (try 
-      (with-open [f (java.io.PushbackReader. (reader tmp-file))] 
+    (try
+      (with-open [f (java.io.PushbackReader. (reader tmp-file))]
         (binding [*in* f] (read)))
-      (finally 
+      (finally
        (.delete tmp-file)))))

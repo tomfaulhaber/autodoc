@@ -55,7 +55,8 @@
        (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
        (! :project "core.typed" :name "Gradual Typing"
           :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)"
-          :source-path ["module-check/src/main/clojure" "module-rt/src/main/clojure"])
+          :source-path ["module-check/src/main/clojure" "module-rt/src/main/clojure"]
+          :dependency-exceptions ["core.typed.rt"])
        (! :project "core.unify" :name "Unification library")
        (! :project "data.avl" :name "AVL trees"
           :description "Persistent sorted maps and sets with log-time rank queries")

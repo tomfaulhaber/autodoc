@@ -37,9 +37,9 @@ removed that suffix and false otherwise"
   "If dep-param is :from-pom, returns the dependencies from the pom as a
 sequence of 2-vectors in the form ['group/artifact \"version\"].
 Otherwise, returns dep-param as is. If the pom is empty, depend on Clojure 1.5"
-  [root dep-param]
+  [root dep-param exceptions]
   (if (= :from-pom dep-param)
-    (add-clojure (let [exceptions #{"core.typed.rt"}
+    (add-clojure (let [exceptions (set exceptions)
                        get-tag (fn [loc tag] (first (:content (xml1-> loc tag zip/node))))
                        pom-xml (get-pom-xml root)
                        deps (xml-> pom-xml :dependencies :dependency)
@@ -53,5 +53,5 @@ Otherwise, returns dep-param as is. If the pom is empty, depend on Clojure 1.5"
                           :let [sub-root (str root
                                               (System/getProperty "file.separator")
                                               (-> m zip/node :content first))]]
-                      (get-dependencies sub-root dep-param)))))
+                      (get-dependencies sub-root dep-param exceptions)))))
     dep-param))
