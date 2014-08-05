@@ -17,8 +17,8 @@
     (zip/xml-zip (xml/parse inp))))
 
 (defn get-version
-  "Returns the 2-vector [version is-snapshot?] where version is a string representing 
-the version (with -SNAPSHOT removed) and is-snapshot? is true if we 
+  "Returns the 2-vector [version is-snapshot?] where version is a string representing
+the version (with -SNAPSHOT removed) and is-snapshot? is true if we
 removed that suffix and false otherwise"
   [root]
   (let [full-version (first (:content (first (xml-> (get-pom-xml root) :version zip/node))))]
@@ -39,8 +39,19 @@ sequence of 2-vectors in the form ['group/artifact \"version\"].
 Otherwise, returns dep-param as is. If the pom is empty, depend on Clojure 1.5"
   [root dep-param]
   (if (= :from-pom dep-param)
-    (add-clojure (let [get-tag (fn [loc tag] (first (:content (xml1-> loc tag zip/node))))
-                       deps (xml-> (get-pom-xml root) :dependencies :dependency)]
-                   (for [d deps :when (not= "true" (get-tag d :optional))]
-                     [(symbol (get-tag d :groupId) (get-tag d :artifactId)) (get-tag d :version)])))
+    (add-clojure (let [exceptions #{"core.typed.rt"}
+                       get-tag (fn [loc tag] (first (:content (xml1-> loc tag zip/node))))
+                       pom-xml (get-pom-xml root)
+                       deps (xml-> pom-xml :dependencies :dependency)
+                       modules (xml-> pom-xml :modules :module)]
+                   (apply
+                    concat
+                    (for [d deps :when (and (not= "true" (get-tag d :optional))
+                                            (not (exceptions (get-tag d :artifactId))))]
+                      [(symbol (get-tag d :groupId) (get-tag d :artifactId)) (get-tag d :version)])
+                    (for [m modules
+                          :let [sub-root (str root
+                                              (System/getProperty "file.separator")
+                                              (-> m zip/node :content first))]]
+                      (get-dependencies sub-root dep-param)))))
     dep-param))
