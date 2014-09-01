@@ -80,6 +80,10 @@
        (! :project "test.generative" :name "Test data generation and execution harness")
        (! :project "tools.analyzer" :name "Analyzer for Clojure code"
                     :external-autodoc-dirs ["spec"])
+       (! :project "tools.analyzer.js" :name "Javascript-specific passes for tools.analyzer"
+          :namespaces-to-document ["clojure.tools.analyzer.js" "clojure.tools.analyzer.passes.js"]
+          :external-autodoc-dirs ["spec"]
+          :trim-prefix "clojure.tools.analyzer.")
        (! :project "tools.analyzer.jvm" :name "JVM-specific passes for tools.analyzer"
           :namespaces-to-document ["clojure.tools.analyzer.jvm" "clojure.tools.analyzer.passes.jvm"]
           :external-autodoc-dirs ["spec"]
