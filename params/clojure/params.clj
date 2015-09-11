@@ -28,21 +28,27 @@
                             "clojure.java.shell", "clojure.data", "clojure.reflect"
                             "clojure.edn", "clojure.instant",  ],
 
-   :branches [{:name "clojure-1.6.0"
-               :version "v1.6"
+   :branches [{:name "clojure-1.7.0"
+               :version "v1.7"
                :status "stable"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "master"
-               :version "v1.7"
+               :version "v1.8"
                :status "in development"
+               :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
+                        :built-clojure-jar
+                        "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
+              {:name "clojure-1.6.0"
+               :version "v1.6"
+               :status "stable"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "clojure-1.5.0"
                :version "v1.5"
-               :status "stable"
+               :status "legacy"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar",
@@ -78,5 +84,5 @@
     ],
 
    :page-title "Clojure Core API Reference",
-   :copyright "Copyright 2007-2014 by Rich Hickey",
+   :copyright "Copyright 2007-2015 by Rich Hickey",
    })
