@@ -1,14 +1,13 @@
 (ns autodoc.collect-info-wrapper
-  (:require
-   [clojure.string :as str])
+  (:require [clojure.string :as str]
+            [leiningen.core.project :as project])
 
-  (:use
-   [clojure.java.io :only [file reader]]
-   [clojure.java.shell :only [sh]]
-   [clojure.pprint :only [cl-format pprint]]
-   [autodoc.deps :only [find-jars]]
-   [autodoc.params :only (params expand-classpath)]
-   [autodoc.pom-tools :only (get-dependencies)])
+  (:use [autodoc.params :only (params expand-classpath)]
+        [autodoc.pom-tools :only (get-dependencies)]
+        [clojure.java.io :only [file reader]]
+        [clojure.java.shell :only [sh]]
+        [clojure.pprint :only [cl-format pprint]]
+        [leiningen.core.classpath :only [get-classpath]])
 
   (:import [java.io File]))
 
@@ -66,10 +65,8 @@ This means that we can keep versions and dependencies unentangled "
                     (when-let [deps (conj
                                      (get-dependencies (params :root) (params :dependencies) (params :dependency-exceptions))
                                      autodoc-collect)]
-                      (find-jars {:local-repo-classpath true,
-                                  :dependencies deps,
-                                  :root (params :root)
-                                  :name (str "Autodoc for " (params :name))}))
+                      (get-classpath {:dependencies deps
+                                      :repositories project/default-repositories}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
                     (expand-jar-path (params :load-jar-dirs)))
         tmp-file (File/createTempFile "collect-" ".clj")]
@@ -89,4 +86,4 @@ This means that we can keep versions and dependencies unentangled "
       (with-open [f (java.io.PushbackReader. (reader tmp-file))]
         (binding [*in* f] (read)))
       (finally
-       (.delete tmp-file)))))
+        (.delete tmp-file)))))
