@@ -2,7 +2,7 @@
   (:use
    [clojure.pprint :only (cl-format)]
    [clojure.java.io :only [file make-parents]]
-   [clojure.tools.namespace :only [find-namespaces-in-dir]]
+   [clojure.tools.namespace.find :only [find-namespaces-in-dir]]
    [autodoc.build-html :only (make-all-pages)]
    [autodoc.collect-info-wrapper :only (do-collect)]
    [autodoc.copy-statics :only (copy-statics)]

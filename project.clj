@@ -6,7 +6,7 @@
                  [org.clojure/core.memoize "0.5.6"]
                  [org.clojure/data.json "0.1.1"]
                  [org.clojure/data.zip "0.1.0"]
-                 [org.clojure/tools.namespace "0.1.0"]
+                 [org.clojure/tools.namespace "0.2.11"]
                  [enlive "1.0.0"]
                  [leiningen-core "2.5.2"]
                  [autodoc-collect "1.0.1"]])
