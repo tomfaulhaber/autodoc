@@ -10,7 +10,7 @@ Introduction
 Autodoc is a system for generating HTML documentation for Clojure
 projects. It is used to create the up-to-the minute published API
 documentation for [Clojure
-itself](http://clojure.github.com/clojure), 
+itself](http://clojure.github.com/clojure),
 the [various contributed
 libraries](http://clojure.github.com/), and the
 statistics package, [Incanter](http://liebke.github.com/incanter).
@@ -28,22 +28,22 @@ When run over a project, Autodoc will generate:
 1. An overview page (called index.html) with a description of the
 project, and an overview of each namespace (from the namespace's
 metadata) with a list of documented, public variables and functions in
-that namespace. 
+that namespace.
 
     ![(A sample of the overview page)](static/sample-overview.png)
 
 2. A page for each namespace in the project which has the detailed
 documentation for each variable, function and macro. This includes
-name, type, usage and documentation. 
+name, type, usage and documentation.
 
     ![(A sample of the namespace page)](static/sample-namespace.png)
 
 3. A global index of all the documented variables, their namespace,
-and a snippet of their documentation. 
+and a snippet of their documentation.
 
     ![(A sample of the index page)](static/sample-index.png)
 
-4. A Clojure index of all the namespaces and vars in those namespaces 
+4. A Clojure index of all the namespaces and vars in those namespaces
 for use by other tools. See the file index.clj in the output directory:
 
 {% highlight clojure %}
@@ -87,7 +87,7 @@ Most of the features of the Autodoc service have been implemented in
 the Autodoc command. A couple of features are not set up yet, however:
 
 * Good documentation for protocols and types.
-* Building and linking supporting documentation from Markdown source. 
+* Building and linking supporting documentation from Markdown source.
 * Automatically updating a GitHub pages repository as part of the build. (See below for a more manual solution to this, however.)
 
 Stay tuned. These features are coming.
@@ -183,11 +183,11 @@ Def
 
 <tr>
 <td>
-:macro 
+:macro
 </td>
 <td>
 Used to determine the type of the symbol. If the var has a <code>:macro</code>
-key, it is assumed to be a macro. This key is added automatically by <code>defmacro</code>. 
+key, it is assumed to be a macro. This key is added automatically by <code>defmacro</code>.
 </td>
 <td>
 Def
@@ -241,7 +241,7 @@ Running Autodoc
 ### Getting Autodoc ###
 
 Unless you are using Autodoc from leiningen, you will need to get a
-copy of the standalone jar. Download the latest version from 
+copy of the standalone jar. Download the latest version from
 [github](http://github.com/tomfaulhaber/autodoc/downloads).
 
 If you're using leiningen, the autodoc code will be pulled
@@ -252,7 +252,7 @@ automatically from its home on clojars.org.
 The simplest way to use autodoc is to launch it from the command line
 in the root directory of your project:
 
-    java -jar autodoc-<version>-standalone.jar 
+    java -jar autodoc-<version>-standalone.jar
 
 This will scan the source in the `src/` directory and produce an
 HTML tree in `autodoc/` directory.
@@ -294,7 +294,7 @@ Default Value
 
 <tr>
 <td>
-name 
+name
 </td>
 <td>
 The name of this project
@@ -312,37 +312,37 @@ description
 A description of this project
 </td>
 <td>
-nil 
+nil
 </td>
 </tr>
 
 <tr>
 <td>
-param-dir 
+param-dir
 </td>
 <td>
 A directory from which to load custom project data
 </td>
 <td>
-autodoc-params 
+autodoc-params
 </td>
 </tr>
 
 <tr>
 <td>
-root 
+root
 </td>
 <td>
 The directory in which to find the project
 </td>
 <td>
-. 
+.
 </td>
 </tr>
 
 <tr>
 <td>
-source-path 
+source-path
 </td>
 <td>
 The relative path within the project directory where we find the source
@@ -354,19 +354,19 @@ src
 
 <tr>
 <td>
-web-src-dir 
+web-src-dir
 </td>
 <td>
 The web address for source files (e.g., http://github.com/clojure/clojure/blob/)
 </td>
 <td>
-nil 
+nil
 </td>
 </tr>
 
 <tr>
 <td>
-web-home 
+web-home
 </td>
 <td>
 Where these autodoc pages will be stored on the web (for gh-pages, http://&lt;user&gt;.github.com/&lt;project&gt;/)
@@ -378,55 +378,55 @@ nil
 
 <tr>
 <td>
-output-path 
+output-path
 </td>
 <td>
 Where to create the output html tree.
 </td>
 <td>
-autodoc 
+autodoc
 </td>
 </tr>
 
 <tr>
 <td>
-external-doc-tmpdir 
+external-doc-tmpdir
 </td>
 <td>
 The place to store temporary doc files during conversion (i.e., when converting markdown).
 </td>
 <td>
-/tmp/autodoc/doc 
+/tmp/autodoc/doc
 </td>
 </tr>
 
 <tr>
 <td>
-namespaces-to-document 
+namespaces-to-document
 </td>
 <td>
 The list of namespaces to include in the documentation, separated by commas
 </td>
 <td>
-nil 
+nil
 </td>
 </tr>
 
 <tr>
 <td>
-trim-prefix 
+trim-prefix
 </td>
 <td>
 The prefix to trim off namespaces in page names and references (e.g. "clojure.contrib")
 </td>
 <td>
-nil 
+nil
 </td>
 </tr>
 
 <tr>
 <td>
-load-except-list 
+load-except-list
 </td>
 <td>
 A list of regexps that describe files that shouldn't be loaded
@@ -438,37 +438,37 @@ A list of regexps that describe files that shouldn't be loaded
 
 <tr>
 <td>
-build-json-index 
+build-json-index
 </td>
 <td>
 Set to true if you want to create an index file in JSON (currently slow)
 </td>
 <td>
-false 
+false
 </td>
 </tr>
 
 <tr>
 <td>
-page-title 
+page-title
 </td>
 <td>
 A title to put on each page
 </td>
 <td>
-nil 
+nil
 </td>
 </tr>
 
 <tr>
 <td>
-copyright 
+copyright
 </td>
 <td>
 Copyright (or other page footer data) to put at the bottom of each page
 </td>
 <td>
-No copyright info 
+No copyright info
 </td>
 </tr>
 </table>
@@ -478,7 +478,7 @@ Integrating Autodoc with your build
 
 ### Building with Leiningen ###
 
-[lein-autodoc](https://github.com/tomfaulhaber/lein-autodoc) provides an Autodoc plug-in 
+[lein-autodoc](https://github.com/tomfaulhaber/lein-autodoc) provides an Autodoc plug-in
 for Leiningen. This is the very easiest way
 to integrate Autodoc into a build process.
 
@@ -514,14 +514,14 @@ There are two things to consider with Leiningen integration:
 1. Options that take lists (like `:load-except-list`) are not yet supported.
 2. In order to provide more independence from shared dependencies with Leiningen, Autodoc and its dependents are loaded into their own directory and executed in a separate process from Leiningen. This won't work if you run it for the first time when you're untethered from the Internet.
 
-### Building with Ant ### 
+### Building with Ant ###
 
 Building with ant is straightforward. Just add an autodoc target to
 your `build.xml` file that looks like this:
 
     <!-- Adjust the pathname of the jar to wherever you've stored it and set the version appropriately -->
     <property name="autodoc-standalone-jar" location="${user.home}/.clojure/autodoc-<version>-standalone.jar"/>
-  
+
     <!-- Adjust the depends as appropriate -->
     <target name="autodoc" depends="build"
             description="Build the HTML documentation">
@@ -575,7 +575,7 @@ project is easy:
 2. remove any `autodoc` directory that you've already generated.
 
 3. While in your project root directory, create a clone of your
-private github repository into the autodoc directory: 
+private github repository into the autodoc directory:
 
         git clone git@github.com:<user name>/<project name>.git autodoc
 
