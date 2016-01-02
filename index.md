@@ -482,12 +482,28 @@ Integrating Autodoc with your build
 for Leiningen. This is the very easiest way
 to integrate Autodoc into a build process.
 
-Simply add a dev-dependency to your project.clj file:
+There are two ways you can add the plugin to your leiningen environment: add it to the project or add it to a user profile. This is described in the  [Leiningen plugin documentation](https://github.com/technomancy/leiningen/blob/master/doc/PLUGINS.md). If generating autodoc is a regular artifact of your project, put autodoc in the project.clj. If you want to be able to generate autodoc for arbitrary projects that you may not own, it makes sense to add the plugin to your user profile.
 
-    :dev-dependencies [[lein-autodoc "0.9.0"]]
+#### Adding to a `project.clj` file ####
 
-Leiningen will automatically pull the code for the autodoc plug-in
-from Clojars, so you don't need to worry about installing or anything.
+The autodoc plugin should always be added to the `:dev` profile within your `project.clj` file, as follows:
+
+{% highlight clojure %}
+      :profiles {:dev {:plugins [[lein-autodoc "1.0.0"]]}}
+{% endhighlight %}
+
+#### Adding to your user profile ####
+
+To add the plugin to your user profile so that all projects that you work on get autodoc, simply add it to your `~/.lein/profiles.clj` file:
+
+{% highlight clojure %}
+{:user
+ {:plugins [[lein-autodoc "1.0.0"]
+            ...]}
+  ...}}
+{% endhighlight %}
+
+#### Running autodoc from Leiningen ####
 
 To build the documentation, simply type:
 
@@ -503,7 +519,7 @@ map attached to the `:autodoc` key:
       :dependencies [[incanter "1.0-master-SNAPSHOT"]
                      [org.clojure/clojure "1.1.0-alpha-SNAPSHOT"]
                      [org.clojure/clojure-contrib "1.0-SNAPSHOT"]]
-      :dev-dependencies [[lein-autodoc "0.9.0"]]
+      :profiles {:dev {:plugins [[lein-autodoc "1.0.0"]]}}
       :autodoc { :name "Bugs", :page-title "Bugs API Documentation"})
 {% endhighlight %}
 
