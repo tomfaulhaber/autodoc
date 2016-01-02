@@ -7,6 +7,7 @@
                  [org.clojure/data.json "0.1.1"]
                  [org.clojure/data.zip "0.1.0"]
                  [org.clojure/tools.namespace "0.2.11"]
-                 [enlive "1.0.0"]
+                 [enlive "1.0.0" :exclusions [org.clojure/clojure]]
                  [leiningen-core "2.5.2"]
-                 [autodoc-collect "1.0.1"]])
+                 [autodoc-collect "1.0.1"]]
+  :profiles {:uberjar {:aot :all}})
