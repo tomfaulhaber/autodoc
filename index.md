@@ -86,7 +86,6 @@ build tools like ant or
 Most of the features of the Autodoc service have been implemented in
 the Autodoc command. A couple of features are not set up yet, however:
 
-* Good documentation for protocols and types.
 * Building and linking supporting documentation from Markdown source.
 * Automatically updating a GitHub pages repository as part of the build. (See below for a more manual solution to this, however.)
 
@@ -264,14 +263,9 @@ To modify the behavior of autodoc, use parameters. For example:
 will use the sub-directory `master/` as the location of the source
 files.
 
-As shown above, to set parameters from the command line, simply use
-options like `--<parameter-name>=<value>` or `--<parameter-name>
-<value>`. The full list of available parameters is below.
+As shown above, to set parameters from the command line, simply use options like `--<parameter-name>=<value>` or `--<parameter-name> <value>`. The full list of available parameters is below.
 
-If you need extra classpath entries (that is, if your project uses a
-library other than Clojure or Clojure-Contrib), you won't be able to
-run the executable jar directly. Instead, specify your full classpath
-and the class `autodoc.autodoc` as follows:
+If you need extra classpath entries (that is, if your project uses a library other than Clojure or Clojure-Contrib), you won't be able to run the executable jar directly. Instead, specify your full classpath and the class `autodoc.autodoc` as follows:
 
     java -cp autodoc-<version>-standalone.jar:<other jars> autodoc.autodoc <autodoc params>
 
