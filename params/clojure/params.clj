@@ -84,5 +84,5 @@
     ],
 
    :page-title "Clojure Core API Reference",
-   :copyright "Copyright 2007-2015 by Rich Hickey",
+   :copyright "Copyright 2007-2016 by Rich Hickey",
    })
