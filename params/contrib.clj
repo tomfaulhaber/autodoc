@@ -42,7 +42,11 @@
        (! :project "algo.graph" :name "Basic graph theory algorithms")
        (! :project "algo.monads" :name "Monad Macros and Definitions")
        (! :project "core.async" :name "Facilities for async programming and communication"
-          :build-file "lein.xml")
+          :build-file "lein.xml"
+          :branches [{:name "master"
+                      :version "0.2.x"
+                      :status nil
+                      :params {:dependencies :from-pom}}])
        (! :project "core.cache" :name "A caching library implementing various cache strategies")
        (! :project "core.contracts" :name "Contracts programming in Clojure")
        (! :project "core.incubator" :name "Functions proposed for core inclusion"
