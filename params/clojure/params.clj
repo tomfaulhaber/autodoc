@@ -26,8 +26,8 @@
                             "clojure.template" "clojure.test" "clojure.walk"
                             "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
-                            "clojure.java.shell", "clojure.data", "clojure.reflect"
-                            "clojure.edn", "clojure.instant",  ],
+                            "clojure.java.shell" "clojure.data" "clojure.reflect"
+                            "clojure.edn" "clojure.instant" "clojure.spec"],
 
    :branches [{:name "clojure-1.8.0"
                :version "v1.8"
