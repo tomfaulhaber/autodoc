@@ -469,8 +469,8 @@ actually changed). This reduces the amount of random doc file changes that happe
      (content (:name v)))
     [:span#var-type] (content (str (when (:dynamic v) "dynamic ") (:var-type v)))
     [:pre#var-usage] (content (var-usage v))
-    [:pre#var-specs] (content (var-specs v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
+    [:pre#var-specs] (content (var-specs v))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
                               (apply (set-attr :href link) [n])))
     [:.var-added] (when (:added v)
