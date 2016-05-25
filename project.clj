@@ -1,4 +1,4 @@
-(defproject autodoc "1.0.0"
+(defproject autodoc "1.1.0"
   :description "A tool to build HTML documentation from your Clojure source"
   :url "http://github.com/tomfaulhaber/autodoc"
   :main autodoc.autodoc
@@ -9,5 +9,5 @@
                  [org.clojure/tools.namespace "0.2.11"]
                  [enlive "1.0.0" :exclusions [org.clojure/clojure]]
                  [leiningen-core "2.5.2"]
-                 [autodoc-collect "1.0.1"]]
+                 [autodoc/autodoc-collect "1.1.1"]]
   :profiles {:uberjar {:aot :all}})

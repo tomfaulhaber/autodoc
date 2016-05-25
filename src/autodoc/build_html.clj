@@ -10,7 +10,8 @@
         [clojure.string :only (split-lines)]
         [clojure.java.io :only (as-file file writer)]
         [clojure.java.shell :only (sh)]
-        [clojure.pprint :only (pprint cl-format)]
+        [clojure.pprint :only (pprint cl-format formatter-out with-pprint-dispatch
+                                      code-dispatch)]
         [clojure.data.json :only (pprint-json)]
         [autodoc.params :only (params expand-classpath)]))
 
@@ -358,6 +359,29 @@ generated HTML files from having gratuitous diffs."
      (if (= (:var-type v) "multimethod")
        "No usage documentation available"))))
 
+(def key-pred*
+  "A function for pretty-printing specs that take key-pred-forms"
+  (formatter-out "~<(~;~w~_~@{~w~^ ~w~^ ~_~}~;)~:>"))
+
+(def spec-table
+  "A modified version of the pprint code table that handles specs"
+  (assoc @#'clojure.pprint/*code-table*
+         'alt key-pred*
+         'cat key-pred*
+         'or  key-pred*))
+
+(defn var-specs [v]
+  (when-let [specs (:specs v)]
+    (with-redefs [clojure.pprint/*code-table* spec-table]
+      (with-pprint-dispatch code-dispatch
+        (cl-format nil "Specs:~:[~*~;~%  Args: ~w~]~:[~*~;~%  Ret:  ~w~]~:[~*~;~%  Fn:   ~w~]"
+                   (and (:args specs) (not= (:args specs) ':clojure.spec/unknown))
+                   (:args specs)
+                   (and (:ret specs) (not= (:ret specs) ':clojure.spec/unknown))
+                   (:ret specs)
+                   (and (:fn specs) (not= (:fn specs) ':clojure.spec/unknown))
+                   (:fn specs))))))
+
 (defn- git-get-last-commit-hash [file branch]
   (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file
                               :dir (params :root))))]
@@ -445,6 +469,7 @@ actually changed). This reduces the amount of random doc file changes that happe
      (content (:name v)))
     [:span#var-type] (content (str (when (:dynamic v) "dynamic ") (:var-type v)))
     [:pre#var-usage] (content (var-usage v))
+    [:pre#var-specs] (content (var-specs v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
                               (apply (set-attr :href link) [n])))
