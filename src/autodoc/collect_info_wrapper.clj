@@ -13,8 +13,12 @@
 
 ;;; The code to execute collect-info in a separate process
 
-;;; TODO: consider pulling this from project.clj, maybe via the classpath
-(def autodoc-collect ['autodoc/autodoc-collect "1.1.1"])
+(defn autodoc-collect
+  "Get the lein-style reference for autodoc collect by parsing the classpath"
+  []
+  (let [props (str/split (System/getProperty "java.class.path") #":")
+        version (second (some #(re-find #"/autodoc-collect-([^/]+)\.jar$" %) props))]
+    ['autodoc/autodoc-collect version]))
 
 (defn- build-sh-args [args]
   (concat (str/split (first args) #"\s+") (rest args)))
@@ -64,7 +68,7 @@ This means that we can keep versions and dependencies unentangled "
                       [target-path "."]))
                     (when-let [deps (conj
                                      (get-dependencies (params :root) (params :dependencies) (params :dependency-exceptions))
-                                     autodoc-collect)]
+                                     (autodoc-collect))]
                       (get-classpath {:dependencies deps
                                       :repositories project/default-repositories}))
                     (expand-classpath branch-name (params :root) (params :load-classpath))
