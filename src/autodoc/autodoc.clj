@@ -104,13 +104,18 @@
              (cl-format true "Unknown autodoc command: ~a~%" cmd)
              (help)))))))
 
+(defn execute
+  "Parse the command line arguments and call autodoc with the params"
+  [& args]
+  (if-let [[params args] (try
+                           (process-command-line args)
+                           (catch RuntimeException e
+                             (println (.getMessage e))
+                             (prn)
+                             (help)))]
+    (apply autodoc params args)))
+
 (defn -main [& args]
   (try
-    (if-let [[params args] (try
-                             (process-command-line args)
-                             (catch RuntimeException e
-                               (println (.getMessage e))
-                               (prn)
-                               (help)))]
-      (apply autodoc params args))
+    (apply execute args)
     (finally (shutdown-agents))))
