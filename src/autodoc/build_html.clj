@@ -212,12 +212,12 @@ vars, types, protocols, and functions in protocols"
 
 (defmethod url-for :default
   [ns v full?]
-  (str (when full? (str (ns-html-file (:base-ns ns))) "#")
+  (str (when full? (str (ns-html-file (:base-ns ns)) "#"))
        (var-tag-name ns v)))
 
 (defmethod url-for "spec"
   [ns s full?]
-  (str (when full? (str (ns-html-file (:base-ns ns))) "#")
+  (str (when full? (str (ns-html-file (:base-ns ns)) "#"))
        (spec-tag-name (:keyword s))))
 
 (defmulti sort-str
