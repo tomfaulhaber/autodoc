@@ -208,17 +208,17 @@ vars, types, protocols, and functions in protocols"
 
 (defmulti url-for
   "Construct the relative URL to the anchored entry for an object on a namespace detail page"
-  (fn [ns o full?] (:var-type o)))
+  (fn [ns o unique-ns?] (:var-type o)))
 
 (defmethod url-for :default
-  [ns v full?]
-  (str (when full? (str (ns-html-file (:base-ns ns)) "#"))
-       (var-tag-name ns v)))
+  [ns v unique-ns?]
+  (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
+       "#" (var-tag-name ns v)))
 
 (defmethod url-for "spec"
-  [ns s full?]
-  (str (when full? (str (ns-html-file (:base-ns ns)) "#"))
-       (spec-tag-name (:keyword s))))
+  [ns s unique-ns?]
+  (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
+       "#" (spec-tag-name (:keyword s))))
 
 (defmulti sort-str
   "Determine how to sort the object"
@@ -246,7 +246,7 @@ vars, types, protocols, and functions in protocols"
   (clone-for [v (sort-by sort-str (names-for-ns ns))]
              #(at %
                 [:a] (do->
-                      (set-attr :href (url-for ns v true))
+                      (set-attr :href (url-for ns v false))
                       (content (display-name v))))))
 
 (defn process-see-also
@@ -754,9 +754,7 @@ vars in ns-info that begin with that letter"
         doc-len (+ 50 (min 0 (- 18 (count short-name))))]
     #(at %
          [:a] (do->
-               (set-attr :href
-                         (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
-                              "#" (url-for ns v false)))
+               (set-attr :href (url-for ns v unique-ns?))
                (content (display-name v)))
          [:#line-content] (content
                            (cl-format nil "~vt~a~vt~a~vt~a~%"
@@ -818,14 +816,14 @@ vars in ns-info that begin with that letter"
 
 (defmulti var-index-info
   "Generate the info for an object for machine readable documentation indices"
-  (fn [o _ _] (:var-type o)))
+  (fn [o & _] (:var-type o)))
 
 (defmethod var-index-info :default
-  [v ns branch]
+  [v ns branch unique-ns?]
   (assoc (select-keys v [:name :doc :author :var-type :line :added :deprecated :dynamic :forms])
          :namespace (:full-name ns)
          :arglists (add-gensyms (:arglists v))
-         :wiki-url (str (params :web-home) "/" (url-for ns v true))
+         :wiki-url (str (params :web-home) "/" (url-for ns v unique-ns?))
          :source-url (var-src-link v branch)
          :raw-source-url (when (:file v)
                            (web-raw-src-file (var-base-file (:file v) branch) branch))
@@ -833,18 +831,18 @@ vars in ns-info that begin with that letter"
                  (var-base-file (:file v) branch))))
 
 (defmethod var-index-info "spec"
-  [s ns _]
-  (assoc (select-keys s [:symbol :spec :var-type])
+  [s ns _ unique-ns?]
+  (assoc (select-keys s [:keyword :spec :var-type])
          :namespace (:full-name ns)
-         :wiki-url (str (params :web-home) "/" (url-for ns s true))))
+         :wiki-url (str (params :web-home) "/" (url-for ns s unique-ns?))))
 
 (defn structured-index
   "Create a structured index of all the reference information about contrib"
-  [ns-info branch]
+  [ns-info branch unique-ns?]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
         all-vars (mapcat #(for [v (names-for-ns %)] [v %]) namespaces)]
      {:namespaces (map #(namespace-index-info % branch) namespaces)
-      :vars (map (fn [[v ns]] (apply var-index-info v ns branch [])) all-vars)}))
+      :vars (map (fn [[v ns]] (apply var-index-info v ns branch unique-ns? [])) all-vars)}))
 
 
 (defn make-index-clj
@@ -854,7 +852,8 @@ vars in ns-info that begin with that letter"
                                  (cl-format nil *index-clj-file*
                                             (:version branch-info))))]
     (binding [*out* out]
-      (pprint (structured-index ns-info (:name branch-info))))))
+      (pprint (structured-index ns-info (:name branch-info)
+                                (<= (count ns-info) 1))))))
 
 (defn make-raw-index-clj [ns-info branch-info]
   (with-open [out (writer (file (params :output-path)
