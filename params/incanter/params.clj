@@ -8,7 +8,7 @@
    :source-path ["modules"],
    :web-src-dir "https://github.com/incanter/incanter/blob/",
 
-   :web-home "http://incanter.github.com/incanter/",
+   :web-home "http://incanter.github.io/incanter/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
    ;;   :clojure-contrib-classes (str root "build"),
