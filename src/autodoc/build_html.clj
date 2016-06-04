@@ -416,17 +416,35 @@ generated HTML files from having gratuitous diffs."
          'or   key-pred*
          'keys key-pred*))
 
-(defn var-specs [v]
+(def ^:dynamic *keyword-ns* nil)
+
+(defmulti wrap-dispatch
+  "A wrapper for code dispatch that prints local keywords with ::"
+  {:arglists '[[object]]}
+  class)
+
+(defmethod wrap-dispatch :default
+  [o]
+  (code-dispatch o))
+
+(defmethod wrap-dispatch clojure.lang.Keyword
+  [kw]
+  (if (= *keyword-ns* (namespace kw))
+    (print (str "::" (name kw)))
+    (print kw)))
+
+(defn var-specs [v ns]
   (when-let [specs (:specs v)]
-    (with-redefs [clojure.pprint/*code-table* spec-table]
-      (with-pprint-dispatch code-dispatch
-        (cl-format nil "Specs:~:[~*~;~%  Args: ~w~]~:[~*~;~%  Ret:  ~w~]~:[~*~;~%  Fn:   ~w~]"
-                   (and (:args specs) (not= (:args specs) ':clojure.spec/unknown))
-                   (:args specs)
-                   (and (:ret specs) (not= (:ret specs) ':clojure.spec/unknown))
-                   (:ret specs)
-                   (and (:fn specs) (not= (:fn specs) ':clojure.spec/unknown))
-                   (:fn specs))))))
+    (binding [*keyword-ns* (:full-name ns)]
+      (with-redefs [clojure.pprint/*code-table* spec-table]
+        (with-pprint-dispatch wrap-dispatch
+          (cl-format nil "Specs:~:[~*~;~%  Args: ~w~]~:[~*~;~%  Ret:  ~w~]~:[~*~;~%  Fn:   ~w~]"
+                     (and (:args specs) (not= (:args specs) ':clojure.spec/unknown))
+                     (:args specs)
+                     (and (:ret specs) (not= (:ret specs) ':clojure.spec/unknown))
+                     (:ret specs)
+                     (and (:fn specs) (not= (:fn specs) ':clojure.spec/unknown))
+                     (:fn specs)))))))
 
 (defn- git-get-last-commit-hash [file branch]
   (let [hash (.trim (:out (sh "git" "rev-list" "--max-count=1" "HEAD" file
@@ -516,7 +534,7 @@ actually changed). This reduces the amount of random doc file changes that happe
     [:span#var-type] (content (str (when (:dynamic v) "dynamic ") (:var-type v)))
     [:pre#var-usage] (content (var-usage v))
     [:pre#var-docstr] (content (expand-links (:doc v)))
-    [:pre#var-specs] (content (var-specs v))
+    [:pre#var-specs] (content (var-specs v ns))
     [:a#var-source] (fn [n] (when-let [link (var-src-link v (:name branch-info))]
                               (apply (set-attr :href link) [n])))
     [:.var-added] (when (:added v)
@@ -528,10 +546,11 @@ actually changed). This reduces the amount of random doc file changes that happe
                              (content (str "Deprecated since " (params :name)
                                            " version " (:deprecated v)))))))
 
-(defn fmt-spec [spec]
-  (with-redefs [clojure.pprint/*code-table* spec-table]
-    (with-pprint-dispatch code-dispatch
-      (cl-format nil "~w" spec))))
+(defn fmt-spec [spec ns]
+  (binding [*keyword-ns* (:full-name ns)]
+    (with-redefs [clojure.pprint/*code-table* spec-table]
+      (with-pprint-dispatch wrap-dispatch
+        (cl-format nil "~w" spec)))))
 
 (defn spec-details [ns [kw spec] template branch-info]
   (at template
@@ -539,7 +558,7 @@ actually changed). This reduces the amount of random doc file changes that happe
       (do->
        (set-attr :id (spec-tag-name kw))
        (content (str "::" (name kw))))
-      [:pre#spec-description] (content (fmt-spec spec))))
+      [:pre#spec-description] (content (fmt-spec spec ns))))
 
 (declare common-namespace-api)
 
