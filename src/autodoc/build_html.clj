@@ -163,23 +163,34 @@ Returns: (\"\" \"abc\" \"123\" \"def\")"
                               (for [proto-fn (:fns v)]
                                 [(:name proto-fn) (var-tag-name ns proto-fn)])])))
 
+(defn spec-tag-name [kw]
+  (str ":" (namespace kw) "/" (name kw)))
+
+(defn spec-toc-entries
+  "Build the keyword, <a> tag pairs for the spec defs in ns"
+  [ns key]
+  (seq (for [[kw _] (get ns key)] [(str "::" (name kw)) (spec-tag-name kw)])))
+
 (defn ns-toc-data [ns]
   (apply
    vector
    `(["Overview" "toc0"]
-       ~@[(when-let [entries (var-toc-entries ns :protocols)]
-            ["Protocols" "proto-section" entries])]
-       ~@[(when-let [entries (var-toc-entries ns :types)]
-            ["Types" "type-section" entries])]
-       ~@[(when-let [entries (var-toc-entries ns :members)]
-            ["Vars and Functions" "var-section" entries])]
-       ;; TODO do all types for subspaces
-       ~@(for [sub-ns (:subspaces ns)]
-           [(:short-name sub-ns) (:short-name sub-ns)
-            (concat
-             (var-toc-entries sub-ns :protocols)
-             (var-toc-entries sub-ns :types)
-             (var-toc-entries sub-ns :members))]))))
+     ~@[(when-let [entries (var-toc-entries ns :protocols)]
+          ["Protocols" "proto-section" entries])]
+     ~@[(when-let [entries (var-toc-entries ns :types)]
+          ["Types" "type-section" entries])]
+     ~@[(when-let [entries (var-toc-entries ns :members)]
+          ["Vars and Functions" "var-section" entries])]
+     ~@[(when-let [entries (spec-toc-entries ns :specs)]
+          ["Specs" "spec-section" entries])]
+     ;; TODO do all types for subspaces
+     ~@(for [sub-ns (:subspaces ns)]
+         [(:short-name sub-ns) (:short-name sub-ns)
+          (concat
+           (var-toc-entries sub-ns :protocols)
+           (var-toc-entries sub-ns :types)
+           (var-toc-entries sub-ns :members)
+           (spec-toc-entries sub-ns :specs))]))))
 
 (defn names-for-ns
   "Find all the names that we want to document in a namespace including
@@ -190,19 +201,53 @@ vars, types, protocols, and functions in protocols"
    (:members ns)
    (:types ns)
    (:protocols ns)
+   (for [[kw spec] (:specs ns)]
+     {:var-type "spec" :keyword kw :spec spec})
    (for [proto (:protocols ns)]
      (:fns proto))))
 
-(defn var-url
-  "Return the relative URL of the anchored entry for a var on a namespace detail page"
-  [ns v] (str (ns-html-file (:base-ns ns)) "#" (var-tag-name ns v)))
+(defmulti url-for
+  "Construct the relative URL to the anchored entry for an object on a namespace detail page"
+  (fn [ns o full?] (:var-type o)))
+
+(defmethod url-for :default
+  [ns v full?]
+  (str (when full? (str (ns-html-file (:base-ns ns))) "#")
+       (var-tag-name ns v)))
+
+(defmethod url-for "spec"
+  [ns s full?]
+  (str (when full? (str (ns-html-file (:base-ns ns))) "#")
+       (spec-tag-name (:keyword s))))
+
+(defmulti sort-str
+  "Determine how to sort the object"
+  :var-type)
+
+(defmethod sort-str :default
+  [v] (-> v :name .toLowerCase))
+
+(defmethod sort-str "spec"
+  [s] (-> s :keyword name .toLowerCase))
+
+(defmulti display-name
+  "The name to display in the index for each type of object"
+  :var-type)
+
+(defmethod display-name :default
+  [v]
+  (:name v))
+
+(defmethod display-name "spec"
+  [s]
+  (str "::" (-> s :keyword name)))
 
 (defn add-ns-vars [ns]
-  (clone-for [v (sort-by #(.toLowerCase (:name %)) (names-for-ns ns))]
+  (clone-for [v (sort-by sort-str (names-for-ns ns))]
              #(at %
                 [:a] (do->
-                      (set-attr :href (var-url ns v))
-                      (content (:name v))))))
+                      (set-attr :href (url-for ns v true))
+                      (content (display-name v))))))
 
 (defn process-see-also
   "Take the variations on the see-also metadata and turn them into a canonical [link text] form"
@@ -366,9 +411,10 @@ generated HTML files from having gratuitous diffs."
 (def spec-table
   "A modified version of the pprint code table that handles specs"
   (assoc @#'clojure.pprint/*code-table*
-         'alt key-pred*
-         'cat key-pred*
-         'or  key-pred*))
+         'alt  key-pred*
+         'cat  key-pred*
+         'or   key-pred*
+         'keys key-pred*))
 
 (defn var-specs [v]
   (when-let [specs (:specs v)]
@@ -481,6 +527,19 @@ actually changed). This reduces the amount of random doc file changes that happe
                         #(at % [:#content]
                              (content (str "Deprecated since " (params :name)
                                            " version " (:deprecated v)))))))
+
+(defn fmt-spec [spec]
+  (with-redefs [clojure.pprint/*code-table* spec-table]
+    (with-pprint-dispatch code-dispatch
+      (cl-format nil "~w" spec))))
+
+(defn spec-details [ns [kw spec] template branch-info]
+  (at template
+      [:#spec-tag]
+      (do->
+       (set-attr :id (spec-tag-name kw))
+       (content (str "::" (name kw))))
+      [:pre#spec-description] (content (fmt-spec spec))))
 
 (declare common-namespace-api)
 
@@ -606,6 +665,14 @@ that we're documenting"
           (clone-for [v var-list]
                      #(var-details ns v % branch-info))))))
 
+(defn render-specs
+  [ns spec-list branch-info]
+  (when (seq spec-list)
+    (fn [loc]
+      (at loc [:div#spec-entry]
+          (clone-for [s spec-list]
+                     #(spec-details ns s % branch-info))))))
+
 (defn common-namespace-api [ns branch-info ns-info external-docs]
   (fn [node]
     (at node
@@ -640,6 +707,7 @@ that we're documenting"
         [:div#proto-section] (render-protos ns (:protocols ns) branch-info ns-info)
         [:div#type-section] (render-types ns (:types ns) branch-info ns-info)
         [:div#var-section] (render-vars ns (:members ns) branch-info)
+        [:div#spec-section] (render-specs ns (:specs ns) branch-info)
         [:div#sub-namespaces]
         (substitute (map #(render-sub-namespace-api % branch-info ns-info external-docs)
                          (:subspaces ns))))))
@@ -663,14 +731,14 @@ vars in ns-info that begin with that letter"
                        (into {} (for [c chars] [c [] ]))
                        (for [v (mapcat #(for [v (names-for-ns %)] [v %])
                                        (concat ns-info (mapcat :subspaces ns-info)))]
-                         {(or (re-find #"[A-Z]" (-> v first :name .toUpperCase))
+                         {(or (re-find #"[A-Z]" (-> v first sort-str .toUpperCase))
                               "Other")
                           v}))]
-    (for [c chars] [c (sort-by #(-> % first :name .toUpperCase) (get var-map c))])))
+    (for [c chars] [c (sort-by #(-> % first sort-str) (get var-map c))])))
 
 (defn doc-prefix [v n]
   "Get a prefix of the doc string suitable for use in an index"
-  (if-let [doc (:doc v)]
+  (if-let [doc (or (:doc v) (some-> v :spec str))]
     (let [len (min (count doc) n)
           suffix (if (< len (count doc)) "..." ".")]
       (str (.replaceAll
@@ -680,7 +748,7 @@ vars in ns-info that begin with that letter"
     ""))
 
 (defn gen-index-line [v ns unique-ns?]
-  (let [var-name (:name v)
+  (let [var-name (display-name v)
         overhead (count var-name)
         short-name (:short-name ns)
         doc-len (+ 50 (min 0 (- 18 (count short-name))))]
@@ -688,8 +756,8 @@ vars in ns-info that begin with that letter"
          [:a] (do->
                (set-attr :href
                          (str (if unique-ns? "index.html" (ns-html-file (:base-ns ns)))
-                              "#" (:full-name ns) "/" (:name v)))
-               (content (:name v)))
+                              "#" (url-for ns v false)))
+               (content (display-name v)))
          [:#line-content] (content
                            (cl-format nil "~vt~a~vt~a~vt~a~%"
                                       (- 29 overhead)
@@ -748,16 +816,27 @@ vars in ns-info that begin with that letter"
                   (file (first (params :source-path)) ; TODO: consider *all* elements of the source path here
                         (ns-file ns))) branch)))
 
-(defn var-index-info [v ns branch]
+(defmulti var-index-info
+  "Generate the info for an object for machine readable documentation indices"
+  (fn [o _ _] (:var-type o)))
+
+(defmethod var-index-info :default
+  [v ns branch]
   (assoc (select-keys v [:name :doc :author :var-type :line :added :deprecated :dynamic :forms])
          :namespace (:full-name ns)
          :arglists (add-gensyms (:arglists v))
-         :wiki-url (str (params :web-home) "/" (var-url ns v))
+         :wiki-url (str (params :web-home) "/" (url-for ns v true))
          :source-url (var-src-link v branch)
          :raw-source-url (when (:file v)
                            (web-raw-src-file (var-base-file (:file v) branch) branch))
          :file (when (:file v)
                  (var-base-file (:file v) branch))))
+
+(defmethod var-index-info "spec"
+  [s ns _]
+  (assoc (select-keys s [:symbol :spec :var-type])
+         :namespace (:full-name ns)
+         :wiki-url (str (params :web-home) "/" (url-for ns s true))))
 
 (defn structured-index
   "Create a structured index of all the reference information about contrib"
