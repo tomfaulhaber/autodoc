@@ -824,10 +824,19 @@ vars in ns-info that begin with that letter"
         ns-file (.replaceAll ns-name "\\." "/")]
     (str ns-file ".clj")))
 
+(defn ns-url
+  "Determine the relative URL for a namespace. This might include a tag if the
+   namespace is a sub-namespace of a base"
+  [ns]
+  (cl-format nil "~a-api.html~:[~;#~a~]"
+             (:base-ns ns)
+             (not= (:full-name ns) (:base-ns ns))
+             (:full-name ns)))
+
 (defn namespace-index-info [ns branch]
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
-    :wiki-url (str (params :web-home) (ns-html-file ns))
+    :wiki-url (str (params :web-home) (ns-url ns))
     :source-url (web-src-file
                  (.getPath
                   (file (first (params :source-path)) ; TODO: consider *all* elements of the source path here
