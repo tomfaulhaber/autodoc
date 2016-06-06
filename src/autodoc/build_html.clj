@@ -827,16 +827,17 @@ vars in ns-info that begin with that letter"
 (defn ns-url
   "Determine the relative URL for a namespace. This might include a tag if the
    namespace is a sub-namespace of a base"
-  [ns]
-  (cl-format nil "~a-api.html~:[~;#~a~]"
+  [ns unique-ns?]
+  (cl-format nil "~:[~a-api~;~*index~].html~:[~;#~a~]"
+             unique-ns?
              (:base-ns ns)
              (not= (:full-name ns) (:base-ns ns))
              (:full-name ns)))
 
-(defn namespace-index-info [ns branch]
+(defn namespace-index-info [ns branch unique-ns?]
   (assoc (select-keys ns [:doc :author])
     :name (:full-name ns)
-    :wiki-url (str (params :web-home) (ns-url ns))
+    :wiki-url (str (params :web-home) (ns-url ns unique-ns?))
     :source-url (web-src-file
                  (.getPath
                   (file (first (params :source-path)) ; TODO: consider *all* elements of the source path here
@@ -869,7 +870,7 @@ vars in ns-info that begin with that letter"
   [ns-info branch unique-ns?]
   (let [namespaces (concat ns-info (mapcat :subspaces ns-info))
         all-vars (mapcat #(for [v (names-for-ns %)] [v %]) namespaces)]
-     {:namespaces (map #(namespace-index-info % branch) namespaces)
+     {:namespaces (map #(namespace-index-info % branch unique-ns?) namespaces)
       :vars (map (fn [[v ns]] (apply var-index-info v ns branch unique-ns? [])) all-vars)}))
 
 
