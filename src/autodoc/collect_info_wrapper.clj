@@ -13,12 +13,16 @@
 
 ;;; The code to execute collect-info in a separate process
 
-(defn autodoc-collect
-  "Get the lein-style reference for autodoc collect by parsing the classpath"
+;;; Get the lein-style reference for autodoc collect by parsing the classpath
+;;; This is defined as a macro so it will be evaluated at compile time. Once the
+;;; uberjar is created, the original classpath is gone and we can't find the
+;;; version that we're interested in.
+
+(defmacro autodoc-collect
   []
   (let [props (str/split (System/getProperty "java.class.path") #":")
         version (second (some #(re-find #"/autodoc-collect-([^/]+)\.jar$" %) props))]
-    ['autodoc/autodoc-collect version]))
+    `['autodoc/autodoc-collect ~version]))
 
 (defn- build-sh-args [args]
   (concat (str/split (first args) #"\s+") (rest args)))
