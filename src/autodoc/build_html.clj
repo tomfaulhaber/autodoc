@@ -406,7 +406,7 @@ generated HTML files from having gratuitous diffs."
 
 (def key-pred*
   "A function for pretty-printing specs that take key-pred-forms"
-  (formatter-out "~<(~;~w~_~@{~w~^ ~w~^ ~_~}~;)~:>"))
+  (formatter-out "~<(~;~w ~_~@{~w~^ ~w~^ ~_~}~;)~:>"))
 
 (def spec-table
   "A modified version of the pprint code table that handles specs"
