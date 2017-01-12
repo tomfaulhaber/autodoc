@@ -31,7 +31,7 @@ removed that suffix and false otherwise"
   [deps]
   (if (some #(= "clojure" (-> % first name)) deps)
     deps
-    (conj deps ['org.clojure/clojure "1.9.0-alpha8"])))
+    (conj deps ['org.clojure/clojure "1.9.0-alpha14"])))
 
 (defn get-dependencies
   "If dep-param is :from-pom, returns the dependencies from the pom as a
