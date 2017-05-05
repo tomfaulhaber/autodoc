@@ -439,11 +439,11 @@ generated HTML files from having gratuitous diffs."
       (with-redefs [clojure.pprint/*code-table* spec-table]
         (with-pprint-dispatch wrap-dispatch
           (cl-format nil "Specs:~:[~*~;~%  Args: ~w~]~:[~*~;~%  Ret:  ~w~]~:[~*~;~%  Fn:   ~w~]"
-                     (and (:args specs) (not= (:args specs) ':clojure.spec/unknown))
+                     (and (:args specs) (not= (:args specs) ':clojure.spec.alpha/unknown))
                      (:args specs)
-                     (and (:ret specs) (not= (:ret specs) ':clojure.spec/unknown))
+                     (and (:ret specs) (not= (:ret specs) ':clojure.spec.alpha/unknown))
                      (:ret specs)
-                     (and (:fn specs) (not= (:fn specs) ':clojure.spec/unknown))
+                     (and (:fn specs) (not= (:fn specs) ':clojure.spec.alpha/unknown))
                      (:fn specs)))))))
 
 (defn- git-get-last-commit-hash [file branch]
