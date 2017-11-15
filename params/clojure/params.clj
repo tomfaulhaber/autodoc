@@ -39,8 +39,8 @@
                :version "v1.9"
                :status "in development"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]
-                                       ['org.clojure/spec.alpha "0.1.108"]
-                                       ['org.clojure/core.specs.alpha "0.1.10"],
+                                       ['org.clojure/spec.alpha "0.1.143"]
+                                       ['org.clojure/core.specs.alpha "0.1.24"],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "clojure-1.7.0"
