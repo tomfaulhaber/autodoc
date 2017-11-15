@@ -89,6 +89,7 @@
    :load-except-list
    [
     #"clojure/core.clj"
+    #"clojure/core_instant18.clj"
     #"clojure/parallel.clj"
     ],
 
