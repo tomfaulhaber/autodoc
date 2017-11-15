@@ -27,7 +27,7 @@
                             "clojure.xml" "clojure.zip"
                             "clojure.java.browse" "clojure.java.io" "clojure.java.javadoc"
                             "clojure.java.shell" "clojure.data" "clojure.reflect"
-                            "clojure.edn" "clojure.instant" "clojure.spec"],
+                            "clojure.edn" "clojure.instant"],
 
    :branches [{:name "clojure-1.8.0"
                :version "v1.8"
@@ -38,7 +38,9 @@
               {:name "master"
                :version "v1.9"
                :status "in development"
-               :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
+               :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]
+                                       ['org.clojure/spec.alpha "0.1.108"]
+                                       ['org.clojure/core.specs.alpha "0.1.10"],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "clojure-1.7.0"
