@@ -1,8 +1,8 @@
 (defproject autodoc "1.1.2-SNAPSHOT"
   :description "A tool to build HTML documentation from your Clojure source"
-  :url "http://github.com/tomfaulhaber/autodoc"
+  :url "https://github.com/tomfaulhaber/autodoc"
   :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+            :url "https://www.eclipse.org/legal/epl-v10.html"}
   :main autodoc.autodoc
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/core.memoize "0.5.6"]

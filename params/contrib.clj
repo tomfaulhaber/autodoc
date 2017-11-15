@@ -11,8 +11,8 @@
              :source-path ["src/main/clojure"],
              :web-src-dir (str "https://github.com/clojure/" project "/blob/"),
 
-             :web-home (str "http://clojure.github.io/" project "/"),
-             :project-home (str "http://github.com/clojure/" project "/"),
+             :web-home (str "https://clojure.github.io/" project "/"),
+             :project-home (str "https://github.com/clojure/" project "/"),
              :output-path (str file-prefix "/autodoc/"),
              :external-doc-tmpdir "/tmp/autodoc/doc",
 

@@ -9,7 +9,7 @@
    :source-path ["src/clj"],
    :web-src-dir "https://github.com/clojure/clojure/blob/",
 
-   :web-home "http://clojure.github.io/clojure/",
+   :web-home "https://clojure.github.io/clojure/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
    :jar-file (str root "clojure-slim.jar"),

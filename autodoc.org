@@ -56,9 +56,9 @@ incanter.distribution.Distribution might be a good one to use for testing
 ** Complete the gh-pages doc
 *** TODO Figure out missing sections
 *** TODO add layout/style to gh-pages doc 
-(look at http://wiki.github.com/mojombo/jekyll/configuration  for examples)
+(look at https://wiki.github.com/mojombo/jekyll/configuration  for examples)
 *** TODO include pygments style in gh-doc 
-(see http://github.com/mojombo/tpw/blob/master/css/syntax.css)
+(see https://github.com/mojombo/tpw/blob/master/css/syntax.css)
 ** New features
 *** Image support
 **** TODO Figure out how to do image support for Incanter

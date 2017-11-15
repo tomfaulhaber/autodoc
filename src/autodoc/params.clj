@@ -18,9 +18,9 @@
       [:template-dir "templates" "The directory in which project-specific templates are stored"]
       [:root "." "The directory in which to find the project"],
       [:source-path ["src"] "The relative path within the project directory where we find the source. Multiple source paths can be entered separated by \":\""],
-      [:web-src-dir nil "The web address for source files (e.g., http://github.com/clojure/clojure/blob/)"],
+      [:web-src-dir nil "The web address for source files (e.g., https://github.com/clojure/clojure/blob/)"],
 
-      [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, http://<user>.github.com/<project>/)"],
+      [:web-home nil "Where these autodoc pages will be stored on the web (for gh-pages, https://<user>.github.io/<project>/)"],
       [:output-path "autodoc" "Where to create the output html tree."],
       [:external-doc-tmpdir "/tmp/autodoc/doc" "The place to store temporary doc files during conversion (i.e., when converting markdown)."],
       [:load-classpath [] "Extra items on the classpath needed to load (e.g., gen-classed items)."]
