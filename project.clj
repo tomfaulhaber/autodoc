@@ -1,4 +1,4 @@
-(defproject autodoc "1.1.2"
+(defproject autodoc "1.1.3-SNAPSHOT"
   :description "A tool to build HTML documentation from your Clojure source"
   :url "https://github.com/tomfaulhaber/autodoc"
   :license {:name "Eclipse Public License"
