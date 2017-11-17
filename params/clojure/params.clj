@@ -45,13 +45,13 @@
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
               {:name "clojure-1.7.0"
                :version "v1.7"
-               :status "stable"
+               :status "legacy"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}}
               {:name "clojure-1.6.0"
                :version "v1.6"
-               :status "stable"
+               :status "legacy"
                :params {:dependencies [['org.codehaus.jsr166-mirror/jsr166y "1.7.0"]],
                         :built-clojure-jar
                         "/home/tom/src/clj/autodoc-work-area/clojure/src/clojure.jar"}},
