@@ -7,7 +7,7 @@
    :root root,
    :web-src-dir "https://github.com/clojure/clojure-contrib/blob/",
 
-   :web-home "http://clojure.github.com/clojure-contrib/",
+   :web-home "https://clojure.github.io/clojure-contrib/",
    :output-path (str file-prefix "/autodoc/"),
    :external-doc-tmpdir "/tmp/autodoc/doc",
 
