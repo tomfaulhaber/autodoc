@@ -57,6 +57,7 @@
        (! :project "core.match" :name "Pattern match and predicate dispatch")
        (! :project "core.memoize" :name "A manipulable, pluggable, memoization framework")
        (! :project "core.rrb-vector" :name "RRB-Tree-based Vectors")
+       (! :project "core.specs.alpha" :name "Specs for Clojure")
        (! :project "core.typed" :name "Gradual Typing"
           :collect-prefix-forms "(require 'clojure.core.typed) (clojure.core.typed/load-if-needed)"
           :source-path ["module-check/src/main/clojure" "module-rt/src/main/clojure"
@@ -80,14 +81,11 @@
        (! :project "java.jmx" :name "JMX Interface")
        (! :project "math.combinatorics" :name "Lazy sequences for common combinatorial functions")
        (! :project "math.numeric-tower" :name "Math functions")
+       (! :project "spec.alpha" :name "Describing the structure of data and functions")
        ;; (! :project "test.benchmark" :name "Benchmark suite")
        (! :project "test.generative" :name "Test data generation and execution harness")
        (! :project "tools.analyzer" :name "Analyzer for Clojure code"
                     :external-autodoc-dirs ["spec"])
-       (! :project "tools.analyzer.js" :name "Javascript-specific passes for tools.analyzer"
-          :namespaces-to-document ["clojure.tools.analyzer.js" "clojure.tools.analyzer.passes.js"]
-          :external-autodoc-dirs ["spec"]
-          :trim-prefix "clojure.tools.analyzer.")
        (! :project "tools.analyzer.jvm" :name "JVM-specific passes for tools.analyzer"
           :namespaces-to-document ["clojure.tools.analyzer.jvm" "clojure.tools.analyzer.passes.jvm"]
           :external-autodoc-dirs ["spec"]
